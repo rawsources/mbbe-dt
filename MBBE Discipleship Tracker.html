@@ -1,0 +1,1567 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>MBBE Discipleship Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Manrope:wght@500;600;700&display=swap">
+<style>
+/* Layout: phone-first single column; sticky top bar, fixed bottom tab bar; lesson pages read like the booklet. */
+:root {
+  --bg: #f2f4ef; --surface: #ffffff; --raise: #f7f9f5; --ink: #1e2620; --muted: #5b685e; --line: #d4dbd2;
+  --accent: #2f5d3a; --accent-ink: #ffffff; --accent-soft: #e3ebe1; --blank: #eef2eb;
+  --ok: #2c7a4b; --warn: #a86a12; --miss: #b4532e; --info: #2f5f86; --scrim: rgba(20, 28, 22, .45);
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: "Manrope", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --nav-h: 62px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121713; --surface: #1a211c; --raise: #1f2721; --ink: #e5ebe4; --muted: #9ba99e; --line: #2d372f;
+  --accent: #8cc29a; --accent-ink: #10180f; --accent-soft: #223026; --blank: #202a22;
+  --ok: #7fcb98; --warn: #e2b05a; --miss: #e8956f; --info: #8fb9df; --scrim: rgba(0, 0, 0, .6); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121713; --surface: #1a211c; --raise: #1f2721; --ink: #e5ebe4; --muted: #9ba99e; --line: #2d372f;
+  --accent: #8cc29a; --accent-ink: #10180f; --accent-soft: #223026; --blank: #202a22;
+  --ok: #7fcb98; --warn: #e2b05a; --miss: #e8956f; --info: #8fb9df; --scrim: rgba(0, 0, 0, .6); color-scheme: dark }
+
+* { box-sizing: border-box }
+html, body { min-height: 100% }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.5; margin: 0 }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface) }
+button, input, select, textarea { font: inherit; color: inherit }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px }
+a { color: var(--accent) }
+
+/* top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 6; background: var(--surface); border-bottom: 1px solid var(--line);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px }
+.top-in { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 12px; min-height: 36px }
+.top h1 { font-family: var(--serif); font-size: 19px; margin: 0; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700 }
+.back { border: 0; background: var(--blank); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 18px; flex: none }
+.who { font-size: 12px; color: var(--muted); text-align: right; line-height: 1.25; flex: none; max-width: 45% }
+.who b { display: block; color: var(--ink); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+
+/* page */
+.page { max-width: 760px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px calc(var(--nav-h) + 40px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 16px }
+.page.nonav { padding-block-end: 48px }
+h2 { font-family: var(--serif); font-size: 22px; margin: 0; line-height: 1.25; text-wrap: balance }
+h3 { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 6px 0 0; font-weight: 700 }
+p { margin: 0 }
+.muted { color: var(--muted) }
+.small { font-size: 13px }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.spread { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap }
+.stack { display: grid; gap: 10px }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 10px; min-width: 0 }
+.card.hero { background: var(--accent-soft); border-color: transparent }
+a.card, button.card { text-decoration: none; color: inherit; text-align: left; cursor: pointer; width: 100% }
+a.card:hover, button.card:hover { border-color: var(--accent) }
+.list { display: grid; gap: 8px }
+.item { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: inherit; cursor: pointer; text-align: left; width: 100% }
+.item:hover { border-color: var(--accent) }
+.item .t { font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis }
+.item .s { grid-column: 1 / -1; font-size: 13px; color: var(--muted) }
+.lesson-item .num { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+.lesson-item .t { font-family: var(--serif); font-size: 17px }
+
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: var(--blank); color: var(--muted); white-space: nowrap }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor }
+.pill.ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent) }
+.pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 15%, transparent) }
+.pill.miss { color: var(--miss); background: color-mix(in srgb, var(--miss) 14%, transparent) }
+.pill.info { color: var(--info); background: color-mix(in srgb, var(--info) 14%, transparent) }
+.pill.plain::before { display: none }
+
+.track { height: 8px; background: var(--blank); border-radius: 99px; overflow: hidden }
+.fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .3s }
+
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px }
+@media (min-width: 560px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)) } }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; text-align: left; cursor: pointer; display: grid; gap: 2px }
+.tile:hover { border-color: var(--accent) }
+.tile b { font-size: 26px; font-variant-numeric: tabular-nums; line-height: 1.1; font-family: var(--serif) }
+.tile span { font-size: 12.5px; color: var(--muted); font-weight: 600 }
+.tile.alert b { color: var(--warn) }
+
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 10px 16px; border-radius: 99px; font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none; color: var(--ink); display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent) }
+.btn.danger { color: var(--miss); border-color: color-mix(in srgb, var(--miss) 45%, transparent) }
+.btn.quiet { border-color: transparent; background: none; color: var(--muted) }
+.btn.block { width: 100% }
+.btn.sm { min-height: 34px; padding: 6px 12px; font-size: 13px }
+.btn[disabled] { opacity: .5; cursor: not-allowed }
+
+form { display: grid; gap: 12px }
+label.f { display: grid; gap: 5px; font-size: 13px; font-weight: 700; color: var(--muted) }
+input.i, select.i, textarea.i { width: 100%; font-size: 16px; font-weight: 500; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; min-height: 46px }
+textarea.i { min-height: 110px; resize: vertical; line-height: 1.45 }
+textarea.code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12.5px; min-height: 180px }
+input.i:focus, select.i:focus, textarea.i:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft) }
+.err { color: var(--miss); font-weight: 600; font-size: 14px }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 6px 12px; font-size: 13px; font-weight: 700; white-space: nowrap; cursor: pointer; color: var(--muted) }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent) }
+.chip .n { opacity: .75; margin-left: 4px }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface) }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums }
+th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap }
+th { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--raise); position: sticky; top: 0 }
+tr:last-child td { border-bottom: 0 }
+td.num, th.num { text-align: right }
+tr.click { cursor: pointer }
+tr.click:hover td { background: var(--raise) }
+
+/* bottom nav */
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line);
+  padding: 4px max(8px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(8px, env(safe-area-inset-left, 0px)) }
+.nav-in { max-width: 760px; margin: 0 auto; display: flex; height: var(--nav-h) }
+.nav a { flex: 1; display: grid; place-items: center; align-content: center; gap: 3px; text-decoration: none; color: var(--muted); font-size: 11.5px; font-weight: 700; border-radius: 10px; position: relative }
+.nav a svg { width: 22px; height: 22px }
+.nav a[aria-current="page"] { color: var(--accent) }
+.nav a[aria-current="page"]::after { content: ""; position: absolute; top: 2px; width: 26px; height: 3px; border-radius: 3px; background: var(--accent) }
+.badge { position: absolute; top: 4px; left: 54%; background: var(--warn); color: #fff; font-size: 10px; min-width: 17px; height: 17px; border-radius: 9px; display: grid; place-items: center; padding: 0 4px }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--nav-h) + 18px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; max-width: calc(100% - 32px); box-shadow: 0 6px 20px rgba(0,0,0,.2) }
+.demo { background: color-mix(in srgb, var(--info) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--info) 35%, transparent); border-radius: 12px; padding: 12px 14px; font-size: 13.5px; display: grid; gap: 10px }
+.demo b { color: var(--info) }
+.loading { padding: 40px 0; text-align: center; color: var(--muted) }
+
+/* auth */
+.auth { min-height: 100%; display: grid; align-content: start; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 40px }
+.auth-in { width: 100%; max-width: 420px; margin: 0 auto; display: grid; gap: 18px }
+.brand .eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent) }
+.brand h1 { font-family: var(--serif); font-size: 34px; line-height: 1.1; margin: 6px 0 4px; font-weight: 700 }
+
+/* lesson reader */
+.reader { font-family: var(--serif); font-size: 17px; line-height: 1.65; display: grid; gap: 22px }
+.reader .eyebrow { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent) }
+.reader h2.lt { font-size: clamp(26px, 6.5vw, 34px); line-height: 1.15; margin-top: 4px }
+.memory { margin: 0; padding: 16px 18px; background: var(--accent-soft); border-radius: 14px; font-style: italic; font-size: 18px; line-height: 1.5 }
+.memory .ref { font-style: normal; margin-top: 6px }
+.ask { font-style: italic; font-weight: 600; font-size: 19px; line-height: 1.4 }
+.ref { font-family: var(--sans); font-size: .8em; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 0; border-radius: 99px; padding: 1px 9px 2px; cursor: pointer; white-space: nowrap; line-height: 1.6 }
+.ref:hover { background: var(--accent); color: var(--accent-ink) }
+.point { display: grid; gap: 12px }
+.point h4 { font-size: 18px; line-height: 1.5; margin: 0; font-weight: 700; display: grid; grid-template-columns: auto 1fr; gap: 10px }
+.point h4 .n { font-family: var(--sans); font-size: 13px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; margin-top: 2px }
+.passage { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 4px; min-width: 0 }
+.passage > .ref { font-size: 13px; margin-bottom: 4px }
+.vs { margin: 0 0 10px; line-height: 2.05 }
+.vn { font-family: var(--sans); font-size: 11px; font-weight: 700; color: var(--muted); margin-right: 4px; vertical-align: 2px }
+.b { font-family: var(--sans); font-size: 15px; font-weight: 600; color: var(--accent); background: var(--blank); border: 0; border-bottom: 2px solid var(--muted); border-radius: 4px 4px 0 0; padding: 0 6px; min-width: 5ch; max-width: 100%; text-align: center; line-height: 1.6 }
+.b:focus { outline: none; border-bottom-color: var(--accent); background: var(--accent-soft) }
+.b[readonly] { cursor: default }
+.b.long { display: block; width: 100%; text-align: left; padding: 8px 10px; min-height: 120px; resize: vertical; line-height: 1.5; border-radius: 8px 8px 0 0 }
+.b.key { color: var(--ok); border-bottom-color: var(--ok) }
+.b.ok { border-bottom-color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent) }
+.b.miss { border-bottom-color: var(--miss); background: color-mix(in srgb, var(--miss) 14%, transparent); color: var(--miss) }
+.b.empty { border-bottom-style: dashed }
+.fix { font-family: var(--sans); font-size: 11.5px; font-weight: 700; color: var(--ok); margin: 0 4px 0 2px; white-space: nowrap }
+.prayer { margin: 0; padding: 16px 18px; border-left: 3px solid var(--accent); font-style: italic; font-weight: 600; font-size: 17.5px; line-height: 1.55; background: var(--surface); border-radius: 0 12px 12px 0 }
+.assure { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-family: var(--sans); font-size: 15px }
+.assure li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; font-weight: 600 }
+.end { text-align: center; color: var(--muted); letter-spacing: .3em }
+.dock { position: sticky; bottom: calc(var(--nav-h) + 8px + env(safe-area-inset-bottom, 0px)); z-index: 4; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; display: grid; gap: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.08) }
+.nonav-page .dock { bottom: calc(8px + env(safe-area-inset-bottom, 0px)) }
+.seg { display: inline-flex; background: var(--blank); border-radius: 99px; padding: 3px; font-size: 12.5px; font-weight: 700 }
+.seg button { border: 0; background: none; padding: 6px 12px; border-radius: 99px; cursor: pointer; color: var(--muted) }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12) }
+.reader.big { font-size: 21px }
+.reader.big .b { font-size: 18px }
+
+/* verse sheet */
+.scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 40; opacity: 0; transition: opacity .2s }
+.scrim.on { opacity: 1 }
+.sheet { position: fixed; z-index: 41; left: 50%; bottom: 0; width: min(560px, 100%); transform: translate(-50%, 100%); transition: transform .25s ease;
+  background: var(--surface); border-radius: 18px 18px 0 0; max-height: 78vh; display: flex; flex-direction: column;
+  padding: 8px max(20px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px)); box-shadow: 0 -8px 30px rgba(0,0,0,.18) }
+.sheet.on { transform: translate(-50%, 0) }
+.grip { width: 40px; height: 4px; border-radius: 4px; background: var(--line); margin: 4px auto 10px }
+.sheet header { display: flex; align-items: center; justify-content: space-between; gap: 12px }
+.sheet h4 { margin: 0; font-size: 18px; font-family: var(--serif) }
+.sheet .kjv { font-size: 11px; font-weight: 700; letter-spacing: .1em; color: var(--muted); margin-left: 8px; font-family: var(--sans) }
+.close { border: 0; background: var(--blank); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 18px; line-height: 1 }
+.sheet-body { overflow-y: auto; margin-top: 10px; font-family: var(--serif); font-size: 18px; line-height: 1.6 }
+.sheet-body p { margin: 0 0 10px }
+.sheet-body sup { font-family: var(--sans); font-size: 11px; font-weight: 700; color: var(--accent); margin-right: 3px }
+
+/* certificate */
+.cert { background: #fbfcf9; color: #1e2620; border-radius: 6px; padding: clamp(22px, 6vw, 48px); text-align: center; display: grid; gap: 10px; border: 1px solid #c9d3c6; box-shadow: inset 0 0 0 8px #fbfcf9, inset 0 0 0 9px #2f5d3a; font-family: var(--serif) }
+.cert .c-church { font-family: var(--sans); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; font-weight: 700; color: #2f5d3a }
+.cert .c-title { font-size: clamp(26px, 7vw, 40px); font-weight: 700; line-height: 1.1 }
+.cert .c-name { font-size: clamp(28px, 8vw, 44px); font-style: italic; border-bottom: 1px solid #9aa89d; padding-bottom: 4px; margin: 6px auto 0; min-width: 60%; max-width: 100% }
+.cert .c-sub { font-size: 16px; color: #45524a }
+.cert .c-sign { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 26px }
+.cert .c-sign div { border-top: 1px solid #45524a; padding-top: 6px; font-size: 14px }
+.cert .c-sign small { display: block; font-family: var(--sans); font-size: 11px; color: #5b685e; letter-spacing: .06em; text-transform: uppercase }
+.cert .c-meta { font-family: var(--sans); font-size: 11.5px; color: #5b685e; margin-top: 14px; font-variant-numeric: tabular-nums }
+@media print {
+  body * { visibility: hidden }
+  .cert, .cert * { visibility: visible }
+  .cert { position: fixed; inset: 0; margin: 0; border-radius: 0; display: grid; align-content: center }
+  @page { size: landscape; margin: 12mm }
+}
+@media (prefers-reduced-motion: reduce) { .sheet, .scrim, .fill { transition: none } }
+
+#app.nonav-page ~ .toast { bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 66px) }
+.dock .row .btn { flex: 1 1 auto }
+.filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px }
+.filters .i { min-width: 0 }
+.row > select.i { min-width: 0 }
+
+</style>
+<div id="app"><p class="loading">Loading…</p></div>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+  <div class="grip"></div>
+  <header><h4><span id="sheet-title"></span><span class="kjv">KJV</span></h4><button type="button" class="close" id="sheet-close" aria-label="Close verse">×</button></header>
+  <div class="sheet-body" id="sheet-body"></div>
+</aside>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script>
+window.APP_CONFIG = {"API_URL": "", "IS_ARTIFACT": true};
+
+</script>
+<script>
+/* ============================================================
+   MBBE Discipleship Tracker — shared app logic
+   The same code runs in Google Apps Script (with the Sheets
+   adapter in Code.gs) and in the browser demo (local adapter).
+   ============================================================ */
+var CORE = (function () {
+  var SCHEMA = {
+    Users: ['UserID', 'Name', 'Mobile', 'PinHash', 'Role', 'CongregationID', 'Status', 'DisciplerID', 'ModCongregations', 'AppointedBy', 'AppointedAt', 'FailCount', 'LockUntil', 'CreatedAt', 'LastLogin'],
+    Congregations: ['CongregationID', 'Name', 'Location', 'Preachers', 'Status'],
+    Lessons: ['LessonID', 'Level', 'LevelName', 'Order', 'Number', 'Title', 'Version', 'Published', 'Content', 'UpdatedAt'],
+    Enrollments: ['EnrollmentID', 'UserID', 'ProgramYear', 'Level', 'Status', 'StartDate', 'CompletedDate', 'ExpiryDate', 'ApprovedBy'],
+    Answers: ['AnswerID', 'EnrollmentID', 'LessonID', 'Answers', 'Notes', 'Filled', 'Total', 'Status', 'UpdatedAt', 'SubmittedAt', 'ReviewedBy', 'ReviewedAt', 'Comment'],
+    Certificates: ['CertNo', 'UserID', 'EnrollmentID', 'ProgramYear', 'Level', 'LevelName', 'IssuedDate', 'IssuedBy', 'ValidUntil'],
+    AuditLog: ['Timestamp', 'UserID', 'Action', 'Target', 'Details'],
+    Settings: ['Key', 'Value']
+  };
+  var DEFAULTS = {
+    ChurchName: 'Metropolitan Bible Baptist Ekklesia',
+    ProgramName: 'Discovery Lessons',
+    ValidityDays: '365',
+    Signatory1: '', Signatory1Title: 'Senior Pastor',
+    Signatory2: '', Signatory2Title: 'Moderator'
+  };
+  var ROLES = ['Disciple', 'Discipler', 'Moderator', 'Admin'];
+  var RANK = { Disciple: 0, Discipler: 1, Moderator: 2, Admin: 3 };
+  var TOKEN_DAYS = 30;
+
+  var db; // adapter for this request
+
+  function fail(msg) { throw new Error(msg); }
+  function nowIso() { return db.now().toISOString(); }
+  function str(v) { return v == null ? '' : String(v); }
+  function rows(t) { return db.all(t); }
+  function find(t, k, v) { var r = rows(t); for (var i = 0; i < r.length; i++) if (str(r[i][k]) === str(v)) return r[i]; return null; }
+  function audit(actor, action, target, details) {
+    db.insert('AuditLog', { Timestamp: nowIso(), UserID: actor ? actor.UserID : '', Action: action, Target: target || '', Details: details || '' });
+  }
+  function settings() {
+    var s = {}; Object.keys(DEFAULTS).forEach(function (k) { s[k] = DEFAULTS[k]; });
+    rows('Settings').forEach(function (r) { if (r.Key) s[r.Key] = str(r.Value); });
+    return s;
+  }
+  function normMobile(m) {
+    var d = str(m).replace(/\D/g, '');
+    if (d.indexOf('63') === 0 && d.length === 12) d = '0' + d.slice(2);
+    if (d.length === 10 && d[0] === '9') d = '0' + d;
+    return d;
+  }
+  function checkPin(p) { if (!/^\d{4,6}$/.test(str(p))) fail('PIN must be 4 to 6 digits.'); }
+  function hashPin(pin, salt) { salt = salt || db.uid(); return salt + '$' + db.hash(salt + ':' + pin); }
+  function pinOk(pin, stored) { var s = str(stored).split('$'); return s.length === 2 && hashPin(pin, s[0]) === stored; }
+
+  function makeToken(u) {
+    var exp = db.now().getTime() + TOKEN_DAYS * 864e5;
+    var body = u.UserID + '.' + exp;
+    return body + '.' + db.sign(body);
+  }
+  function auth(token) {
+    var p = str(token).split('.');
+    if (p.length !== 3 || db.sign(p[0] + '.' + p[1]) !== p[2] || +p[1] < db.now().getTime()) fail('AUTH: Please sign in again.');
+    var u = find('Users', 'UserID', p[0]);
+    if (!u || u.Status !== 'Active') fail('AUTH: Your account is not active. Ask your moderator.');
+    return u;
+  }
+  function need(u, role) { if (RANK[u.Role] < RANK[role]) fail('You do not have access to this.'); }
+  function scope(u) {
+    if (u.Role === 'Admin') return null; // all
+    if (u.Role === 'Moderator') return str(u.ModCongregations).split(',').map(function (s) { return s.trim(); }).filter(String);
+    return [u.CongregationID];
+  }
+  function inScope(u, target) { var s = scope(u); return s === null || s.indexOf(target.CongregationID) >= 0; }
+  function canReview(u, target) {
+    if (target.UserID === u.UserID) return false;
+    if (RANK[u.Role] >= 2) return inScope(u, target);
+    return u.Role === 'Discipler' && target.DisciplerID === u.UserID;
+  }
+  function pub(u) {
+    if (!u) return null;
+    return { UserID: u.UserID, Name: u.Name, Mobile: u.Mobile, Role: u.Role, CongregationID: u.CongregationID, Status: u.Status, DisciplerID: u.DisciplerID, ModCongregations: u.ModCongregations, CreatedAt: u.CreatedAt, LastLogin: u.LastLogin };
+  }
+  function congName(id) { var c = find('Congregations', 'CongregationID', id); return c ? c.Name : ''; }
+  function userName(id) { var u = find('Users', 'UserID', id); return u ? u.Name : ''; }
+
+  /* ---------- lessons ---------- */
+  function isPub(l) { return str(l.Published).toUpperCase() === 'TRUE'; }
+  function lessonsFor(level, all) {
+    return rows('Lessons').filter(function (l) { return str(l.Level) === str(level) && (all || isPub(l)); })
+      .sort(function (a, b) { return (+a.Order) - (+b.Order); });
+  }
+  function lessonMeta(l) { return { LessonID: l.LessonID, Level: l.Level, LevelName: l.LevelName, Order: l.Order, Number: l.Number, Title: l.Title, Published: isPub(l), Version: l.Version, HasContent: !!str(l.Content) }; }
+  function prep(l, withKey) {
+    var c = JSON.parse(str(l.Content) || '{}'), key = [];
+    var L = c.lesson;
+    if (!L) fail('This lesson has no content yet.');
+    var strip = function (s) { return s.replace(/\[(.+?)\]/g, function (_, a) { key.push(a); return '[__' + a.length + ']'; }); };
+    L.points.forEach(function (p) {
+      p.title = strip(p.title);
+      p.passages.forEach(function (ps) { ps[1].forEach(function (v) { v[1] = strip(v[1]); }); });
+    });
+    return { meta: lessonMeta(l), lesson: L, verses: c.verses || {}, total: key.length, key: withKey ? key : null };
+  }
+  function answerKey(l) { return prep(l, true).key; }
+  var normAns = function (s) { return str(s).toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim(); };
+
+  /* ---------- enrollments ---------- */
+  function status(e) {
+    if (!e) return 'Not started';
+    if (e.Status === 'Completed' && e.ExpiryDate && new Date(e.ExpiryDate) < db.now()) return 'Expired';
+    return e.Status;
+  }
+  function current(userId) {
+    var e = rows('Enrollments').filter(function (r) { return r.UserID === userId; })
+      .sort(function (a, b) { return str(b.StartDate).localeCompare(str(a.StartDate)); });
+    return e[0] || null;
+  }
+  function answerRow(enrId, lessonId) {
+    var r = rows('Answers');
+    for (var i = 0; i < r.length; i++) if (r[i].EnrollmentID === enrId && r[i].LessonID === lessonId) return r[i];
+    return null;
+  }
+  function progress(e) {
+    if (!e) return { lessons: [], total: 0, approved: 0, forReview: 0, returned: 0, started: 0, last: '' };
+    var ls = lessonsFor(e.Level), out = { lessons: [], total: ls.length, approved: 0, forReview: 0, returned: 0, started: 0, last: '' };
+    ls.forEach(function (l) {
+      var a = answerRow(e.EnrollmentID, l.LessonID);
+      var st = a ? a.Status : 'Not started';
+      if (st === 'Approved') out.approved++;
+      if (st === 'For review') out.forReview++;
+      if (st === 'Returned') out.returned++;
+      if (a) { out.started++; if (str(a.UpdatedAt) > out.last) out.last = a.UpdatedAt; }
+      var m = lessonMeta(l);
+      m.Status = st; m.Filled = a ? +a.Filled : 0; m.Total = a ? +a.Total : 0; m.Comment = a ? a.Comment : ''; m.AnswerID = a ? a.AnswerID : '';
+      out.lessons.push(m);
+    });
+    return out;
+  }
+  function enrView(e) {
+    if (!e) return null;
+    var lv = lessonsFor(e.Level, true)[0];
+    return { EnrollmentID: e.EnrollmentID, ProgramYear: e.ProgramYear, Level: e.Level, LevelName: lv ? lv.LevelName : 'Level ' + e.Level, Status: status(e), StartDate: e.StartDate, CompletedDate: e.CompletedDate, ExpiryDate: e.ExpiryDate, ApprovedBy: userName(e.ApprovedBy) };
+  }
+  function overview(u) {
+    var e = current(u.UserID), p = progress(e), st = status(e);
+    var next = e && st === 'Completed' && lessonsFor(+e.Level + 1).length ? +e.Level + 1 : null;
+    return {
+      enrollment: enrView(e), progress: p, canStart: !e || st === 'Expired', nextLevel: next,
+      discipler: userName(u.DisciplerID),
+      certificates: rows('Certificates').filter(function (c) { return c.UserID === u.UserID; }).reverse()
+    };
+  }
+
+  /* ---------- people ---------- */
+  function scopedUsers(u) {
+    var s = scope(u);
+    return rows('Users').filter(function (x) { return s === null || s.indexOf(x.CongregationID) >= 0; });
+  }
+  function personRow(x) {
+    var e = current(x.UserID), p = progress(e);
+    return {
+      UserID: x.UserID, Name: x.Name, Mobile: x.Mobile, Role: x.Role, Status: x.Status,
+      CongregationID: x.CongregationID, Congregation: congName(x.CongregationID),
+      DisciplerID: x.DisciplerID, Discipler: userName(x.DisciplerID), ModCongregations: x.ModCongregations,
+      Year: e ? e.ProgramYear : '', Level: e ? e.Level : '', EnrollmentID: e ? e.EnrollmentID : '',
+      LessonStatus: status(e), Approved: p.approved, TotalLessons: p.total, ForReview: p.forReview,
+      LastActivity: p.last || x.LastLogin || x.CreatedAt || '', ExpiryDate: e ? e.ExpiryDate : '',
+      HasCert: e ? !!rows('Certificates').filter(function (c) { return c.EnrollmentID === e.EnrollmentID; }).length : false
+    };
+  }
+  function target(u, id, mustScope) {
+    var t = find('Users', 'UserID', id);
+    if (!t) fail('Person not found.');
+    if (mustScope && !inScope(u, t)) fail('This person is outside your congregations.');
+    return t;
+  }
+
+  /* ---------- actions ---------- */
+  var A = {};
+  A.ping = function () { return { ok: true, time: nowIso() }; };
+  A.publicInfo = function () {
+    var s = settings();
+    return { churchName: s.ChurchName, programName: s.ProgramName, congregations: rows('Congregations').filter(function (c) { return c.Status !== 'Inactive'; }).map(function (c) { return { CongregationID: c.CongregationID, Name: c.Name, Location: c.Location }; }) };
+  };
+  A.register = function (q) {
+    var name = str(q.name).trim(), mobile = normMobile(q.mobile);
+    if (name.length < 3) fail('Please enter your full name.');
+    if (!/^09\d{9}$/.test(mobile)) fail('Enter a mobile number like 0917 123 4567.');
+    checkPin(q.pin);
+    if (!find('Congregations', 'CongregationID', q.congregationId)) fail('Please choose your congregation.');
+    if (find('Users', 'Mobile', mobile)) fail('This mobile number is already registered. Sign in instead, or ask your moderator to reset your PIN.');
+    var u = { UserID: 'U-' + db.uid().slice(0, 8), Name: name, Mobile: mobile, PinHash: hashPin(q.pin), Role: 'Disciple', CongregationID: q.congregationId, Status: 'Pending', DisciplerID: '', ModCongregations: '', AppointedBy: '', AppointedAt: '', FailCount: '0', LockUntil: '', CreatedAt: nowIso(), LastLogin: '' };
+    db.insert('Users', u);
+    audit(u, 'Registered', u.UserID, congName(u.CongregationID));
+    return { pending: true };
+  };
+  A.login = function (q) {
+    var u = find('Users', 'Mobile', normMobile(q.mobile));
+    if (!u) fail('No account uses that mobile number.');
+    if (u.LockUntil && new Date(u.LockUntil) > db.now()) fail('Too many wrong PINs. Try again in 15 minutes, or ask your moderator to reset it.');
+    if (!pinOk(str(q.pin), u.PinHash)) {
+      var n = (+u.FailCount || 0) + 1;
+      db.update('Users', 'UserID', u.UserID, { FailCount: String(n), LockUntil: n >= 5 ? new Date(db.now().getTime() + 15 * 6e4).toISOString() : '' });
+      fail('Wrong PIN. ' + (n >= 5 ? 'Account locked for 15 minutes.' : (5 - n) + ' tries left.'));
+    }
+    if (u.Status === 'Pending') fail('Your registration is waiting for approval by your moderator.');
+    if (u.Status !== 'Active') fail('Your account is inactive. Ask your moderator.');
+    db.update('Users', 'UserID', u.UserID, { FailCount: '0', LockUntil: '', LastLogin: nowIso() });
+    return { token: makeToken(u), user: pub(u) };
+  };
+  A.me = function (q, u) {
+    var s = settings();
+    return { user: pub(u), congregation: congName(u.CongregationID), settings: s, congregations: rows('Congregations'), scope: scope(u) };
+  };
+  A.changePin = function (q, u) {
+    if (!pinOk(str(q.oldPin), u.PinHash)) fail('Your current PIN is not correct.');
+    checkPin(q.newPin);
+    db.update('Users', 'UserID', u.UserID, { PinHash: hashPin(q.newPin) });
+    audit(u, 'Changed PIN', u.UserID);
+    return { ok: true };
+  };
+
+  /* disciple */
+  A.home = function (q, u) { return overview(u); };
+  A.startEnrollment = function (q, u) {
+    var e = current(u.UserID), st = status(e), level = 1;
+    if (e && st === 'Completed' && q.nextLevel) { level = +e.Level + 1; if (!lessonsFor(level).length) fail('The next level has no lessons yet.'); }
+    else if (e && st !== 'Expired') fail('You already have lessons in progress this year.');
+    if (!lessonsFor(level).length) fail('No lessons are published yet. Please check back soon.');
+    var rec = { EnrollmentID: 'E-' + db.uid().slice(0, 8), UserID: u.UserID, ProgramYear: String(db.now().getFullYear()), Level: String(level), Status: 'In progress', StartDate: nowIso(), CompletedDate: '', ExpiryDate: '', ApprovedBy: '' };
+    db.insert('Enrollments', rec);
+    audit(u, 'Started lessons', rec.EnrollmentID, 'Level ' + level);
+    return overview(u);
+  };
+  A.getLesson = function (q, u) {
+    var who = q.userId ? target(u, q.userId) : u;
+    if (who.UserID !== u.UserID && !canReview(u, who)) fail('You can only open lessons of your own disciples.');
+    var l = find('Lessons', 'LessonID', q.lessonId);
+    if (!l) fail('Lesson not found.');
+    var e = current(who.UserID);
+    var reviewer = who.UserID !== u.UserID;
+    var out = prep(l, reviewer);
+    var a = e ? answerRow(e.EnrollmentID, l.LessonID) : null;
+    out.answers = a ? JSON.parse(str(a.Answers) || '{}') : {};
+    out.notes = a ? a.Notes : '';
+    out.status = a ? a.Status : 'Not started';
+    out.comment = a ? a.Comment : '';
+    out.answerId = a ? a.AnswerID : '';
+    out.person = { UserID: who.UserID, Name: who.Name };
+    out.editable = !reviewer && !!e && status(e) === 'In progress' && str(e.Level) === str(l.Level) && (!a || a.Status === 'In progress' || a.Status === 'Returned');
+    return out;
+  };
+  A.saveAnswers = function (q, u) {
+    var e = current(u.UserID);
+    if (!e || status(e) !== 'In progress') fail('Start this year\'s lessons first.');
+    var l = find('Lessons', 'LessonID', q.lessonId);
+    if (!l || str(l.Level) !== str(e.Level)) fail('This lesson is not part of your current level.');
+    var total = prep(l, false).total, ans = q.answers || {}, clean = {}, filled = 0;
+    Object.keys(ans).forEach(function (k) { var v = str(ans[k]).slice(0, 2000); if (/^b\d+$/.test(k) && v) { clean[k] = v; if (v.trim()) filled++; } });
+    var a = answerRow(e.EnrollmentID, l.LessonID), t = nowIso();
+    if (a) {
+      if (a.Status === 'For review' || a.Status === 'Approved') fail('This lesson is already submitted. Ask your discipler to return it if you need changes.');
+      db.update('Answers', 'AnswerID', a.AnswerID, { Answers: JSON.stringify(clean), Notes: str(q.notes).slice(0, 5000), Filled: String(filled), Total: String(total), UpdatedAt: t });
+    } else {
+      db.insert('Answers', { AnswerID: 'A-' + db.uid().slice(0, 8), EnrollmentID: e.EnrollmentID, LessonID: l.LessonID, Answers: JSON.stringify(clean), Notes: str(q.notes).slice(0, 5000), Filled: String(filled), Total: String(total), Status: 'In progress', UpdatedAt: t, SubmittedAt: '', ReviewedBy: '', ReviewedAt: '', Comment: '' });
+    }
+    return { savedAt: t, filled: filled, total: total };
+  };
+  A.submitLesson = function (q, u) {
+    A.saveAnswers(q, u);
+    var e = current(u.UserID), a = answerRow(e.EnrollmentID, q.lessonId);
+    db.update('Answers', 'AnswerID', a.AnswerID, { Status: 'For review', SubmittedAt: nowIso() });
+    audit(u, 'Submitted lesson', q.lessonId, a.Filled + '/' + a.Total + ' blanks');
+    return { status: 'For review' };
+  };
+  A.checkAnswers = function (q, u) {
+    var l = find('Lessons', 'LessonID', q.lessonId);
+    if (!l) fail('Lesson not found.');
+    var key = answerKey(l), ans = q.answers || {};
+    return { results: key.map(function (k, i) { var v = ans['b' + (i + 1)]; return !v ? null : normAns(v) === normAns(k); }) };
+  };
+  A.certificate = function (q, u) {
+    var c = find('Certificates', 'CertNo', q.certNo);
+    if (!c) fail('Certificate not found.');
+    var owner = find('Users', 'UserID', c.UserID);
+    if (c.UserID !== u.UserID && !(RANK[u.Role] >= 2 && inScope(u, owner))) fail('You cannot view this certificate.');
+    return { cert: c, name: owner.Name, congregation: congName(owner.CongregationID), settings: settings(), issuedBy: userName(c.IssuedBy) };
+  };
+
+  /* discipler */
+  A.myDisciples = function (q, u) {
+    need(u, 'Discipler');
+    return { people: rows('Users').filter(function (x) { return x.DisciplerID === u.UserID && x.Status === 'Active'; }).map(personRow) };
+  };
+  A.person = function (q, u) {
+    var t = target(u, q.userId);
+    if (!canReview(u, t)) fail('You can only view your own disciples.');
+    var o = overview(t); o.person = personRow(t); return o;
+  };
+  A.review = function (q, u) {
+    need(u, 'Discipler');
+    var a = find('Answers', 'AnswerID', q.answerId);
+    if (!a) fail('Lesson answers not found.');
+    var e = find('Enrollments', 'EnrollmentID', a.EnrollmentID), t = target(u, e.UserID);
+    if (!canReview(u, t)) fail('You can only review your own disciples.');
+    if (a.Status !== 'For review') fail('This lesson is not waiting for review.');
+    var ok = q.decision === 'approve';
+    if (!ok && !str(q.comment).trim()) fail('Add a short note so your disciple knows what to fix.');
+    db.update('Answers', 'AnswerID', a.AnswerID, { Status: ok ? 'Approved' : 'Returned', ReviewedBy: u.UserID, ReviewedAt: nowIso(), Comment: str(q.comment).slice(0, 1000) });
+    audit(u, ok ? 'Approved lesson' : 'Returned lesson', t.UserID, a.LessonID);
+    return { status: ok ? 'Approved' : 'Returned' };
+  };
+  A.graduate = function (q, u) {
+    need(u, 'Discipler');
+    var e = find('Enrollments', 'EnrollmentID', q.enrollmentId);
+    if (!e) fail('Enrollment not found.');
+    var t = target(u, e.UserID);
+    if (!canReview(u, t)) fail('You can only approve your own disciples.');
+    var p = progress(e);
+    if (!p.total || p.approved < p.total) fail('All ' + p.total + ' lessons must be approved first (' + p.approved + ' approved).');
+    if (status(e) !== 'In progress') fail('This level is already ' + status(e).toLowerCase() + '.');
+    var days = +settings().ValidityDays || 365;
+    db.update('Enrollments', 'EnrollmentID', e.EnrollmentID, { Status: 'Completed', CompletedDate: nowIso(), ExpiryDate: new Date(db.now().getTime() + days * 864e5).toISOString(), ApprovedBy: u.UserID });
+    audit(u, 'Approved to graduate', t.UserID, 'Level ' + e.Level + ' ' + e.ProgramYear);
+    return { ok: true };
+  };
+  A.library = function (q, u) {
+    need(u, 'Discipler');
+    var all = RANK[u.Role] >= 3;
+    return { lessons: rows('Lessons').filter(function (l) { return all || isPub(l); }).sort(function (a, b) { return (+a.Level - +b.Level) || (+a.Order - +b.Order); }).map(lessonMeta) };
+  };
+  A.libraryLesson = function (q, u) {
+    need(u, 'Discipler');
+    var l = find('Lessons', 'LessonID', q.lessonId);
+    if (!l) fail('Lesson not found.');
+    var out = prep(l, true); out.answers = {}; out.editable = false; out.status = ''; return out;
+  };
+
+  /* moderator */
+  A.dashboard = function (q, u) {
+    need(u, 'Moderator');
+    var people = scopedUsers(u).filter(function (x) { return x.Status === 'Active' && (x.Role === 'Disciple' || x.Role === 'Discipler'); }).map(personRow);
+    var counts = { people: people.length, pending: scopedUsers(u).filter(function (x) { return x.Status === 'Pending'; }).length, 'Not started': 0, 'In progress': 0, Completed: 0, Expired: 0, forReview: 0, unassigned: 0 };
+    people.forEach(function (p) { counts[p.LessonStatus] = (counts[p.LessonStatus] || 0) + 1; counts.forReview += p.ForReview; if (p.Role === 'Disciple' && !p.DisciplerID) counts.unassigned++; });
+    var disciplers = scopedUsers(u).filter(function (x) { return x.Role === 'Discipler' && x.Status === 'Active'; }).map(function (d) {
+      var mine = people.filter(function (p) { return p.DisciplerID === d.UserID; });
+      return { UserID: d.UserID, Name: d.Name, Congregation: congName(d.CongregationID), Disciples: mine.length, Completed: mine.filter(function (p) { return p.LessonStatus === 'Completed'; }).length, InProgress: mine.filter(function (p) { return p.LessonStatus === 'In progress'; }).length, ForReview: mine.reduce(function (s, p) { return s + p.ForReview; }, 0) };
+    });
+    var byCong = {};
+    people.forEach(function (p) { var c = byCong[p.Congregation] = byCong[p.Congregation] || { Congregation: p.Congregation, People: 0, Completed: 0 }; c.People++; if (p.LessonStatus === 'Completed') c.Completed++; });
+    return { counts: counts, disciplers: disciplers, congregations: Object.keys(byCong).map(function (k) { return byCong[k]; }) };
+  };
+  A.people = function (q, u) {
+    need(u, 'Moderator');
+    return { people: scopedUsers(u).map(personRow), disciplers: scopedUsers(u).filter(function (x) { return (x.Role === 'Discipler' || x.Role === 'Moderator') && x.Status === 'Active'; }).map(pub) };
+  };
+  A.approveUser = function (q, u) {
+    need(u, 'Moderator');
+    var t = target(u, q.userId, true);
+    if (t.Status !== 'Pending') fail('This person is already approved.');
+    db.update('Users', 'UserID', t.UserID, { Status: 'Active', DisciplerID: str(q.disciplerId) });
+    audit(u, 'Approved registration', t.UserID, q.disciplerId ? 'Discipler ' + userName(q.disciplerId) : '');
+    return { ok: true };
+  };
+  A.assign = function (q, u) {
+    need(u, 'Moderator');
+    var t = target(u, q.userId, true);
+    if (q.disciplerId) { var d = target(u, q.disciplerId); if (RANK[d.Role] < 1) fail('Choose a discipler.'); if (d.UserID === t.UserID) fail('A person cannot disciple themselves.'); }
+    db.update('Users', 'UserID', t.UserID, { DisciplerID: str(q.disciplerId) });
+    audit(u, 'Assigned discipler', t.UserID, userName(q.disciplerId) || 'none');
+    return { ok: true };
+  };
+  A.setRole = function (q, u) {
+    need(u, 'Moderator');
+    var t = target(u, q.userId, true), role = str(q.role);
+    if (ROLES.indexOf(role) < 0) fail('Unknown role.');
+    if (u.Role !== 'Admin' && (RANK[role] > 1 || RANK[t.Role] > 1)) fail('Only the admin can change moderator or admin roles.');
+    if (t.UserID === u.UserID) fail('You cannot change your own role.');
+    var patch = { Role: role, AppointedBy: u.UserID, AppointedAt: nowIso() };
+    if (role === 'Moderator') patch.ModCongregations = str(q.modCongregations || t.ModCongregations || t.CongregationID);
+    db.update('Users', 'UserID', t.UserID, patch);
+    if (RANK[t.Role] >= 1 && RANK[role] < 1) {
+      rows('Users').filter(function (x) { return x.DisciplerID === t.UserID; }).forEach(function (x) { db.update('Users', 'UserID', x.UserID, { DisciplerID: '' }); });
+    }
+    audit(u, role === 'Discipler' && t.Role === 'Disciple' ? 'Promoted to discipler' : 'Changed role', t.UserID, t.Role + ' → ' + role);
+    return { ok: true };
+  };
+  A.setStatus = function (q, u) {
+    need(u, 'Moderator');
+    var t = target(u, q.userId, true);
+    if (['Active', 'Inactive'].indexOf(q.status) < 0) fail('Unknown status.');
+    if (t.UserID === u.UserID) fail('You cannot deactivate yourself.');
+    if (u.Role !== 'Admin' && RANK[t.Role] > 1) fail('Only the admin can change this account.');
+    db.update('Users', 'UserID', t.UserID, { Status: q.status });
+    audit(u, q.status === 'Active' ? 'Reactivated account' : 'Deactivated account', t.UserID);
+    return { ok: true };
+  };
+  A.resetPin = function (q, u) {
+    need(u, 'Discipler');
+    var t = target(u, q.userId);
+    if (!(canReview(u, t) || (u.Role === 'Admin'))) fail('You can only reset PINs of people you oversee.');
+    if (u.Role !== 'Admin' && RANK[t.Role] >= RANK[u.Role]) fail('Only the admin can reset this PIN.');
+    var pin = String(1000 + Math.floor(Math.random() * 9000));
+    db.update('Users', 'UserID', t.UserID, { PinHash: hashPin(pin), FailCount: '0', LockUntil: '' });
+    audit(u, 'Reset PIN', t.UserID);
+    return { tempPin: pin };
+  };
+  A.updatePerson = function (q, u) {
+    need(u, 'Moderator');
+    var t = target(u, q.userId, true), patch = {};
+    if (q.name) patch.Name = str(q.name).trim();
+    if (q.mobile) { var m = normMobile(q.mobile); if (!/^09\d{9}$/.test(m)) fail('Enter a valid mobile number.'); var o = find('Users', 'Mobile', m); if (o && o.UserID !== t.UserID) fail('Another account uses that number.'); patch.Mobile = m; }
+    if (q.congregationId) { if (u.Role !== 'Admin' && scope(u).indexOf(q.congregationId) < 0) fail('You can only move people within your congregations.'); patch.CongregationID = q.congregationId; }
+    if (q.modCongregations != null && u.Role === 'Admin') patch.ModCongregations = str(q.modCongregations);
+    db.update('Users', 'UserID', t.UserID, patch);
+    audit(u, 'Updated profile', t.UserID, Object.keys(patch).join(', '));
+    return { ok: true };
+  };
+  A.report = function (q, u) {
+    need(u, 'Moderator');
+    var r = scopedUsers(u).filter(function (x) { return x.Status === 'Active' && RANK[x.Role] <= 1; }).map(personRow);
+    if (q.congregationId) r = r.filter(function (x) { return x.CongregationID === q.congregationId; });
+    if (q.status) r = r.filter(function (x) { return x.LessonStatus === q.status; });
+    if (q.disciplerId) r = r.filter(function (x) { return x.DisciplerID === q.disciplerId; });
+    r.sort(function (a, b) { return (a.Congregation + a.Name).localeCompare(b.Congregation + b.Name); });
+    return { rows: r, generated: nowIso() };
+  };
+  A.certQueue = function (q, u) {
+    need(u, 'Moderator');
+    var people = scopedUsers(u);
+    var ids = {}; people.forEach(function (p) { ids[p.UserID] = p; });
+    var issued = rows('Certificates').filter(function (c) { return ids[c.UserID]; });
+    var have = {}; issued.forEach(function (c) { have[c.EnrollmentID] = 1; });
+    var ready = rows('Enrollments').filter(function (e) { return ids[e.UserID] && status(e) === 'Completed' && !have[e.EnrollmentID]; })
+      .map(function (e) { var v = enrView(e); v.Name = ids[e.UserID].Name; v.Congregation = congName(ids[e.UserID].CongregationID); v.UserID = e.UserID; return v; });
+    return { ready: ready, issued: issued.map(function (c) { var o = {}; Object.keys(c).forEach(function (k) { o[k] = c[k]; }); o.Name = ids[c.UserID].Name; return o; }).reverse() };
+  };
+  A.issueCertificate = function (q, u) {
+    need(u, 'Moderator');
+    var ids = [].concat(q.enrollmentIds || q.enrollmentId || []), out = [];
+    ids.forEach(function (id) {
+      var e = find('Enrollments', 'EnrollmentID', id);
+      if (!e || e.Status !== 'Completed') fail('Only completed lessons can get a certificate.');
+      target(u, e.UserID, true);
+      if (rows('Certificates').some(function (c) { return c.EnrollmentID === id; })) return;
+      var yr = e.ProgramYear, n = rows('Certificates').filter(function (c) { return c.ProgramYear === yr; }).length + 1;
+      var lv = lessonsFor(e.Level, true)[0];
+      var c = { CertNo: 'MBBE-DG-' + yr + '-' + ('000' + n).slice(-4), UserID: e.UserID, EnrollmentID: id, ProgramYear: yr, Level: e.Level, LevelName: lv ? lv.LevelName : 'Level ' + e.Level, IssuedDate: nowIso(), IssuedBy: u.UserID, ValidUntil: e.ExpiryDate };
+      db.insert('Certificates', c);
+      audit(u, 'Issued certificate', e.UserID, c.CertNo);
+      out.push(c.CertNo);
+    });
+    return { issued: out };
+  };
+
+  /* admin */
+  A.saveCongregation = function (q, u) {
+    need(u, 'Admin');
+    var name = str(q.Name).trim(); if (!name) fail('Congregation name is required.');
+    var rec = { Name: name, Location: str(q.Location), Preachers: str(q.Preachers), Status: q.Status === 'Inactive' ? 'Inactive' : 'Active' };
+    if (q.CongregationID && find('Congregations', 'CongregationID', q.CongregationID)) db.update('Congregations', 'CongregationID', q.CongregationID, rec);
+    else { rec.CongregationID = 'C-' + db.uid().slice(0, 6); db.insert('Congregations', rec); }
+    audit(u, 'Saved congregation', name);
+    return { ok: true };
+  };
+  A.adminLessons = function (q, u) { need(u, 'Admin'); return A.library(q, u); };
+  A.saveLesson = function (q, u) {
+    need(u, 'Admin');
+    var id = str(q.LessonID).trim(); if (!id) fail('Lesson ID is required.');
+    var rec = { Level: str(q.Level || 1), LevelName: str(q.LevelName), Order: str(q.Order || 1), Number: str(q.Number), Title: str(q.Title), UpdatedAt: nowIso() };
+    if (q.Content != null && str(q.Content).trim()) {
+      try { var c = JSON.parse(q.Content); if (!c.lesson || !c.lesson.points) throw 0; } catch (e) { fail('Lesson content is not valid lesson JSON.'); }
+      rec.Content = str(q.Content);
+    }
+    var ex = find('Lessons', 'LessonID', id);
+    if (ex) { if (rec.Content && rec.Content !== ex.Content) rec.Version = String((+ex.Version || 1) + 1); db.update('Lessons', 'LessonID', id, rec); }
+    else { rec.LessonID = id; rec.Version = '1'; rec.Published = 'FALSE'; rec.Content = rec.Content || ''; db.insert('Lessons', rec); }
+    audit(u, 'Saved lesson', id);
+    return { ok: true };
+  };
+  A.setPublished = function (q, u) {
+    need(u, 'Admin');
+    var l = find('Lessons', 'LessonID', q.lessonId); if (!l) fail('Lesson not found.');
+    if (q.published && !str(l.Content)) fail('Add the lesson content before publishing.');
+    db.update('Lessons', 'LessonID', l.LessonID, { Published: q.published ? 'TRUE' : 'FALSE' });
+    audit(u, q.published ? 'Published lesson' : 'Unpublished lesson', l.LessonID);
+    return { ok: true };
+  };
+  A.lessonSource = function (q, u) { need(u, 'Admin'); var l = find('Lessons', 'LessonID', q.lessonId); if (!l) fail('Lesson not found.'); return { Content: l.Content }; };
+  A.saveSettings = function (q, u) {
+    need(u, 'Admin');
+    Object.keys(DEFAULTS).forEach(function (k) {
+      if (q[k] == null) return;
+      if (find('Settings', 'Key', k)) db.update('Settings', 'Key', k, { Value: str(q[k]) }); else db.insert('Settings', { Key: k, Value: str(q[k]) });
+    });
+    audit(u, 'Saved settings', '');
+    return { settings: settings() };
+  };
+  A.auditLog = function (q, u) {
+    need(u, 'Moderator');
+    var ids = {}; scopedUsers(u).forEach(function (x) { ids[x.UserID] = 1; });
+    var r = rows('AuditLog').filter(function (a) { return u.Role === 'Admin' || ids[a.UserID] || ids[a.Target]; }).slice(-200).reverse();
+    return { log: r.map(function (a) { return { Timestamp: a.Timestamp, Who: userName(a.UserID), Action: a.Action, Target: userName(a.Target) || a.Target, Details: a.Details }; }) };
+  };
+
+  var PUBLIC = { ping: 1, publicInfo: 1, register: 1, login: 1 };
+
+  function handle(adapter, req) {
+    db = adapter;
+    try {
+      var fn = A[req.action];
+      if (!fn) fail('Unknown action.');
+      var u = PUBLIC[req.action] ? null : auth(req.token);
+      return { ok: true, data: fn(req, u) };
+    } catch (e) {
+      var m = String(e && e.message || e);
+      return { ok: false, auth: m.indexOf('AUTH: ') === 0, error: m.replace('AUTH: ', '') };
+    }
+  }
+  function seedAdmin(adapter, name, mobile, pin, congId) {
+    db = adapter;
+    var m = normMobile(mobile);
+    if (find('Users', 'Mobile', m)) return 'Admin already exists';
+    db.insert('Users', { UserID: 'U-admin', Name: name, Mobile: m, PinHash: hashPin(String(pin)), Role: 'Admin', CongregationID: congId || '', Status: 'Active', DisciplerID: '', ModCongregations: '', AppointedBy: '', AppointedAt: nowIso(), FailCount: '0', LockUntil: '', CreatedAt: nowIso(), LastLogin: '' });
+    return 'Admin created';
+  }
+  function expireSweep(adapter) {
+    db = adapter; var n = 0;
+    rows('Enrollments').forEach(function (e) { if (e.Status === 'Completed' && status(e) === 'Expired') { db.update('Enrollments', 'EnrollmentID', e.EnrollmentID, { Status: 'Expired' }); n++; } });
+    return n;
+  }
+  return { SCHEMA: SCHEMA, handle: handle, seedAdmin: seedAdmin, expireSweep: expireSweep, hashPinWith: function (a, pin) { db = a; return hashPin(pin); } };
+})();
+if (typeof module !== 'undefined') module.exports = CORE;
+
+</script>
+<script>
+var LESSON_SEED = [{"LessonID": "L1-01", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "1", "Number": "Lesson One", "Title": "Jesus Christ, the Hope of Sinners", "Version": "1", "Published": "TRUE", "Content": "{\"lesson\":{\"id\":\"L1-01\",\"level\":\"Level One \\u00b7 The Foundation\",\"number\":\"Lesson One\",\"title\":\"Jesus Christ, the Hope of Sinners\",\"memory\":\"Romans 10:13\",\"intro\":\"Adam was the first man directly created by God as expressly detailed in {{Genesis 1:26-27}}. He was a perfect creation [but not righteous] before the Fall in {{Genesis 3:6}}. When Adam sinned, he brought death to all men and decay and deterioration to the whole earth ({{Romans 5:12}}). But God in all His goodness and love for man provided a way of Redemption and Reconciliation. Let us discover through the Lessons on Foundations of Faith, the LOVE OF GOD that leads a sinner to the salvation of his soul and reconciliation with his Creator.\",\"question\":\"What does the Bible say about man and his condition before a holy God?\",\"points\":[{\"title\":\"That man is God's [creation].\",\"passages\":[[\"Genesis 1:26\",[[26,\"And God said, Let us make man in our image, after our likeness: and let them have dominion over the fish of the sea, and over the fowl of the air, and over the cattle, and over all the earth, and over every creeping thing that creepeth upon the earth.\"]]],[\"Genesis 1:27\",[[27,\"So God created man in his own image, in the image of God [created] he him; male and female [created] he them.\"]]]]},{\"title\":\"That man was created for fellowship with God but that [fellowship] was broken when Adam and Eve sinned.\",\"passages\":[[\"Genesis 3:6\",[[6,\"And when the woman saw that the tree was good for food, and that it was pleasant to the eyes, and a tree to be desired to make one wise, she [took] of the fruit thereof, and did [eat], and [gave] also unto her husband with her; and he did [eat].\"]]],[\"Genesis 3:17\",[[17,\"And unto Adam he said, Because thou hast [hearkened] unto the voice of thy wife, and hast eaten of the tree, of which I [commanded] thee, saying, Thou [shalt] [not] [eat] of it: cursed is the ground for thy sake; in sorrow shalt thou eat of it all the days of thy life;\"]]],[\"Genesis 3:19\",[[19,\"In the sweat of thy face shalt thou eat bread, till thou [return] unto the [ground]; for out of it wast thou taken: for [dust] thou art, and unto dust shalt thou return.\"]]],[\"Genesis 3:23\",[[23,\"Therefore the LORD God [sent him forth] from the garden of Eden, to till the ground from whence he was taken.\"]]],[\"Genesis 3:24\",[[24,\"So he [drove out] the man;\"]]]]},{\"title\":\"That man's [sin] is a [transgression] of God's law.\",\"passages\":[[\"1 John 3:4\",[[4,\"Whosoever committeth sin [transgresseth] also the law: for [sin] is the transgression of the law.\"]]],[\"Isaiah 30:1\",[[1,\"Woe to the rebellious children, saith the LORD, that take counsel, but not of me; and that cover with a covering, but not of my spirit, that they may add [sin] to [sin]:\"]]]]},{\"title\":\"That the penalty for man's sin is [death] and that he is eternally condemned.\",\"passages\":[[\"Ezekiel 18:4\",[[4,\"the soul that sinneth, it shall [die].\"]]],[\"Romans 6:23\",[[23,\"For the [wages] of [sin] is death;\"]]],[\"Hebrews 9:27\",[[27,\"And as it is appointed unto men once to die, but after this the judgment:\"]]],[\"Revelation 20:11-14\",[[11,\"And I saw a great white throne, and him that sat on it, from whose face the earth and the heaven fled away; and there was found no place for them.\"],[12,\"And I saw the dead, small and great, stand before God; and the books were opened: and another book was opened, which is the book of life: and the dead were judged out of those things which were written in the books, according to their works.\"],[13,\"And the sea gave up the dead which were in it; and death and hell delivered up the [dead] which were in them: and they were judged every man according to their works.\"],[14,\"And [death] and [hell] were cast into the [lake] of [fire]. This is the [second] death.\"]]],[\"Revelation 21:8\",[[8,\"[But the fearful, and unbelieving, and the abominable, and murderers, and whoremongers, and sorcerers, and idolaters, and all liars, shall have their part in the lake which burneth with fire and brimstone: which is the second death.]\"]]]]},{\"title\":\"That man though under eternal condemnation and will perish because of his sin, can still be saved through faith in Jesus Christ and have eternal life.\",\"passages\":[[\"John 3:13-17\",[[13,\"And [no] man hath ascended up to heaven, but he that came down from heaven, even the Son of man which is in heaven.\"],[14,\"And as Moses [lifted] up the [serpent] in the wilderness, even so must the [Son] of man be [lifted] up:\"],[15,\"That whosoever [believeth] in him should not [perish], but have [eternal life].\"],[16,\"For [God] so [loved] the world, that he [gave] his only begotten Son, that whosoever [believeth] in him should not [perish], but have [everlasting] life.\"],[17,\"For God sent [not] his [Son] into the [world] to [condemn] the world; but that the world [through] [him] might be [saved].\"]]],[\"Romans 5:6-8\",[[6,\"For when we were yet without strength, in due time [Christ] died for the [ungodly].\"],[7,\"For scarcely for a righteous man will one die: yet peradventure for a good man some would even dare to die.\"],[8,\"But God commendeth his love toward us, in that, while [we] were [yet] sinners, Christ [died] for us.\"]]],[\"Romans 6:23\",[[23,\"For the wages of sin is death; but the gift of God is [eternal] life through Jesus Christ our Lord.\"]]],[\"Romans 10:13\",[[13,\"For [whosoever] shall [call] upon the [name] of the Lord shall be [saved].\"]]],[\"Romans 10:9-10\",[[9,\"That if thou shalt [confess] with thy [mouth] the Lord Jesus, and shalt [believe] in thine [heart] that God hath raised him from the dead, thou shalt be [saved].\"],[10,\"For with the [heart] man [believeth] unto righteousness; and with the mouth [confession] is made unto [salvation].\"]]]]}],\"faith\":\"Faith, as the Bible declares it, is believing in the Lord Jesus Christ. He became a man and died on the cross of Calvary to save you and me. Come to Him now and receive His gift of eternal life and forgiveness for all your sins.\",\"prayer\":\"Lord, I confess that I am a lost sinner and bound for eternal destruction. Now I repent of all my sins and accept Jesus Christ as my own personal Savior and Lord by faith. Thank you for saving my soul today. In Christ's name, Amen.\",\"assurances\":[[\"You now have an everlasting life\",\"John 3:15-16\"],[\"You are forgiven of all your sins\",\"1 John 1:9\"],[\"You are now a child of God\",\"John 1:12\"],[\"You now have in you a new heart\",\"2 Corinthians 5:17\"]],\"closing\":\"2 Corinthians 5:17-19\"},\"verses\":{\"1 John 1:9\":[[9,\"If we confess our sins, he is faithful and just to forgive us our sins, and to cleanse us from all unrighteousness.\"]],\"1 John 3:4\":[[4,\"Whosoever committeth sin transgresseth also the law: for sin is the transgression of the law.\"]],\"2 Corinthians 5:17\":[[17,\"Therefore if any man be in Christ, he is a new creature: old things are passed away; behold, all things are become new.\"]],\"2 Corinthians 5:17-19\":[[17,\"Therefore if any man be in Christ, he is a new creature: old things are passed away; behold, all things are become new.\"],[18,\"And all things are of God, who hath reconciled us to himself by Jesus Christ, and hath given to us the ministry of reconciliation;\"],[19,\"To wit, that God was in Christ, reconciling the world unto himself, not imputing their trespasses unto them; and hath committed unto us the word of reconciliation.\"]],\"Ezekiel 18:4\":[[4,\"Behold, all souls are mine; as the soul of the father, so also the soul of the son is mine: the soul that sinneth, it shall die.\"]],\"Genesis 1:26\":[[26,\"And God said, Let us make man in our image, after our likeness: and let them have dominion over the fish of the sea, and over the fowl of the air, and over the cattle, and over all the earth, and over every creeping thing that creepeth upon the earth.\"]],\"Genesis 1:26-27\":[[26,\"And God said, Let us make man in our image, after our likeness: and let them have dominion over the fish of the sea, and over the fowl of the air, and over the cattle, and over all the earth, and over every creeping thing that creepeth upon the earth.\"],[27,\"So God created man in his own image, in the image of God created he him; male and female created he them.\"]],\"Genesis 1:27\":[[27,\"So God created man in his own image, in the image of God created he him; male and female created he them.\"]],\"Genesis 3:17\":[[17,\"And unto Adam he said, Because thou hast hearkened unto the voice of thy wife, and hast eaten of the tree, of which I commanded thee, saying, Thou shalt not eat of it: cursed is the ground for thy sake; in sorrow shalt thou eat of it all the days of thy life;\"]],\"Genesis 3:19\":[[19,\"In the sweat of thy face shalt thou eat bread, till thou return unto the ground; for out of it wast thou taken: for dust thou art, and unto dust shalt thou return.\"]],\"Genesis 3:23\":[[23,\"Therefore the LORD God sent him forth from the garden of Eden, to till the ground from whence he was taken.\"]],\"Genesis 3:24\":[[24,\"So he drove out the man; and he placed at the east of the garden of Eden Cherubims, and a flaming sword which turned every way, to keep the way of the tree of life.\"]],\"Genesis 3:6\":[[6,\"And when the woman saw that the tree was good for food, and that it was pleasant to the eyes, and a tree to be desired to make one wise, she took of the fruit thereof, and did eat, and gave also unto her husband with her; and he did eat.\"]],\"Hebrews 9:27\":[[27,\"And as it is appointed unto men once to die, but after this the judgment:\"]],\"Isaiah 30:1\":[[1,\"Woe to the rebellious children, saith the LORD, that take counsel, but not of me; and that cover with a covering, but not of my spirit, that they may add sin to sin:\"]],\"John 1:12\":[[12,\"But as many as received him, to them gave he power to become the sons of God, even to them that believe on his name:\"]],\"John 3:13-17\":[[13,\"And no man hath ascended up to heaven, but he that came down from heaven, even the Son of man which is in heaven.\"],[14,\"And as Moses lifted up the serpent in the wilderness, even so must the Son of man be lifted up:\"],[15,\"That whosoever believeth in him should not perish, but have eternal life.\"],[16,\"For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.\"],[17,\"For God sent not his Son into the world to condemn the world; but that the world through him might be saved.\"]],\"John 3:15-16\":[[15,\"That whosoever believeth in him should not perish, but have eternal life.\"],[16,\"For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.\"]],\"Revelation 20:11-14\":[[11,\"And I saw a great white throne, and him that sat on it, from whose face the earth and the heaven fled away; and there was found no place for them.\"],[12,\"And I saw the dead, small and great, stand before God; and the books were opened: and another book was opened, which is the book of life: and the dead were judged out of those things which were written in the books, according to their works.\"],[13,\"And the sea gave up the dead which were in it; and death and hell delivered up the dead which were in them: and they were judged every man according to their works.\"],[14,\"And death and hell were cast into the lake of fire. This is the second death.\"]],\"Revelation 21:8\":[[8,\"But the fearful, and unbelieving, and the abominable, and murderers, and whoremongers, and sorcerers, and idolaters, and all liars, shall have their part in the lake which burneth with fire and brimstone: which is the second death.\"]],\"Romans 10:13\":[[13,\"For whosoever shall call upon the name of the Lord shall be saved.\"]],\"Romans 10:9-10\":[[9,\"That if thou shalt confess with thy mouth the Lord Jesus, and shalt believe in thine heart that God hath raised him from the dead, thou shalt be saved.\"],[10,\"For with the heart man believeth unto righteousness; and with the mouth confession is made unto salvation.\"]],\"Romans 5:12\":[[12,\"Wherefore, as by one man sin entered into the world, and death by sin; and so death passed upon all men, for that all have sinned:\"]],\"Romans 5:6-8\":[[6,\"For when we were yet without strength, in due time Christ died for the ungodly.\"],[7,\"For scarcely for a righteous man will one die: yet peradventure for a good man some would even dare to die.\"],[8,\"But God commendeth his love toward us, in that, while we were yet sinners, Christ died for us.\"]],\"Romans 6:23\":[[23,\"For the wages of sin is death; but the gift of God is eternal life through Jesus Christ our Lord.\"]]}}"}, {"LessonID": "L1-02", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "2", "Number": "Lesson Two", "Title": "The Eternal Security of the Believer", "Version": "1", "Published": "FALSE", "Content": ""}, {"LessonID": "L1-03", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "3", "Number": "Lesson Three", "Title": "Baptism & the Importance of the Ekklesia", "Version": "1", "Published": "FALSE", "Content": ""}, {"LessonID": "L1-04A", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "4", "Number": "Lesson Four-A", "Title": "The Three Changes of a Converted Life", "Version": "1", "Published": "FALSE", "Content": ""}, {"LessonID": "L1-04B", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "5", "Number": "Lesson Four-B", "Title": "The Practical Christian Walk", "Version": "1", "Published": "FALSE", "Content": ""}, {"LessonID": "L1-05", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "6", "Number": "Lesson Five", "Title": "The Holy Scriptures", "Version": "1", "Published": "FALSE", "Content": ""}, {"LessonID": "L1-06", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "7", "Number": "Lesson Six", "Title": "Stewardship", "Version": "1", "Published": "FALSE", "Content": ""}, {"LessonID": "L1-07", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "8", "Number": "Lesson Seven", "Title": "Fruit-Bearing", "Version": "1", "Published": "FALSE", "Content": ""}];
+if (typeof module !== 'undefined') module.exports = LESSON_SEED;
+
+</script>
+<script>
+/* Demo backend: runs CORE in the browser with sample data kept on this device. */
+var DEMO = (function () {
+  function h53(str, seed) {
+    var h1 = 0xdeadbeef ^ (seed || 0), h2 = 0x41c6ce57 ^ (seed || 0);
+    for (var i = 0, ch; i < str.length; i++) { ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+  }
+  function Adapter(tables, save) {
+    return {
+      all: function (t) { return tables[t] || (tables[t] = []); },
+      insert: function (t, o) { (tables[t] || (tables[t] = [])).push(JSON.parse(JSON.stringify(o))); save && save(); },
+      update: function (t, k, v, patch) { (tables[t] || []).forEach(function (r) { if (String(r[k]) === String(v)) Object.keys(patch).forEach(function (f) { r[f] = patch[f]; }); }); save && save(); },
+      hash: function (s) { return h53(s, 7) + h53(s, 11); },
+      sign: function (s) { return h53('demo-secret|' + s, 3); },
+      uid: function () { return Math.random().toString(16).slice(2, 10) + Date.now().toString(16).slice(-4); },
+      now: function () { return new Date(); }
+    };
+  }
+  function keyOf(content) {
+    var c = JSON.parse(content), k = [];
+    var grab = function (s) { s.replace(/\[(.+?)\]/g, function (_, a) { k.push(a); return ''; }); };
+    c.lesson.points.forEach(function (p) { grab(p.title); p.passages.forEach(function (ps) { ps[1].forEach(function (v) { grab(v[1]); }); }); });
+    return k;
+  }
+  function seed(a) {
+    var day = 864e5, now = Date.now(), iso = function (ms) { return new Date(ms).toISOString(); };
+    var yr = String(new Date().getFullYear());
+    [['C-main', 'MBBE Main', 'Sta. Ana, Manila', 'Sample Preacher A'], ['C-qc', 'MBBE Quezon City', 'Quezon City', 'Sample Preacher B'], ['C-bat', 'MBBE Batangas', 'Tanauan, Batangas', 'Sample Preacher C']]
+      .forEach(function (c) { a.insert('Congregations', { CongregationID: c[0], Name: c[1], Location: c[2], Preachers: c[3], Status: 'Active' }); });
+    LESSON_SEED.forEach(function (l) { var r = JSON.parse(JSON.stringify(l)); r.UpdatedAt = iso(now); a.insert('Lessons', r); });
+    var pin = CORE.hashPinWith(a, '1234');
+    var U = function (id, name, mobile, role, cong, status, disc, mods, created) {
+      a.insert('Users', { UserID: id, Name: name, Mobile: mobile, PinHash: pin, Role: role, CongregationID: cong, Status: status, DisciplerID: disc || '', ModCongregations: mods || '', AppointedBy: '', AppointedAt: '', FailCount: '0', LockUntil: '', CreatedAt: iso(now - (created || 60) * day), LastLogin: iso(now - 2 * day) });
+    };
+    U('U-admin', 'Admin (you)', '09170000001', 'Admin', 'C-main', 'Active', '', '', 120);
+    U('U-mod1', 'Grace Mendoza', '09170000002', 'Moderator', 'C-main', 'Active', '', 'C-main,C-qc', 110);
+    U('U-dr1', 'Paolo Reyes', '09170000003', 'Discipler', 'C-main', 'Active', '', '', 100);
+    U('U-dr2', 'Liza Bautista', '09170000004', 'Discipler', 'C-qc', 'Active', '', '', 100);
+    U('U-d1', 'Ana Cruz', '09170000005', 'Disciple', 'C-main', 'Active', 'U-dr1', '', 40);
+    U('U-d2', 'Mark Villanueva', '09170000006', 'Disciple', 'C-main', 'Active', 'U-dr1', '', 50);
+    U('U-d3', 'Joy Santos', '09170000007', 'Disciple', 'C-main', 'Active', 'U-dr1', '', 90);
+    U('U-d4', 'Ben Ramos', '09170000008', 'Disciple', 'C-qc', 'Active', 'U-dr2', '', 20);
+    U('U-d5', 'Rico Lim', '09170000009', 'Disciple', 'C-qc', 'Active', 'U-dr2', '', 400);
+    U('U-d6', 'Carla Dizon', '09170000010', 'Disciple', 'C-qc', 'Pending', '', '', 1);
+    U('U-d7', 'Noel Garcia', '09170000011', 'Disciple', 'C-main', 'Active', '', '', 3);
+
+    var key = keyOf(LESSON_SEED[0].Content), total = key.length;
+    var ans = function (n, wrong) { var o = {}; for (var i = 0; i < n; i++) o['b' + (i + 1)] = key[i]; (wrong || []).forEach(function (w) { o['b' + w[0]] = w[1]; }); return o; };
+    var E = function (id, user, year, status, start, done, exp, by) { a.insert('Enrollments', { EnrollmentID: id, UserID: user, ProgramYear: year, Level: '1', Status: status, StartDate: iso(start), CompletedDate: done ? iso(done) : '', ExpiryDate: exp ? iso(exp) : '', ApprovedBy: by || '' }); };
+    var AN = function (id, enr, o, status, upd, sub, by, rev, comment) {
+      var f = Object.keys(o).length;
+      a.insert('Answers', { AnswerID: id, EnrollmentID: enr, LessonID: 'L1-01', Answers: JSON.stringify(o), Notes: '', Filled: String(f), Total: String(total), Status: status, UpdatedAt: iso(upd), SubmittedAt: sub ? iso(sub) : '', ReviewedBy: by || '', ReviewedAt: rev ? iso(rev) : '', Comment: comment || '' });
+    };
+    E('E-d1', 'U-d1', yr, 'In progress', now - 9 * day); AN('A-d1', 'E-d1', ans(22), 'In progress', now - 1 * day);
+    E('E-d2', 'U-d2', yr, 'In progress', now - 20 * day); AN('A-d2', 'E-d2', ans(total, [[9, 'took'], [30, 'death'], [41, 'love']]), 'For review', now - 2 * day, now - 2 * day);
+    E('E-d3', 'U-d3', yr, 'Completed', now - 80 * day, now - 30 * day, now + 335 * day, 'U-dr1'); AN('A-d3', 'E-d3', ans(total), 'Approved', now - 40 * day, now - 40 * day, 'U-dr1', now - 31 * day);
+    a.insert('Certificates', { CertNo: 'MBBE-DG-' + yr + '-0001', UserID: 'U-d3', EnrollmentID: 'E-d3', ProgramYear: yr, Level: '1', LevelName: 'The Foundation · Level One', IssuedDate: iso(now - 28 * day), IssuedBy: 'U-mod1', ValidUntil: iso(now + 335 * day) });
+    E('E-d5', 'U-d5', String(+yr - 1), 'Completed', now - 420 * day, now - 380 * day, now - 15 * day, 'U-dr2'); AN('A-d5', 'E-d5', ans(total), 'Approved', now - 390 * day, now - 390 * day, 'U-dr2', now - 381 * day);
+    E('E-dr1', 'U-dr1', yr, 'In progress', now - 5 * day);
+    [['Settings', 'Signatory1', 'Sample Senior Pastor'], ['Settings', 'Signatory2', 'Grace Mendoza']].forEach(function (s) { a.insert(s[0], { Key: s[1], Value: s[2] }); });
+  }
+  var KEY = 'mbbe-disc-demo-v1', tables = null, adapter;
+  function load() {
+    try { tables = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { tables = null; }
+    var save = function () { try { localStorage.setItem(KEY, JSON.stringify(tables)); } catch (e) {} };
+    if (!tables) { tables = {}; adapter = Adapter(tables, null); seed(adapter); save(); }
+    adapter = Adapter(tables, save);
+  }
+  return {
+    call: function (req) { if (!adapter) load(); return CORE.handle(adapter, req); },
+    reset: function () { try { localStorage.removeItem(KEY); } catch (e) {} tables = null; adapter = null; load(); },
+    Adapter: Adapter, seed: seed
+  };
+})();
+if (typeof module !== 'undefined') module.exports = DEMO;
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var CFG = window.APP_CONFIG || {};
+  var DEMO_MODE = !CFG.API_URL;
+  var IS_ARTIFACT = !!CFG.IS_ARTIFACT;
+  var TOKEN_KEY = DEMO_MODE ? 'dt-token-demo' : 'dt-token';
+
+  /* ---------- small helpers ---------- */
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var LS = {
+    get: function (k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+  var S = { token: LS.get(TOKEN_KEY), me: null, info: null };
+  var app = document.getElementById('app');
+
+  function fmtDate(iso) { if (!iso) return ''; var d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  function rel(iso) {
+    if (!iso) return 'never';
+    var s = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s / 60) + ' min ago';
+    if (s < 86400) return Math.floor(s / 3600) + ' hr ago'; if (s < 86400 * 30) return Math.floor(s / 86400) + ' days ago';
+    return fmtDate(iso);
+  }
+  var PILL = { 'Completed': 'ok', 'Approved': 'ok', 'Active': 'ok', 'In progress': 'info', 'For review': 'warn', 'Pending': 'warn', 'Returned': 'miss', 'Expired': 'miss', 'Inactive': 'miss' };
+  function pill(t, label) { return '<span class="pill ' + (PILL[t] || '') + '">' + esc(label || t) + '</span>'; }
+  function toast(msg) {
+    var t = $('#toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(function () { t.hidden = true; }, 3200);
+  }
+  function confirmTap(btn, label, fn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = btn.dataset.orig; fn(); return; }
+      btn.dataset.orig = btn.textContent; btn.dataset.armed = '1'; btn.textContent = label;
+      setTimeout(function () { if (btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = btn.dataset.orig; } }, 3500);
+    });
+  }
+  function busy(btn, on) { if (!btn) return; btn.disabled = on; }
+
+  /* ---------- api ---------- */
+  function api(action, params) {
+    var req = Object.assign({ action: action, token: S.token }, params || {});
+    var p = DEMO_MODE
+      ? new Promise(function (res) { setTimeout(function () { res(DEMO.call(req)); }, 120); })
+      : fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(req) })
+          .then(function (r) { return r.json(); })
+          .catch(function () { return { ok: false, error: 'Can’t reach the server. Check your internet connection and try again.', offline: true }; });
+    return p.then(function (res) {
+      if (!res.ok) { var e = new Error(res.error); e.auth = res.auth; e.offline = res.offline; if (res.auth) { signOut(); } throw e; }
+      return res.data;
+    });
+  }
+  function signOut() { S.token = null; S.me = null; LS.del(TOKEN_KEY); location.hash = '#/login'; }
+
+  /* ---------- icons ---------- */
+  var IC = {
+    home: '<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/>',
+    users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.8a3.3 3.3 0 0 1 0 6.4M18 14.6c2 .8 3.2 2.6 3.6 5.4"/>',
+    chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/>',
+    award: '<circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 22l5-3 5 3-1.5-8"/>',
+    book: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M19 19v2H6"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"/>',
+    more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
+  };
+  function icon(n) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[n] + '</svg>'; }
+
+  /* ---------- layout ---------- */
+  function role() { return S.me ? S.me.user.Role : ''; }
+  function rank() { return { Disciple: 0, Discipler: 1, Moderator: 2, Admin: 3 }[role()] || 0; }
+  function navItems() {
+    var r = role();
+    if (r === 'Disciple') return [['home', 'Home', 'home'], ['certs', 'Certificates', 'award'], ['profile', 'Profile', 'user']];
+    if (r === 'Discipler') return [['disciples', 'Disciples', 'users'], ['library', 'Library', 'book'], ['home', 'My lessons', 'home'], ['profile', 'Profile', 'user']];
+    return [['dash', 'Dashboard', 'chart'], ['people', 'People', 'users'], ['reports', 'Reports', 'table'], ['certadmin', 'Certificates', 'award'], ['more', 'More', 'more']];
+  }
+  function homeRoute() { return { Disciple: 'home', Discipler: 'disciples' }[role()] || 'dash'; }
+  function frame(o) {
+    var cur = (location.hash.replace('#/', '').split('/')[0]) || homeRoute();
+    var u = S.me.user;
+    app.innerHTML =
+      '<header class="top"><div class="top-in">' +
+        (o.back ? '<button type="button" class="back" id="back" aria-label="Back">‹</button>' : '') +
+        '<h1>' + esc(o.title) + '</h1>' +
+        '<div class="who"><b>' + esc(u.Name) + '</b>' + esc(u.Role) + (DEMO_MODE ? ' · demo' : '') + '</div>' +
+      '</div></header>' +
+      '<main class="page' + (o.nav === false ? ' nonav' : '') + '" id="main">' + (o.body || '<p class="loading">Loading…</p>') + '</main>' +
+      (o.nav === false ? '' : '<nav class="nav" aria-label="Main"><div class="nav-in">' + navItems().map(function (n) {
+        var on = n[0] === cur || (o.section && o.section === n[0]);
+        return '<a href="#/' + n[0] + '"' + (on ? ' aria-current="page"' : '') + '>' + icon(n[2]) + '<span>' + n[1] + '</span></a>';
+      }).join('') + '</div></nav>');
+    app.classList.toggle('nonav-page', o.nav === false);
+    S.hash = location.hash;
+    if (o.tools) $('.top-in').insertAdjacentHTML('beforeend', o.tools);
+    if (o.back) $('#back').onclick = function () { if (typeof o.back === 'string') location.hash = o.back; else history.back(); };
+    window.scrollTo(0, 0);
+    return $('#main');
+  }
+  function fill(html) {
+    var m = $('#main');
+    if (!m || S.hash !== location.hash) return document.createElement('div'); // a slower, older screen finished loading; ignore it
+    m.innerHTML = html; return m;
+  }
+  function failView(e) { fill('<div class="card"><p class="err">' + esc(e.message) + '</p><button class="btn" type="button" onclick="location.reload()">Try again</button></div>'); }
+
+  /* ---------- verse sheet ---------- */
+  var VERSES = {};
+  var lastFocus = null;
+  function openVerse(ref) {
+    lastFocus = document.activeElement;
+    $('#sheet-title').textContent = ref;
+    $('#sheet-body').innerHTML = (VERSES[ref] || []).map(function (v) { return '<p><sup>' + v[0] + '</sup>' + esc(v[1]) + '</p>'; }).join('') || '<p>Verse text not available.</p>';
+    $('#sheet').hidden = $('#scrim').hidden = false;
+    requestAnimationFrame(function () { $('#sheet').classList.add('on'); $('#scrim').classList.add('on'); });
+    $('#sheet-close').focus();
+  }
+  function closeVerse() {
+    $('#sheet').classList.remove('on'); $('#scrim').classList.remove('on');
+    setTimeout(function () { $('#sheet').hidden = $('#scrim').hidden = true; }, 220);
+    if (lastFocus) lastFocus.focus();
+  }
+
+  /* ---------- lesson renderer ---------- */
+  var BIG = '<button type="button" class="back" id="big" aria-label="Larger text" title="Larger text" style="font-family:var(--serif);font-weight:700;font-size:15px">Aa</button>';
+  var refBtn = function (r) { return '<button type="button" class="ref" data-ref="' + esc(r) + '">' + esc(r) + '</button>'; };
+  function lessonHTML(d, opt) {
+    var L = d.lesson, n = 0, vals = opt.values || {}, key = d.key || [];
+    VERSES = d.verses || {};
+    var blanks = function (s) {
+      return esc(s).replace(/\[__(\d+)\]/g, function (_, len) {
+        var i = n++, id = 'b' + (i + 1), v = vals[id] || '', cls = 'b', extra = '';
+        if (opt.mode === 'review') {
+          var k = key[i] || '';
+          var good = v && v.toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim() === k.toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+          cls += !v ? ' empty' : good ? ' ok' : ' miss';
+          if (!good) extra = '<span class="fix">' + (v ? '→ ' : '') + esc(k) + '</span>';
+        }
+        var ro = opt.mode !== 'do' || !opt.editable ? ' readonly' : '';
+        if (+len > 40) return '<textarea class="' + cls + ' long" id="' + id + '" aria-label="Write the whole verse" placeholder="' + (opt.mode === 'do' ? 'Write the whole verse here' : '') + '"' + ro + '>' + esc(v) + '</textarea>' + extra;
+        return '<input class="' + cls + '" id="' + id + '" value="' + esc(v) + '" style="width:' + (Math.max(5, +len + 2) + 1) + 'ch" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Blank ' + (i + 1) + '"' + ro + '>' + extra;
+      });
+    };
+    var withRefs = function (s) { return esc(s).replace(/\{\{(.+?)\}\}/g, function (_, r) { return refBtn(r); }); };
+    var mem = VERSES[L.memory] ? VERSES[L.memory].map(function (x) { return x[1]; }).join(' ') : '';
+    var pts = L.points.map(function (p, i) {
+      return '<section class="point"><h4><span class="n">' + (i + 1) + '</span><span>' + blanks(p.title) + '</span></h4>' +
+        p.passages.map(function (ps) {
+          return '<div class="passage">' + refBtn(ps[0]) + ps[1].map(function (v) { return '<p class="vs"><span class="vn">V.' + v[0] + '</span>' + blanks(v[1]) + '</p>'; }).join('') + '</div>';
+        }).join('') + '</section>';
+    }).join('');
+    var closing = L.closing && VERSES[L.closing] ? '<div class="passage">' + refBtn(L.closing) + VERSES[L.closing].map(function (v) { return '<p class="vs" style="font-style:italic"><span class="vn">V.' + v[0] + '</span>' + esc(v[1]) + '</p>'; }).join('') + '</div>' : '';
+    return '<article class="reader" id="reader">' +
+      '<header><div class="eyebrow">' + esc(L.level || '') + ' · ' + esc(L.number || '') + '</div><h2 class="lt">' + esc(L.title) + '</h2></header>' +
+      (mem ? '<blockquote class="memory">“' + esc(mem) + '”<br>' + refBtn(L.memory) + '</blockquote>' : '') +
+      (L.intro ? '<p>' + withRefs(L.intro) + '</p>' : '') +
+      (L.question ? '<p class="ask">' + esc(L.question) + '</p>' : '') + pts +
+      (L.faith ? '<p>' + esc(L.faith) + '</p>' : '') +
+      (L.prayer ? '<p>You can pray this prayer right now and be reconciled to God, our Creator:</p><blockquote class="prayer">“' + esc(L.prayer) + '”</blockquote>' : '') +
+      (L.assurances ? '<section><h3>When you pray this sinner’s prayer</h3><ol class="assure">' + L.assurances.map(function (a) { return '<li>' + esc(a[0]) + ' ' + refBtn(a[1]) + '</li>'; }).join('') + '</ol></section>' : '') +
+      closing + '<p class="end">-o0o0o-</p></article>';
+  }
+  function fieldsIn(root) { return $$('.b', root); }
+  function valuesOf(root) { var o = {}; fieldsIn(root).forEach(function (f) { if (f.value) o[f.id] = f.value; }); return o; }
+
+  /* ---------- auth screens ---------- */
+  function authShell(body) {
+    app.innerHTML = '<div class="auth"><div class="auth-in">' +
+      '<div class="brand"><div class="eyebrow">' + esc(S.info ? S.info.churchName : 'Metropolitan Bible Baptist Ekklesia') + '</div><h1>Discipleship</h1><p class="muted">' + esc(S.info ? S.info.programName : 'Discovery Lessons') + ' · yearly lessons, progress and certificates</p></div>' +
+      body + '</div></div>';
+  }
+  function loadInfo() { return S.info ? Promise.resolve(S.info) : api('publicInfo').then(function (i) { S.info = i; return i; }); }
+
+  function viewLogin() {
+    loadInfo().catch(function () {}).then(function () {
+      authShell(
+        '<form id="f" class="card" novalidate>' +
+          '<label class="f">Mobile number<input class="i" id="mobile" inputmode="tel" autocomplete="tel" placeholder="0917 123 4567" required></label>' +
+          '<label class="f">PIN<input class="i" id="pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="6" placeholder="4 to 6 digits" required></label>' +
+          '<p class="err" id="err" hidden></p>' +
+          '<button class="btn primary block" id="go">Sign in</button>' +
+        '</form>' +
+        '<p class="muted small">New to the discipleship lessons? <a href="#/register">Register here</a>. Forgot your PIN? Ask your discipler or moderator to reset it.</p>' +
+        (DEMO_MODE ? '<div class="demo"><div><b>Demo mode.</b> Sample people and data, saved only on this device. Every demo PIN is <b>1234</b>. Sign in as:</div><div class="row">' +
+          [['Admin', '09170000001'], ['Moderator', '09170000002'], ['Discipler', '09170000003'], ['Disciple', '09170000005']].map(function (d) { return '<button type="button" class="btn sm" data-demo="' + d[1] + '">' + d[0] + '</button>'; }).join('') +
+          '</div></div>' : ''));
+      var f = $('#f');
+      f.onsubmit = function (e) {
+        e.preventDefault(); var b = $('#go'); busy(b, true); $('#err').hidden = true;
+        api('login', { mobile: $('#mobile').value, pin: $('#pin').value }).then(function (r) {
+          S.token = r.token; LS.set(TOKEN_KEY, r.token); S.me = null; location.hash = '#/'; route();
+        }).catch(function (e2) { $('#err').textContent = e2.message; $('#err').hidden = false; busy(b, false); });
+      };
+      $$('[data-demo]').forEach(function (b) { b.onclick = function () { $('#mobile').value = b.dataset.demo; $('#pin').value = '1234'; f.requestSubmit ? f.requestSubmit() : f.onsubmit(new Event('submit')); }; });
+    });
+  }
+  function viewRegister() {
+    loadInfo().then(function (info) {
+      authShell(
+        '<form id="f" class="card" novalidate><h2>Register as a disciple</h2>' +
+          '<label class="f">Full name<input class="i" id="name" autocomplete="name" required></label>' +
+          '<label class="f">Mobile number<input class="i" id="mobile" inputmode="tel" autocomplete="tel" placeholder="0917 123 4567" required></label>' +
+          '<label class="f">Congregation<select class="i" id="cong" required><option value="">Choose your congregation</option>' +
+            info.congregations.map(function (c) { return '<option value="' + esc(c.CongregationID) + '">' + esc(c.Name) + (c.Location ? ' · ' + esc(c.Location) : '') + '</option>'; }).join('') + '</select></label>' +
+          '<label class="f">Choose a PIN<input class="i" id="pin" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" placeholder="4 to 6 digits"></label>' +
+          '<label class="f">Type the PIN again<input class="i" id="pin2" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label>' +
+          '<p class="small muted">Your account is personal. Please don’t share your PIN.</p>' +
+          '<p class="err" id="err" hidden></p><button class="btn primary block" id="go">Register</button>' +
+        '</form><p class="muted small">Already registered? <a href="#/login">Sign in</a></p>');
+      $('#f').onsubmit = function (e) {
+        e.preventDefault(); var err = $('#err'); err.hidden = true;
+        if ($('#pin').value !== $('#pin2').value) { err.textContent = 'The two PINs don’t match.'; err.hidden = false; return; }
+        busy($('#go'), true);
+        api('register', { name: $('#name').value, mobile: $('#mobile').value, pin: $('#pin').value, congregationId: $('#cong').value }).then(function () {
+          authShell('<div class="card"><h2>Thank you for registering</h2><p>Your moderator will approve your account and assign a discipler. You can sign in once you’re approved.</p><a class="btn primary" href="#/login">Back to sign in</a></div>');
+        }).catch(function (e2) { err.textContent = e2.message; err.hidden = false; busy($('#go'), false); });
+      };
+    }).catch(function (e) { authShell('<div class="card"><p class="err">' + esc(e.message) + '</p></div>'); });
+  }
+
+  /* ---------- disciple: home / my lessons ---------- */
+  function viewHome() {
+    var r = role();
+    frame({ title: r === 'Disciple' ? 'My lessons' : 'My own lessons', section: r === 'Disciple' ? 'home' : (r === 'Discipler' ? 'home' : 'more'), back: rank() >= 2 ? '#/more' : null });
+    api('home').then(function (d) {
+      var e = d.enrollment, p = d.progress, yr = new Date().getFullYear();
+      var html = '';
+      if (!e) {
+        html += '<div class="card hero"><h3>' + yr + ' discipleship</h3><h2>Start this year’s lessons</h2><p>Every member finishes the discipleship lessons once a year. Begin with Level One, The Foundation.</p><button class="btn primary" id="start">Start lessons</button></div>';
+      } else {
+        var pct = p.total ? Math.round(p.approved / p.total * 100) : 0;
+        html += '<div class="card hero"><div class="spread"><h3>Program year ' + esc(e.ProgramYear) + '</h3>' + pill(e.Status) + '</div>' +
+          '<h2>' + esc(e.LevelName) + '</h2>' +
+          '<div class="track" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100"><div class="fill" style="width:' + pct + '%"></div></div>' +
+          '<p class="small">' + p.approved + ' of ' + p.total + ' lessons approved' + (p.forReview ? ' · ' + p.forReview + ' waiting for review' : '') + (d.discipler ? ' · Discipler: <b>' + esc(d.discipler) + '</b>' : ' · No discipler assigned yet') + '</p>';
+        if (e.Status === 'Completed') html += '<p>Completed on ' + fmtDate(e.CompletedDate) + '. Your status is valid until <b>' + fmtDate(e.ExpiryDate) + '</b>.</p>';
+        if (e.Status === 'Expired') html += '<p>Your completion expired on ' + fmtDate(e.ExpiryDate) + '. Retake the lessons to renew your status for ' + yr + '.</p>';
+        if (d.canStart) html += '<button class="btn primary" id="start">Retake lessons for ' + yr + '</button>';
+        if (d.nextLevel) html += '<button class="btn primary" id="next">Start Level ' + d.nextLevel + '</button>';
+        if (e.Status === 'In progress' && p.total && p.approved === p.total) html += '<p class="small">All lessons approved. Your discipler will mark you fit to graduate.</p>';
+        html += '</div>';
+        if (e.Status === 'Completed') {
+          var c = d.certificates.filter(function (x) { return x.EnrollmentID === e.EnrollmentID; })[0];
+          html += c ? '<a class="card" href="#/cert/' + esc(c.CertNo) + '"><div class="spread"><b>Your certificate is ready</b>' + pill('Completed', 'View') + '</div><p class="small muted">' + esc(c.CertNo) + ' · issued ' + fmtDate(c.IssuedDate) + '</p></a>'
+            : '<div class="card"><p>Congratulations on completing the lessons. Your moderator will issue your certificate.</p></div>';
+        }
+        html += '<h3>Lessons</h3><div class="list">' + (p.lessons.length ? p.lessons.map(function (l) {
+          var sub = l.Status === 'Returned' ? 'Returned by your discipler: ' + esc(l.Comment) : l.Total ? l.Filled + ' of ' + l.Total + ' blanks answered' : 'Not opened yet';
+          return '<a class="item lesson-item" href="#/lesson/' + esc(l.LessonID) + '"><div><div class="num">' + esc(l.Number) + '</div><div class="t">' + esc(l.Title) + '</div></div>' + pill(l.Status) + '<div class="s">' + sub + '</div></a>';
+        }).join('') : '<p class="muted">No lessons are published for this level yet.</p>') + '</div>';
+      }
+      var m = fill(html);
+      var st = $('#start', m), nx = $('#next', m);
+      if (st) st.onclick = function () { busy(st, true); api('startEnrollment').then(function () { toast('Your lessons are ready.'); viewHome(); }).catch(function (x) { toast(x.message); busy(st, false); }); };
+      if (nx) nx.onclick = function () { busy(nx, true); api('startEnrollment', { nextLevel: true }).then(function () { toast('Next level started.'); viewHome(); }).catch(function (x) { toast(x.message); busy(nx, false); }); };
+    }).catch(failView);
+  }
+
+  /* ---------- disciple: do a lesson ---------- */
+  function viewLesson(id) {
+    frame({ title: 'Lesson', back: '#/home', nav: false, tools: BIG });
+    api('getLesson', { lessonId: id }).then(function (d) {
+      var draftKey = 'dt-draft-' + S.me.user.UserID + '-' + id;
+      var draft = LS.get(draftKey);
+      var values = d.answers || {}, notes = d.notes || '', dirty = false;
+      if (draft && d.editable) { values = draft.answers || values; notes = draft.notes != null ? draft.notes : notes; dirty = true; }
+      $('.top h1').textContent = d.lesson.number;
+      var banner = '';
+      if (d.status === 'Returned') banner = '<div class="card" style="border-color:var(--miss)"><b>Returned by your discipler</b><p>' + esc(d.comment) + '</p><p class="small muted">Update your answers, then submit again.</p></div>';
+      else if (d.status === 'For review') banner = '<div class="card"><b>Submitted for review.</b><p class="small muted">Your discipler is reviewing this lesson. You can read it but not change it.</p></div>';
+      else if (d.status === 'Approved') banner = '<div class="card"><b>Approved.</b>' + (d.comment ? '<p>' + esc(d.comment) + '</p>' : '') + '</div>';
+      else if (!d.editable) banner = '<div class="card"><p>Start this year’s lessons from your home page to answer this lesson.</p></div>';
+      var m = fill(banner + lessonHTML(d, { mode: 'do', editable: d.editable, values: values }) +
+        '<section class="stack"><h3><label for="notes">My notes</label></h3><textarea class="i" id="notes" placeholder="Questions for your discipler, thoughts, prayer points"' + (d.editable ? '' : ' readonly') + '>' + esc(notes) + '</textarea></section>' +
+        '<div class="dock"><div class="spread"><span class="small"><b id="cnt"></b></span><span class="small muted" id="saved" aria-live="polite"></span></div>' +
+        '<div class="track"><div class="fill" id="bar"></div></div>' +
+        (d.editable ? '<div class="row"><button type="button" class="btn primary sm" id="submit">Submit for review</button><button type="button" class="btn sm" id="check">Check answers</button></div>' : '') +
+        '</div>');
+      var fields = fieldsIn(m);
+      function count() {
+        var f = fields.filter(function (x) { return x.value.trim(); }).length;
+        $('#cnt').textContent = f + ' of ' + d.total + ' blanks';
+        $('#bar').style.width = (f / d.total * 100) + '%';
+        return f;
+      }
+      count();
+      $('#big').onclick = function () { $('#reader').classList.toggle('big'); };
+      if (!d.editable) return;
+      var timer = null, saving = false;
+      function snapshot() { return { answers: valuesOf(m), notes: $('#notes').value, t: Date.now() }; }
+      function save() {
+        if (saving) { timer = setTimeout(save, 800); return Promise.resolve(); }
+        saving = true; var snap = snapshot(); $('#saved').textContent = 'Saving…';
+        return api('saveAnswers', { lessonId: id, answers: snap.answers, notes: snap.notes }).then(function () {
+          saving = false; var cur = LS.get(draftKey); if (cur && cur.t <= snap.t) LS.del(draftKey); dirty = false;
+          $('#saved').textContent = 'Saved ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        }).catch(function (e) {
+          saving = false; $('#saved').textContent = e.offline ? 'Saved on this phone. Will sync when you’re online.' : e.message;
+        });
+      }
+      function changed() { dirty = true; LS.set(draftKey, snapshot()); count(); clearTimeout(timer); timer = setTimeout(save, 1200); $('#saved').textContent = 'Editing…'; }
+      fields.forEach(function (f) { f.addEventListener('input', function () { f.classList.remove('ok', 'miss'); changed(); }); });
+      $('#notes').addEventListener('input', changed);
+      window.addEventListener('online', function () { if (dirty) save(); });
+      if (dirty) save();
+      $('#check').onclick = function () {
+        var b = this; busy(b, true);
+        api('checkAnswers', { lessonId: id, answers: valuesOf(m) }).then(function (r) {
+          var ok = 0, wrong = 0;
+          r.results.forEach(function (x, i) { var f = $('#b' + (i + 1), m); if (!f) return; f.classList.remove('ok', 'miss'); if (x === true) { f.classList.add('ok'); ok++; } else if (x === false) { f.classList.add('miss'); wrong++; } });
+          toast(ok + ' correct' + (wrong ? ', ' + wrong + ' to look at again' : '') + '. ' + (d.total - ok - wrong) + ' still blank.');
+          busy(b, false);
+        }).catch(function (e) { toast(e.message); busy(b, false); });
+      };
+      confirmTap($('#submit'), 'Tap again to submit', function () {
+        var left = d.total - count();
+        clearTimeout(timer);
+        api('submitLesson', { lessonId: id, answers: valuesOf(m), notes: $('#notes').value }).then(function () {
+          LS.del(draftKey); toast(left ? 'Submitted with ' + left + ' blanks left. Your discipler will review it.' : 'Submitted. Your discipler will review it.'); location.hash = '#/home';
+        }).catch(function (e) { toast(e.message); });
+      });
+    }).catch(failView);
+  }
+
+  /* ---------- certificates ---------- */
+  function viewMyCerts() {
+    frame({ title: 'Certificates' });
+    api('home').then(function (d) {
+      fill(d.certificates.length ? '<div class="list">' + d.certificates.map(function (c) {
+        var valid = new Date(c.ValidUntil) > new Date();
+        return '<a class="item" href="#/cert/' + esc(c.CertNo) + '"><div class="t">' + esc(c.LevelName) + ' · ' + esc(c.ProgramYear) + '</div>' + pill(valid ? 'Completed' : 'Expired', valid ? 'Valid' : 'Expired') + '<div class="s">' + esc(c.CertNo) + ' · valid until ' + fmtDate(c.ValidUntil) + '</div></a>';
+      }).join('') + '</div>' : '<div class="card"><h2>No certificates yet</h2><p>When you finish your lessons and your discipler approves you, your moderator issues your certificate. It will appear here.</p></div>');
+    }).catch(failView);
+  }
+  function viewCert(no) {
+    frame({ title: 'Certificate', back: true, nav: false });
+    api('certificate', { certNo: no }).then(function (r) {
+      var s = r.settings, c = r.cert;
+      fill('<div class="cert" id="cert">' +
+        '<div class="c-church">' + esc(s.ChurchName) + '</div>' +
+        '<div class="c-title">Certificate of Completion</div>' +
+        '<div class="c-sub">This certifies that</div>' +
+        '<div class="c-name">' + esc(r.name) + '</div>' +
+        '<div class="c-sub">has faithfully completed the ' + esc(s.ProgramName) + '<br><b>' + esc(c.LevelName) + '</b><br>' + esc(r.congregation) + ' · Program year ' + esc(c.ProgramYear) + '</div>' +
+        '<div class="c-sign"><div>' + esc(s.Signatory1 || ' ') + '<small>' + esc(s.Signatory1Title) + '</small></div><div>' + esc(s.Signatory2 || r.issuedBy) + '<small>' + esc(s.Signatory2Title) + '</small></div></div>' +
+        '<div class="c-meta">No. ' + esc(c.CertNo) + ' · Issued ' + fmtDate(c.IssuedDate) + ' · Valid until ' + fmtDate(c.ValidUntil) + '</div>' +
+        '</div>' +
+        (IS_ARTIFACT ? '<p class="small muted">In the live app this page has a Print / Save as PDF button.</p>' : '<button type="button" class="btn primary" id="print">Print or save as PDF</button>'));
+      var p = $('#print'); if (p) p.onclick = function () { window.print(); };
+    }).catch(failView);
+  }
+
+  /* ---------- discipler ---------- */
+  function personItem(p, extra) {
+    var sub = [p.Congregation];
+    if (p.TotalLessons) sub.push(p.Approved + '/' + p.TotalLessons + ' lessons approved');
+    if (p.Discipler && extra !== 'nodisc') sub.push('Discipler: ' + p.Discipler);
+    sub.push('active ' + rel(p.LastActivity));
+    return '<a class="item" href="#/person/' + esc(p.UserID) + '"><div class="t">' + esc(p.Name) + (p.Role !== 'Disciple' ? ' <span class="pill plain">' + esc(p.Role) + '</span>' : '') + '</div>' +
+      '<div class="row">' + (p.ForReview ? pill('For review', p.ForReview + ' to review') : '') + (p.Status !== 'Active' ? pill(p.Status) : pill(p.LessonStatus)) + '</div>' +
+      '<div class="s">' + esc(sub.filter(Boolean).join(' · ')) + '</div></a>';
+  }
+  function viewDisciples() {
+    frame({ title: 'My disciples' });
+    api('myDisciples').then(function (d) {
+      var need = d.people.filter(function (p) { return p.ForReview; });
+      fill((need.length ? '<div class="card hero"><b>' + need.length + ' ' + (need.length === 1 ? 'disciple has' : 'disciples have') + ' lessons waiting for your review.</b></div>' : '') +
+        (d.people.length ? '<div class="list">' + d.people.sort(function (a, b) { return b.ForReview - a.ForReview || a.Name.localeCompare(b.Name); }).map(function (p) { return personItem(p, 'nodisc'); }).join('') + '</div>'
+          : '<div class="card"><h2>No disciples yet</h2><p>Your moderator assigns disciples to you. They will appear here with their progress.</p></div>'));
+    }).catch(failView);
+  }
+  function viewPerson(uid) {
+    frame({ title: 'Person', back: true, section: rank() >= 2 ? 'people' : 'disciples' });
+    var reqs = [api('person', { userId: uid })];
+    if (rank() >= 2) reqs.push(api('people'));
+    Promise.all(reqs).then(function (res) {
+      var d = res[0], p = d.person, e = d.enrollment, pr = d.progress, ppl = res[1];
+      $('.top h1').textContent = p.Name;
+      var html = '<div class="card"><div class="spread"><h2>' + esc(p.Name) + '</h2>' + pill(p.Status === 'Active' ? p.LessonStatus : p.Status) + '</div>' +
+        '<p class="small muted">' + esc(p.Role) + ' · ' + esc(p.Congregation) + ' · <span style="user-select:all">' + esc(p.Mobile) + '</span></p>' +
+        '<p class="small">' + (p.Discipler ? 'Discipler: <b>' + esc(p.Discipler) + '</b>' : 'No discipler assigned') + '</p>' +
+        (e ? '<p class="small">' + esc(e.LevelName) + ' · ' + esc(e.ProgramYear) + ' · ' + pr.approved + ' of ' + pr.total + ' lessons approved' + (e.ExpiryDate ? ' · valid until ' + fmtDate(e.ExpiryDate) : '') + '</p>' : '<p class="small muted">Hasn’t started this year’s lessons.</p>') +
+        '</div>';
+      if (e && e.Status === 'In progress' && pr.total && pr.approved === pr.total) {
+        html += '<div class="card hero"><b>All lessons approved.</b><p class="small">Mark ' + esc(p.Name.split(' ')[0]) + ' as fit to graduate. This completes ' + esc(e.LevelName) + ' for ' + esc(e.ProgramYear) + '.</p><button class="btn primary" id="grad">Mark fit to graduate</button></div>';
+      }
+      if (e) html += '<h3>Lessons</h3><div class="list">' + pr.lessons.map(function (l) {
+        var open = l.AnswerID;
+        return '<' + (open ? 'a href="#/review/' + esc(uid) + '/' + esc(l.LessonID) + '"' : 'div') + ' class="item lesson-item"><div><div class="num">' + esc(l.Number) + '</div><div class="t">' + esc(l.Title) + '</div></div>' + pill(l.Status) +
+          '<div class="s">' + (l.Total ? l.Filled + ' of ' + l.Total + ' blanks' : 'Not opened yet') + (l.Status === 'For review' ? ' · tap to review' : '') + '</div></' + (open ? 'a' : 'div') + '>';
+      }).join('') + '</div>';
+      if (d.certificates.length) html += '<h3>Certificates</h3><div class="list">' + d.certificates.map(function (c) { return '<a class="item" href="#/cert/' + esc(c.CertNo) + '"><div class="t">' + esc(c.LevelName) + ' · ' + esc(c.ProgramYear) + '</div><span class="pill plain">' + esc(c.CertNo) + '</span></a>'; }).join('') + '</div>';
+
+      html += '<h3>Manage</h3><div class="card stack">';
+      if (ppl) {
+        var opts = ppl.disciplers.filter(function (x) { return x.UserID !== uid; }).map(function (x) { return '<option value="' + esc(x.UserID) + '"' + (x.UserID === p.DisciplerID ? ' selected' : '') + '>' + esc(x.Name) + ' (' + esc(x.Role) + ')</option>'; }).join('');
+        html += '<label class="f">Discipler<div class="row"><select class="i" id="disc" style="flex:1;min-width:0"><option value="">No discipler</option>' + opts + '</select><button type="button" class="btn sm" id="assign">Save</button></div></label>';
+        var roles = rank() === 3 ? ['Disciple', 'Discipler', 'Moderator', 'Admin'] : ['Disciple', 'Discipler'];
+        if (roles.indexOf(p.Role) >= 0) {
+          html += '<label class="f">Role<div class="row"><select class="i" id="role" style="flex:1;min-width:0">' + roles.map(function (r) { return '<option' + (r === p.Role ? ' selected' : '') + '>' + r + '</option>'; }).join('') + '</select><button type="button" class="btn sm" id="setrole">Save</button></div></label>';
+        }
+        if (rank() === 3) {
+          var mods = (p.ModCongregations || '').split(',');
+          html += '<fieldset class="stack" id="modc" style="border:1px solid var(--line);border-radius:10px;padding:10px 12px"' + (p.Role === 'Moderator' ? '' : ' hidden') + '><legend class="small muted" style="font-weight:700">Moderator of</legend>' +
+            S.me.congregations.map(function (c) { return '<label class="row small"><input type="checkbox" value="' + esc(c.CongregationID) + '"' + (mods.indexOf(c.CongregationID) >= 0 ? ' checked' : '') + '> ' + esc(c.Name) + '</label>'; }).join('') +
+            '<button type="button" class="btn sm" id="savemods">Save congregations</button></fieldset>';
+        }
+      }
+      html += '<div class="row"><button type="button" class="btn sm" id="pin">Reset PIN</button>' +
+        (ppl ? (p.Status === 'Active' ? '<button type="button" class="btn sm danger" id="deact">Deactivate account</button>' : '<button type="button" class="btn sm" id="react">Reactivate account</button>') : '') + '</div>' +
+        '<p class="small" id="pinout" hidden></p></div>';
+      var m = fill(html);
+      var g = $('#grad', m);
+      if (g) confirmTap(g, 'Tap again to confirm', function () { api('graduate', { enrollmentId: e.EnrollmentID }).then(function () { toast(p.Name + ' completed ' + e.LevelName + '.'); viewPerson(uid); }).catch(function (x) { toast(x.message); }); });
+      confirmTap($('#pin', m), 'Tap again to reset PIN', function () {
+        api('resetPin', { userId: uid }).then(function (r) { var o = $('#pinout'); o.innerHTML = 'Temporary PIN: <b style="font-size:20px;letter-spacing:.15em;user-select:all">' + esc(r.tempPin) + '</b><br><span class="muted">Give this to ' + esc(p.Name.split(' ')[0]) + ' in person. They can change it under Profile.</span>'; o.hidden = false; }).catch(function (x) { toast(x.message); });
+      });
+      if (ppl) {
+        $('#assign').onclick = function () { api('assign', { userId: uid, disciplerId: $('#disc').value }).then(function () { toast('Discipler saved.'); }).catch(function (x) { toast(x.message); }); };
+        var sr = $('#setrole');
+        if (sr) {
+          $('#role').onchange = function () { var mc = $('#modc'); if (mc) mc.hidden = this.value !== 'Moderator'; };
+          sr.onclick = function () {
+            var mc = $('#modc'), mods2 = mc ? $$('input:checked', mc).map(function (x) { return x.value; }).join(',') : '';
+            api('setRole', { userId: uid, role: $('#role').value, modCongregations: mods2 }).then(function () { toast('Role saved.'); viewPerson(uid); }).catch(function (x) { toast(x.message); });
+          };
+        }
+        var sm = $('#savemods'); if (sm) sm.onclick = function () { api('updatePerson', { userId: uid, modCongregations: $$('#modc input:checked').map(function (x) { return x.value; }).join(',') }).then(function () { toast('Congregations saved.'); }).catch(function (x) { toast(x.message); }); };
+        var da = $('#deact'); if (da) confirmTap(da, 'Tap again to deactivate', function () { api('setStatus', { userId: uid, status: 'Inactive' }).then(function () { toast('Account deactivated.'); viewPerson(uid); }).catch(function (x) { toast(x.message); }); });
+        var ra = $('#react'); if (ra) ra.onclick = function () { api('setStatus', { userId: uid, status: 'Active' }).then(function () { toast('Account reactivated.'); viewPerson(uid); }).catch(function (x) { toast(x.message); }); };
+      }
+    }).catch(failView);
+  }
+  function viewReview(uid, lid) {
+    frame({ title: 'Review', back: '#/person/' + uid, nav: false, tools: BIG });
+    api('getLesson', { lessonId: lid, userId: uid }).then(function (d) {
+      $('.top h1').textContent = d.person.Name + ' · ' + d.lesson.number;
+      var key = d.key, ok = 0, filled = 0;
+      key.forEach(function (k, i) { var v = d.answers['b' + (i + 1)]; if (v) { filled++; if (v.toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim() === k.toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim()) ok++; } });
+      var html = '<div class="card"><div class="spread"><b>' + ok + ' of ' + d.total + ' match the answer key</b>' + pill(d.status) + '</div><p class="small muted">' + filled + ' answered · green matches the key, amber differs (the key is shown beside it), dashed is blank. Meaning matters more than exact wording.</p></div>' +
+        lessonHTML(d, { mode: 'review', values: d.answers }) +
+        (d.notes ? '<div class="card"><h3>Disciple’s notes</h3><p style="white-space:pre-wrap">' + esc(d.notes) + '</p></div>' : '');
+      if (d.status === 'For review') html += '<div class="dock"><label class="f" for="cm">Note to ' + esc(d.person.Name.split(' ')[0]) + '</label><textarea class="i" id="cm" style="min-height:70px" placeholder="Encouragement, or what to fix if you return it"></textarea><div class="row"><button type="button" class="btn primary sm" id="ap">Approve lesson</button><button type="button" class="btn sm danger" id="rt">Return for changes</button></div></div>';
+      else if (d.comment) html += '<div class="card"><h3>Your note</h3><p>' + esc(d.comment) + '</p></div>';
+      var m = fill(html);
+      $('#big').onclick = function () { $('#reader').classList.toggle('big'); };
+      function decide(dec) { api('review', { answerId: d.answerId, decision: dec, comment: $('#cm').value }).then(function () { toast(dec === 'approve' ? 'Lesson approved.' : 'Lesson returned with your note.'); location.hash = '#/person/' + uid; }).catch(function (x) { toast(x.message); }); }
+      var ap = $('#ap', m); if (ap) { ap.onclick = function () { decide('approve'); }; $('#rt', m).onclick = function () { decide('return'); }; }
+    }).catch(failView);
+  }
+  function viewLibrary() {
+    frame({ title: 'Lesson library', section: rank() >= 2 ? 'more' : 'library', back: rank() >= 2 ? '#/more' : null });
+    api('library').then(function (d) {
+      var by = {};
+      d.lessons.forEach(function (l) { (by[l.LevelName || 'Level ' + l.Level] = by[l.LevelName || 'Level ' + l.Level] || []).push(l); });
+      fill('<p class="muted">Open a lesson to present it blank to your disciples, or switch on the answer key to prepare.</p>' + Object.keys(by).map(function (k) {
+        return '<h3>' + esc(k) + '</h3><div class="list">' + by[k].map(function (l) {
+          return (l.HasContent ? '<a class="item lesson-item" href="#/libl/' + esc(l.LessonID) + '">' : '<div class="item lesson-item" style="opacity:.6;cursor:default">') + '<div><div class="num">' + esc(l.Number) + '</div><div class="t">' + esc(l.Title) + '</div></div>' + (l.HasContent ? (l.Published ? '' : pill('Pending', 'Draft')) : '<span class="pill plain">Coming soon</span>') + (l.HasContent ? '</a>' : '</div>');
+        }).join('') + '</div>';
+      }).join(''));
+    }).catch(failView);
+  }
+  function viewLibraryLesson(id) {
+    frame({ title: 'Lesson', back: '#/library', nav: false, tools: BIG });
+    api('libraryLesson', { lessonId: id }).then(function (d) {
+      $('.top h1').textContent = d.lesson.number;
+      var m = fill(lessonHTML(d, { mode: 'library', values: {} }) +
+        '<div class="dock"><div class="spread"><div class="seg" role="group" aria-label="View"><button type="button" id="v-blank" aria-pressed="true">Blank</button><button type="button" id="v-key" aria-pressed="false">Answer key</button></div><span class="small muted">Tap a green reference for the verse</span></div></div>');
+      var fields = fieldsIn(m);
+      function mode(k) {
+        $('#v-blank').setAttribute('aria-pressed', String(!k)); $('#v-key').setAttribute('aria-pressed', String(k));
+        fields.forEach(function (f, i) { f.value = k ? d.key[i] : ''; f.classList.toggle('key', k); });
+      }
+      $('#v-blank').onclick = function () { mode(false); }; $('#v-key').onclick = function () { mode(true); };
+      $('#big').onclick = function () { $('#reader').classList.toggle('big'); };
+    }).catch(failView);
+  }
+
+  /* ---------- moderator ---------- */
+  function viewDash() {
+    frame({ title: 'Dashboard' });
+    api('dashboard').then(function (d) {
+      var c = d.counts;
+      var tile = function (n, label, go, alert) { return '<button type="button" class="tile' + (alert && n ? ' alert' : '') + '" data-go="' + go + '"><b>' + n + '</b><span>' + label + '</span></button>'; };
+      var html = '<div class="tiles">' +
+        tile(c.people, 'Members taking lessons', '#/reports') +
+        tile(c.forReview, 'Lessons to review', '#/reports/For review', true) +
+        tile(c.pending, 'Registrations to approve', '#/people/pending', true) +
+        tile(c.unassigned, 'Without a discipler', '#/people/unassigned', true) +
+        tile(c['Not started'], 'Not started', '#/reports/Not started') +
+        tile(c['In progress'], 'In progress', '#/reports/In progress') +
+        tile(c.Completed, 'Completed this year', '#/reports/Completed') +
+        tile(c.Expired, 'Expired, need to retake', '#/reports/Expired', true) + '</div>';
+      html += '<h3>Disciplers</h3>' + (d.disciplers.length ? '<div class="list">' + d.disciplers.map(function (x) {
+        return '<a class="item" href="#/reports//' + esc(x.UserID) + '"><div class="t">' + esc(x.Name) + '</div>' + (x.ForReview ? pill('For review', x.ForReview + ' to review') : '<span></span>') +
+          '<div class="s">' + esc(x.Congregation) + ' · ' + x.Disciples + ' disciples · ' + x.InProgress + ' in progress · ' + x.Completed + ' completed</div></a>';
+      }).join('') + '</div>' : '<p class="muted">No disciplers yet. Promote a disciple from the People tab.</p>');
+      html += '<h3>Completion by congregation</h3><div class="list">' + d.congregations.map(function (x) {
+        var pct = x.People ? Math.round(x.Completed / x.People * 100) : 0;
+        return '<div class="card"><div class="spread"><b>' + esc(x.Congregation) + '</b><span class="small muted">' + x.Completed + ' of ' + x.People + ' · ' + pct + '%</span></div><div class="track"><div class="fill" style="width:' + pct + '%"></div></div></div>';
+      }).join('') + '</div>';
+      fill(html);
+    }).catch(failView);
+  }
+  function viewPeople(filter) {
+    frame({ title: 'People' });
+    api('people').then(function (d) {
+      var f = filter || (d.people.some(function (p) { return p.Status === 'Pending'; }) ? 'pending' : 'disciples'), q = '';
+      var groups = {
+        pending: function (p) { return p.Status === 'Pending'; },
+        disciples: function (p) { return p.Status === 'Active' && p.Role === 'Disciple'; },
+        unassigned: function (p) { return p.Status === 'Active' && p.Role === 'Disciple' && !p.DisciplerID; },
+        disciplers: function (p) { return p.Status === 'Active' && p.Role === 'Discipler'; },
+        leaders: function (p) { return p.Status === 'Active' && (p.Role === 'Moderator' || p.Role === 'Admin'); },
+        inactive: function (p) { return p.Status === 'Inactive'; }
+      };
+      var labels = { pending: 'To approve', disciples: 'Disciples', unassigned: 'No discipler', disciplers: 'Disciplers', leaders: 'Moderators', inactive: 'Inactive' };
+      var m = fill('<div class="chips" role="group" aria-label="Filter">' + Object.keys(groups).map(function (k) { return '<button type="button" class="chip" data-f="' + k + '" aria-pressed="' + (k === f) + '">' + labels[k] + '<span class="n">' + d.people.filter(groups[k]).length + '</span></button>'; }).join('') + '</div>' +
+        '<input class="i" id="q" type="search" placeholder="Search by name or mobile" aria-label="Search people">' +
+        '<div class="list" id="plist"></div>');
+      var discOpts = '<option value="">Assign a discipler later</option>' + d.disciplers.map(function (x) { return '<option value="' + esc(x.UserID) + '">' + esc(x.Name) + '</option>'; }).join('');
+      function draw() {
+        var list = d.people.filter(groups[f]).filter(function (p) { return !q || (p.Name + ' ' + p.Mobile).toLowerCase().indexOf(q) >= 0; }).sort(function (a, b) { return a.Name.localeCompare(b.Name); });
+        $('#plist').innerHTML = list.length ? list.map(function (p) {
+          if (p.Status !== 'Pending') return personItem(p);
+          return '<div class="card" data-uid="' + esc(p.UserID) + '"><div class="spread"><b>' + esc(p.Name) + '</b>' + pill('Pending') + '</div><p class="small muted">' + esc(p.Congregation) + ' · ' + esc(p.Mobile) + ' · registered ' + rel(p.LastActivity || '') + '</p>' +
+            '<div class="row"><select class="i" style="flex:1;min-width:0" aria-label="Discipler for ' + esc(p.Name) + '">' + discOpts + '</select><button type="button" class="btn primary sm" data-approve>Approve</button><button type="button" class="btn quiet sm" data-reject>Decline</button></div></div>';
+        }).join('') : '<p class="muted">No one here.</p>';
+        $$('[data-approve]').forEach(function (b) { b.onclick = function () { var c = b.closest('[data-uid]'); busy(b, true); api('approveUser', { userId: c.dataset.uid, disciplerId: $('select', c).value }).then(function () { toast('Approved.'); viewPeople(f); }).catch(function (x) { toast(x.message); busy(b, false); }); }; });
+        $$('[data-reject]').forEach(function (b) { confirmTap(b, 'Tap again', function () { var c = b.closest('[data-uid]'); api('setStatus', { userId: c.dataset.uid, status: 'Inactive' }).then(function () { toast('Registration declined.'); viewPeople(f); }).catch(function (x) { toast(x.message); }); }); });
+      }
+      $$('.chip', m).forEach(function (c) { c.onclick = function () { f = c.dataset.f; $$('.chip', m).forEach(function (x) { x.setAttribute('aria-pressed', String(x === c)); }); draw(); }; });
+      $('#q').oninput = function () { q = this.value.toLowerCase().trim(); draw(); };
+      draw();
+    }).catch(failView);
+  }
+  var COLS = [['Name', 'Name'], ['LessonStatus', 'Status'], ['Approved', 'Approved'], ['TotalLessons', 'Lessons'], ['ForReview', 'To review'], ['Discipler', 'Discipler'], ['Congregation', 'Congregation'], ['Role', 'Role'], ['Year', 'Year'], ['Level', 'Level'], ['ExpiryDate', 'Valid until'], ['HasCert', 'Certificate'], ['LastActivity', 'Last activity'], ['Mobile', 'Mobile']];
+  function cell(r, k) { var v = r[k]; if (k === 'ExpiryDate' || k === 'LastActivity') return fmtDate(v); if (k === 'HasCert') return v ? 'Yes' : ''; return v == null ? '' : v; }
+  function toCSV(rows) { return [COLS.map(function (c) { return c[1]; })].concat(rows.map(function (r) { return COLS.map(function (c) { return cell(r, c[0]); }); })).map(function (line) { return line.map(function (v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n'); }
+  function viewReports(status, discId) {
+    frame({ title: 'Reports' });
+    api('people').then(function (pd) {
+      var congs = S.me.congregations.filter(function (c) { return !S.me.scope || S.me.scope.indexOf(c.CongregationID) >= 0; });
+      var m = fill('<div class="filters">' +
+        '<select class="i" id="fc" aria-label="Congregation"><option value="">All congregations</option>' + congs.map(function (c) { return '<option value="' + esc(c.CongregationID) + '">' + esc(c.Name) + '</option>'; }).join('') + '</select>' +
+        '<select class="i" id="fs" aria-label="Status"><option value="">Any status</option>' + ['Not started', 'In progress', 'Completed', 'Expired', 'For review'].map(function (s) { return '<option' + (s === status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
+        '<select class="i" id="fd" aria-label="Discipler"><option value="">Any discipler</option>' + pd.disciplers.map(function (x) { return '<option value="' + esc(x.UserID) + '"' + (x.UserID === discId ? ' selected' : '') + '>' + esc(x.Name) + '</option>'; }).join('') + '</select>' +
+        '</div><div id="rep" class="stack"></div>');
+      var rows = [];
+      function run() {
+        var st = $('#fs').value;
+        $('#rep').innerHTML = '<p class="loading">Loading…</p>';
+        api('report', { congregationId: $('#fc').value, status: st === 'For review' ? '' : st, disciplerId: $('#fd').value }).then(function (r) {
+          rows = st === 'For review' ? r.rows.filter(function (x) { return x.ForReview; }) : r.rows;
+          var done = rows.filter(function (x) { return x.LessonStatus === 'Completed'; }).length;
+          $('#rep').innerHTML = '<div class="spread"><p class="small"><b>' + rows.length + ' people</b> · ' + done + ' completed (' + (rows.length ? Math.round(done / rows.length * 100) : 0) + '%) · as of ' + fmtDate(r.generated) + '</p><div class="row">' +
+            '<button type="button" class="btn sm" id="copy">Copy as CSV</button>' + (IS_ARTIFACT ? '' : '<button type="button" class="btn sm" id="dl">Download CSV</button>') + '</div></div>' +
+            '<div class="tablewrap"><table><thead><tr>' + COLS.map(function (c) { return '<th' + (/Approved|TotalLessons|ForReview/.test(c[0]) ? ' class="num"' : '') + '>' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+            (rows.length ? rows.map(function (x) { return '<tr class="click" data-go="#/person/' + esc(x.UserID) + '">' + COLS.map(function (c) { var v = cell(x, c[0]); return c[0] === 'LessonStatus' ? '<td>' + pill(v) + '</td>' : '<td' + (/Approved|TotalLessons|ForReview/.test(c[0]) ? ' class="num"' : '') + '>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="' + COLS.length + '" class="muted">No one matches these filters.</td></tr>') +
+            '</tbody></table></div>';
+          $('#copy').onclick = function () {
+            var csv = toCSV(rows);
+            (navigator.clipboard ? navigator.clipboard.writeText(csv) : Promise.reject()).then(function () { toast('Copied. Paste it into Google Sheets or Excel.'); }).catch(function () {
+              var t = document.createElement('textarea'); t.className = 'i code'; t.value = csv; $('#rep').appendChild(t); t.select(); toast('Select all and copy the text below.');
+            });
+          };
+          var dl = $('#dl'); if (dl) dl.onclick = function () { var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([toCSV(rows)], { type: 'text/csv' })); a.download = 'discipleship-report-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.appendChild(a); a.click(); a.remove(); };
+        }).catch(function (e) { $('#rep').innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+      }
+      ['#fc', '#fs', '#fd'].forEach(function (s) { $(s, m).onchange = run; });
+      run();
+    }).catch(failView);
+  }
+  function viewCertAdmin() {
+    frame({ title: 'Certificates' });
+    api('certQueue').then(function (d) {
+      var m = fill('<h3>Ready to issue</h3>' + (d.ready.length ? '<div class="card stack">' + d.ready.map(function (r) {
+        return '<label class="row"><input type="checkbox" value="' + esc(r.EnrollmentID) + '" checked> <span><b>' + esc(r.Name) + '</b><br><span class="small muted">' + esc(r.Congregation) + ' · ' + esc(r.LevelName) + ' · completed ' + fmtDate(r.CompletedDate) + '</span></span></label>';
+      }).join('') + '<button type="button" class="btn primary" id="issue">Issue selected certificates</button></div>' : '<p class="muted">No one is waiting for a certificate. People appear here after their discipler marks them fit to graduate.</p>') +
+        '<h3>Issued</h3>' + (d.issued.length ? '<div class="list">' + d.issued.map(function (c) { return '<a class="item" href="#/cert/' + esc(c.CertNo) + '"><div class="t">' + esc(c.Name) + '</div><span class="pill plain">' + esc(c.ProgramYear) + '</span><div class="s">' + esc(c.CertNo) + ' · ' + esc(c.LevelName) + ' · issued ' + fmtDate(c.IssuedDate) + '</div></a>'; }).join('') + '</div>' : '<p class="muted">None yet.</p>'));
+      var b = $('#issue', m);
+      if (b) b.onclick = function () {
+        var ids = $$('input:checked', m).map(function (x) { return x.value; });
+        if (!ids.length) { toast('Choose at least one person.'); return; }
+        busy(b, true);
+        api('issueCertificate', { enrollmentIds: ids }).then(function (r) { toast(r.issued.length + ' certificate' + (r.issued.length === 1 ? '' : 's') + ' issued.'); viewCertAdmin(); }).catch(function (x) { toast(x.message); busy(b, false); });
+      };
+    }).catch(failView);
+  }
+  function viewMore() {
+    frame({ title: 'More' });
+    var items = [['#/library', 'Lesson library', 'Present lessons blank or with the answer key'], ['#/home', 'My own lessons', 'Your yearly lessons and status'], ['#/disciples', 'My disciples', 'People you disciple personally'], ['#/audit', 'Activity log', 'Approvals, promotions, PIN resets and certificates']];
+    if (rank() === 3) items = items.concat([['#/setup/congregations', 'Congregations', 'Add or edit congregations and preachers'], ['#/setup/lessons', 'Lessons', 'Add booklets, publish lessons'], ['#/setup/settings', 'Settings', 'Church name, certificate signatories, validity']]);
+    items.push(['#/profile', 'Profile', 'Change your PIN, sign out']);
+    fill('<div class="list">' + items.map(function (i) { return '<a class="item" href="' + i[0] + '"><div class="t">' + i[1] + '</div><span class="muted">›</span><div class="s">' + i[2] + '</div></a>'; }).join('') + '</div>');
+  }
+  function viewAudit() {
+    frame({ title: 'Activity log', back: '#/more', section: 'more' });
+    api('auditLog').then(function (d) {
+      fill(d.log.length ? '<div class="list">' + d.log.map(function (a) {
+        return '<div class="item" style="cursor:default"><div class="t">' + esc(a.Action) + (a.Target ? ' · ' + esc(a.Target) : '') + '</div><span class="small muted">' + esc(rel(a.Timestamp)) + '</span><div class="s">By ' + esc(a.Who || 'system') + (a.Details ? ' · ' + esc(a.Details) : '') + ' · ' + esc(fmtDate(a.Timestamp)) + '</div></div>';
+      }).join('') + '</div>' : '<p class="muted">No activity yet.</p>');
+    }).catch(failView);
+  }
+
+  /* ---------- admin setup ---------- */
+  function viewCongs() {
+    frame({ title: 'Congregations', back: '#/more', section: 'more' });
+    api('me').then(function (me) {
+      S.me.congregations = me.congregations;
+      var m = fill('<div class="list">' + me.congregations.map(function (c) { return '<button type="button" class="item" data-id="' + esc(c.CongregationID) + '"><div class="t">' + esc(c.Name) + '</div>' + pill(c.Status || 'Active') + '<div class="s">' + esc(c.Location) + (c.Preachers ? ' · Preacher in charge: ' + esc(c.Preachers) : '') + '</div></button>'; }).join('') + '</div>' +
+        '<form class="card" id="f"><h2 id="ft">Add a congregation</h2><input type="hidden" id="cid">' +
+        '<label class="f">Name<input class="i" id="cn" required></label><label class="f">Location<input class="i" id="cl"></label>' +
+        '<label class="f">Preacher(s) in charge<input class="i" id="cp" placeholder="Separate names with commas"></label>' +
+        '<label class="f">Status<select class="i" id="cs"><option>Active</option><option>Inactive</option></select></label>' +
+        '<div class="row"><button class="btn primary">Save congregation</button><button type="button" class="btn quiet" id="clr">Clear</button></div></form>');
+      function edit(c) { $('#ft').textContent = c ? 'Edit ' + c.Name : 'Add a congregation'; $('#cid').value = c ? c.CongregationID : ''; $('#cn').value = c ? c.Name : ''; $('#cl').value = c ? c.Location : ''; $('#cp').value = c ? c.Preachers : ''; $('#cs').value = c ? (c.Status || 'Active') : 'Active'; }
+      $$('[data-id]', m).forEach(function (b) { b.onclick = function () { edit(me.congregations.filter(function (c) { return c.CongregationID === b.dataset.id; })[0]); $('#f').scrollIntoView({ behavior: 'smooth' }); }; });
+      $('#clr').onclick = function () { edit(null); };
+      $('#f').onsubmit = function (e) { e.preventDefault(); api('saveCongregation', { CongregationID: $('#cid').value, Name: $('#cn').value, Location: $('#cl').value, Preachers: $('#cp').value, Status: $('#cs').value }).then(function () { toast('Congregation saved.'); S.info = null; viewCongs(); }).catch(function (x) { toast(x.message); }); };
+    }).catch(failView);
+  }
+  function viewLessonsAdmin() {
+    frame({ title: 'Lessons', back: '#/more', section: 'more' });
+    api('adminLessons').then(function (d) {
+      var m = fill('<div class="row"><a class="btn primary sm" href="#/setup/lesson/new">Add a lesson</a></div><div class="list">' + d.lessons.map(function (l) {
+        return '<div class="item lesson-item"><div><div class="num">' + esc(l.LevelName || 'Level ' + l.Level) + ' · ' + esc(l.Number) + '</div><div class="t">' + esc(l.Title) + '</div></div>' +
+          (l.Published ? pill('Completed', 'Published') : l.HasContent ? pill('Pending', 'Draft') : '<span class="pill plain">No content</span>') +
+          '<div class="s row"><a class="btn sm" href="#/setup/lesson/' + esc(l.LessonID) + '">Edit</a>' + (l.HasContent ? '<a class="btn sm" href="#/libl/' + esc(l.LessonID) + '">Preview</a>' : '') +
+          '<button type="button" class="btn sm" data-pub="' + esc(l.LessonID) + '" data-on="' + (l.Published ? '' : '1') + '"' + (l.HasContent ? '' : ' disabled') + '>' + (l.Published ? 'Unpublish' : 'Publish') + '</button> <span class="muted small">v' + esc(l.Version) + '</span></div></div>';
+      }).join('') + '</div>');
+      $$('[data-pub]', m).forEach(function (b) { b.onclick = function () { api('setPublished', { lessonId: b.dataset.pub, published: !!b.dataset.on }).then(function () { toast(b.dataset.on ? 'Lesson published. Disciples can now see it.' : 'Lesson unpublished.'); viewLessonsAdmin(); }).catch(function (x) { toast(x.message); }); }; });
+    }).catch(failView);
+  }
+  function viewLessonEdit(id) {
+    frame({ title: id === 'new' ? 'New lesson' : 'Edit lesson', back: '#/setup/lessons', section: 'more' });
+    var isNew = id === 'new';
+    Promise.all([api('adminLessons'), isNew ? Promise.resolve({ Content: '' }) : api('lessonSource', { lessonId: id })]).then(function (r) {
+      var l = r[0].lessons.filter(function (x) { return x.LessonID === id; })[0] || { Level: '1', LevelName: 'The Foundation · Level One', Order: r[0].lessons.length + 1 };
+      var src = r[1].Content ? JSON.stringify(JSON.parse(r[1].Content), null, 1) : '';
+      fill('<form class="card" id="f">' +
+        '<label class="f">Lesson ID<input class="i" id="lid" value="' + esc(isNew ? '' : id) + '"' + (isNew ? '' : ' readonly') + ' placeholder="e.g. L1-02"></label>' +
+        '<div class="row"><label class="f" style="flex:1 1 90px">Level<input class="i" id="lv" inputmode="numeric" value="' + esc(l.Level) + '"></label><label class="f" style="flex:1 1 90px">Order<input class="i" id="lo" inputmode="numeric" value="' + esc(l.Order) + '"></label></div>' +
+        '<label class="f">Level name<input class="i" id="ln" value="' + esc(l.LevelName) + '"></label>' +
+        '<label class="f">Lesson number<input class="i" id="lnum" value="' + esc(l.Number || '') + '" placeholder="Lesson Two"></label>' +
+        '<label class="f">Title<input class="i" id="lt" value="' + esc(l.Title || '') + '"></label>' +
+        '<label class="f">Lesson content (lesson file)<textarea class="i code" id="lc" spellcheck="false" placeholder="Paste the lesson file prepared from the booklet">' + esc(src) + '</textarea></label>' +
+        '<p class="small muted">The lesson file holds the text, the blanks and their answers, and the KJV verses for the verse cards. Changing it on a published lesson creates a new version; answers already saved stay with the person.</p>' +
+        '<div class="row"><button class="btn primary">Save lesson</button>' + (isNew ? '' : '<a class="btn" href="#/libl/' + esc(id) + '">Preview</a>') + '</div></form>');
+      $('#f').onsubmit = function (e) {
+        e.preventDefault();
+        api('saveLesson', { LessonID: $('#lid').value, Level: $('#lv').value, Order: $('#lo').value, LevelName: $('#ln').value, Number: $('#lnum').value, Title: $('#lt').value, Content: $('#lc').value.trim() ? JSON.stringify(JSON.parse($('#lc').value)) : '' })
+          .then(function () { toast('Lesson saved.'); location.hash = '#/setup/lessons'; }).catch(function (x) { toast(x.message); });
+      };
+    }).catch(failView);
+  }
+  function viewSettings() {
+    frame({ title: 'Settings', back: '#/more', section: 'more' });
+    api('me').then(function (me) {
+      var s = me.settings;
+      var F = [['ChurchName', 'Church name'], ['ProgramName', 'Program name (on certificates)'], ['ValidityDays', 'Days a completion stays valid'], ['Signatory1', 'Certificate signatory 1'], ['Signatory1Title', 'Signatory 1 title'], ['Signatory2', 'Certificate signatory 2'], ['Signatory2Title', 'Signatory 2 title']];
+      fill('<form class="card" id="f">' + F.map(function (x) { return '<label class="f">' + x[1] + '<input class="i" id="s-' + x[0] + '" value="' + esc(s[x[0]]) + '"' + (x[0] === 'ValidityDays' ? ' inputmode="numeric"' : '') + '></label>'; }).join('') +
+        '<p class="small muted">If signatory 2 is blank, the certificate shows the moderator who issued it.</p><button class="btn primary">Save settings</button></form>');
+      $('#f').onsubmit = function (e) { e.preventDefault(); var q = {}; F.forEach(function (x) { q[x[0]] = $('#s-' + x[0]).value; }); api('saveSettings', q).then(function () { toast('Settings saved.'); S.info = null; }).catch(function (x) { toast(x.message); }); };
+    }).catch(failView);
+  }
+
+  /* ---------- profile ---------- */
+  function viewProfile() {
+    frame({ title: 'Profile', section: rank() >= 2 ? 'more' : 'profile', back: rank() >= 2 ? '#/more' : null });
+    var u = S.me.user;
+    var m = fill('<div class="card"><h2>' + esc(u.Name) + '</h2><p class="small muted">' + esc(u.Role) + ' · ' + esc(S.me.congregation) + ' · ' + esc(u.Mobile) + '</p></div>' +
+      '<form class="card" id="f"><h3>Change PIN</h3><label class="f">Current PIN<input class="i" id="op" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password"></label>' +
+      '<label class="f">New PIN<input class="i" id="np" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><button class="btn">Change PIN</button></form>' +
+      '<button type="button" class="btn" id="out">Sign out</button>' +
+      (DEMO_MODE ? '<div class="demo"><div><b>Demo mode.</b> Reset brings back the original sample people and progress.</div><div><button type="button" class="btn sm" id="reset">Reset demo data</button></div></div>' : ''));
+    $('#f').onsubmit = function (e) { e.preventDefault(); api('changePin', { oldPin: $('#op').value, newPin: $('#np').value }).then(function () { toast('PIN changed.'); $('#f').reset(); }).catch(function (x) { toast(x.message); }); };
+    $('#out').onclick = signOut;
+    var r = $('#reset', m); if (r) confirmTap(r, 'Tap again to reset', function () { DEMO.reset(); signOut(); toast('Demo data reset.'); });
+  }
+
+  /* ---------- router ---------- */
+  function route() {
+    var parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent), v = parts[0];
+    if (!S.token) { return v === 'register' ? viewRegister() : viewLogin(); }
+    if (!S.me) {
+      app.innerHTML = '<p class="loading">Loading…</p>';
+      return api('me').then(function (me) { S.me = me; route(); }).catch(function (e) { if (!e.auth) authShell('<div class="card"><p class="err">' + esc(e.message) + '</p><button class="btn" onclick="location.reload()">Try again</button></div>'); });
+    }
+    var R = rank();
+    var routes = {
+      '': function () { location.replace('#/' + homeRoute()); },
+      login: function () { location.replace('#/' + homeRoute()); },
+      register: function () { location.replace('#/' + homeRoute()); },
+      home: viewHome, lesson: function () { viewLesson(parts[1]); },
+      certs: viewMyCerts, cert: function () { viewCert(parts[1]); }, profile: viewProfile,
+      disciples: R >= 1 && viewDisciples, person: R >= 1 && function () { viewPerson(parts[1]); },
+      review: R >= 1 && function () { viewReview(parts[1], parts[2]); },
+      library: R >= 1 && viewLibrary, libl: R >= 1 && function () { viewLibraryLesson(parts[1]); },
+      dash: R >= 2 && viewDash, people: R >= 2 && function () { viewPeople(parts[1]); }, reports: R >= 2 && function () { viewReports(parts[1], parts[2]); },
+      certadmin: R >= 2 && viewCertAdmin, more: R >= 2 && viewMore, audit: R >= 2 && viewAudit,
+      setup: R >= 3 && function () { ({ congregations: viewCongs, lessons: viewLessonsAdmin, lesson: function () { viewLessonEdit(parts[2]); }, settings: viewSettings }[parts[1]] || viewMore)(); }
+    };
+    (routes[v] || function () { location.replace('#/' + homeRoute()); })();
+  }
+
+  /* ---------- global events ---------- */
+  document.addEventListener('click', function (e) {
+    var r = e.target.closest('.ref'); if (r) { openVerse(r.dataset.ref); return; }
+    var g = e.target.closest('[data-go]'); if (g) location.hash = g.dataset.go;
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('#sheet').hidden) closeVerse(); });
+  $('#scrim').onclick = closeVerse; $('#sheet-close').onclick = closeVerse;
+  window.addEventListener('hashchange', route);
+  route();
+})();
+
+</script>
+</body></html>
