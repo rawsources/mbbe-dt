@@ -1402,4 +1402,248 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   }
   /* ---------- moderator ---------- */
   function viewDash() {
-    frame({ titl
+    frame({ title: 'Dashboard' });
+    api('dashboard').then(function (d) {
+      var c = d.counts;
+      var tile = function (n, label, go, alert) { return '<button type="button" class="tile' + (alert && n ? ' alert' : '') + '" data-go="' + go + '"><b>' + n + '</b><span>' + label + '</span></button>'; };
+      var html = '<div class="tiles">' +
+        tile(c.people, 'Members tracked', '#/reports') +
+        tile(c.ready, 'Ready to graduate', '#/reports/Ready', true) +
+        tile(c.stale, 'No meeting in ' + d.staleDays + '+ days', '#/reports/Stale', true) +
+        tile(c.pending, 'Registrations to approve', '#/people/pending', true) +
+        tile(c.unassigned, 'Without a discipler', '#/people/unassigned', true) +
+        tile(c['Not started'], 'Not started', '#/reports/Not started') +
+        tile(c['In progress'], 'In progress', '#/reports/In progress') +
+        tile(c.Completed, 'Completed', '#/reports/Completed') +
+        tile(c.expiring, 'Expiring within 60 days', '#/reports/Expiring', true) +
+        tile(c.Expired, 'Expired, need to retake', '#/reports/Expired', true) + '</div>';
+      html += '<h3>Disciplers</h3>' + (d.disciplers.length ? '<div class="list">' + d.disciplers.map(function (x) {
+        return '<a class="item" href="#/reports//' + esc(x.UserID) + '"><div class="t">' + esc(x.Name) + '</div>' + (x.Stale ? pill('Returned', x.Stale + ' overdue') : '<span></span>') +
+          '<div class="s">' + esc(x.Congregation) + ' · ' + x.Disciples + ' disciple' + (x.Disciples === 1 ? '' : 's') + ' · ' + x.InProgress + ' in progress · ' + x.Completed + ' completed · ' + x.Sessions30 + ' session' + (x.Sessions30 === 1 ? '' : 's') + ' in the last 30 days</div></a>';
+      }).join('') + '</div>' : '<p class="muted">No disciplers yet. Promote a disciple from the People tab.</p>');
+      html += '<h3>Completion by congregation</h3><div class="list">' + d.congregations.map(function (x) {
+        var pct = x.People ? Math.round(x.Completed / x.People * 100) : 0;
+        return '<div class="card"><div class="spread"><b>' + esc(x.Congregation) + '</b><span class="small muted">' + x.Completed + ' of ' + x.People + ' · ' + pct + '%</span></div><div class="track"><div class="fill" style="width:' + pct + '%"></div></div></div>';
+      }).join('') + '</div>';
+      fill(html);
+    }).catch(failView);
+  }
+  function viewPeople(filter) {
+    frame({ title: 'People' });
+    api('people').then(function (d) {
+      var f = filter || (d.people.some(function (p) { return p.Status === 'Pending'; }) ? 'pending' : 'disciples'), q = '';
+      var groups = {
+        pending: function (p) { return p.Status === 'Pending'; },
+        disciples: function (p) { return p.Status === 'Active' && p.Role === 'Disciple'; },
+        unassigned: function (p) { return p.Status === 'Active' && p.Role === 'Disciple' && !p.DisciplerID; },
+        disciplers: function (p) { return p.Status === 'Active' && p.Role === 'Discipler'; },
+        leaders: function (p) { return p.Status === 'Active' && (p.Role === 'Moderator' || p.Role === 'Admin'); },
+        inactive: function (p) { return p.Status === 'Inactive'; }
+      };
+      var labels = { pending: 'To approve', disciples: 'Disciples', unassigned: 'No discipler', disciplers: 'Disciplers', leaders: 'Moderators', inactive: 'Inactive' };
+      var m = fill('<div class="chips" role="group" aria-label="Filter">' + Object.keys(groups).map(function (k) { return '<button type="button" class="chip" data-f="' + k + '" aria-pressed="' + (k === f) + '">' + labels[k] + '<span class="n">' + d.people.filter(groups[k]).length + '</span></button>'; }).join('') + '</div>' +
+        '<input class="i" id="q" type="search" placeholder="Search by name or mobile" aria-label="Search people">' +
+        '<div class="list" id="plist"></div>');
+      var discOpts = '<option value="">Assign a discipler later</option>' + d.disciplers.map(function (x) { return '<option value="' + esc(x.UserID) + '">' + esc(x.Name) + '</option>'; }).join('');
+      function draw() {
+        var list = d.people.filter(groups[f]).filter(function (p) { return !q || (p.Name + ' ' + p.Mobile).toLowerCase().indexOf(q) >= 0; }).sort(function (a, b) { return a.Name.localeCompare(b.Name); });
+        $('#plist').innerHTML = list.length ? list.map(function (p) {
+          if (p.Status !== 'Pending') return personItem(p);
+          return '<div class="card" data-uid="' + esc(p.UserID) + '"><div class="spread"><b>' + esc(p.Name) + '</b>' + pill('Pending') + '</div><p class="small muted">' + esc(p.Congregation) + ' · ' + esc(p.Mobile) + ' · registered ' + rel(p.CreatedAt || '') + '</p>' +
+            '<div class="row"><select class="i" style="flex:1;min-width:0" aria-label="Discipler for ' + esc(p.Name) + '">' + discOpts + '</select><button type="button" class="btn primary sm" data-approve>Approve</button><button type="button" class="btn quiet sm" data-reject>Decline</button></div></div>';
+        }).join('') : '<p class="muted">No one here.</p>';
+        $$('[data-approve]').forEach(function (b) { b.onclick = function () { var c = b.closest('[data-uid]'); busy(b, true); api('approveUser', { userId: c.dataset.uid, disciplerId: $('select', c).value }).then(function () { toast('Approved.'); viewPeople(f); }).catch(function (x) { toast(x.message); busy(b, false); }); }; });
+        $$('[data-reject]').forEach(function (b) { confirmTap(b, 'Tap again', function () { var c = b.closest('[data-uid]'); api('setStatus', { userId: c.dataset.uid, status: 'Inactive' }).then(function () { toast('Registration declined.'); viewPeople(f); }).catch(function (x) { toast(x.message); }); }); });
+      }
+      $$('.chip', m).forEach(function (c) { c.onclick = function () { f = c.dataset.f; $$('.chip', m).forEach(function (x) { x.setAttribute('aria-pressed', String(x === c)); }); draw(); }; });
+      $('#q').oninput = function () { q = this.value.toLowerCase().trim(); draw(); };
+      draw();
+    }).catch(failView);
+  }
+  var COLS = [['Name', 'Name'], ['LessonStatus', 'Status'], ['Finished', 'Finished'], ['TotalLessons', 'Lessons'], ['LastSession', 'Last meeting'], ['NextMeeting', 'Next meeting'], ['Discipler', 'Discipler'], ['Congregation', 'Congregation'], ['Role', 'Role'], ['Year', 'Year'], ['Level', 'Level'], ['ExpiryDate', 'Valid until'], ['HasCert', 'Certificate'], ['Mobile', 'Mobile']];
+  var NUMS = /^(Finished|TotalLessons)$/;
+  var FILTERS = [['', 'Any status'], ['Not started', 'Not started'], ['In progress', 'In progress'], ['Ready', 'Ready to graduate'], ['Stale', 'No recent meeting'], ['Completed', 'Completed'], ['Expiring', 'Expiring within 60 days'], ['Expired', 'Expired']];
+  function cell(r, k) { var v = r[k]; if (k === 'ExpiryDate') return fmtDate(v); if (k === 'LastSession' || k === 'NextMeeting') return fmtDay(v); if (k === 'HasCert') return v ? 'Yes' : ''; return v == null ? '' : v; }
+  function toCSV(rows) { return [COLS.map(function (c) { return c[1]; })].concat(rows.map(function (r) { return COLS.map(function (c) { return cell(r, c[0]); }); })).map(function (line) { return line.map(function (v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n'); }
+  function viewReports(status, discId) {
+    frame({ title: 'Reports' });
+    api('people').then(function (pd) {
+      var congs = S.me.congregations.filter(function (c) { return !S.me.scope || S.me.scope.indexOf(c.CongregationID) >= 0; });
+      var m = fill('<div class="filters">' +
+        '<select class="i" id="fc" aria-label="Congregation"><option value="">All congregations</option>' + congs.map(function (c) { return '<option value="' + esc(c.CongregationID) + '">' + esc(c.Name) + '</option>'; }).join('') + '</select>' +
+        '<select class="i" id="fs" aria-label="Status">' + FILTERS.map(function (f) { return '<option value="' + esc(f[0]) + '"' + (f[0] === (status || '') ? ' selected' : '') + '>' + f[1] + '</option>'; }).join('') + '</select>' +
+        '<select class="i" id="fd" aria-label="Discipler"><option value="">Any discipler</option>' + pd.disciplers.map(function (x) { return '<option value="' + esc(x.UserID) + '"' + (x.UserID === discId ? ' selected' : '') + '>' + esc(x.Name) + '</option>'; }).join('') + '</select>' +
+        '</div><div id="rep" class="stack"></div>');
+      var rows = [];
+      function run() {
+        $('#rep').innerHTML = '<p class="loading">Loading…</p>';
+        api('report', { congregationId: $('#fc').value, status: $('#fs').value, disciplerId: $('#fd').value }).then(function (r) {
+          rows = r.rows;
+          var done = rows.filter(function (x) { return x.LessonStatus === 'Completed'; }).length;
+          $('#rep').innerHTML = '<div class="spread"><p class="small"><b>' + rows.length + ' people</b> · ' + done + ' completed (' + (rows.length ? Math.round(done / rows.length * 100) : 0) + '%) · as of ' + fmtDate(r.generated) + '</p><div class="row">' +
+            '<button type="button" class="btn sm" id="copy">Copy as CSV</button>' + (IS_ARTIFACT ? '' : '<button type="button" class="btn sm" id="dl">Download CSV</button>') + '</div></div>' +
+            '<div class="tablewrap"><table><thead><tr>' + COLS.map(function (c) { return '<th' + (NUMS.test(c[0]) ? ' class="num"' : '') + '>' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+            (rows.length ? rows.map(function (x) { return '<tr class="click" data-go="#/person/' + esc(x.UserID) + '">' + COLS.map(function (c) { var v = cell(x, c[0]); return c[0] === 'LessonStatus' ? '<td>' + pill(v) + '</td>' : '<td' + (NUMS.test(c[0]) ? ' class="num"' : '') + '>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="' + COLS.length + '" class="muted">No one matches these filters.</td></tr>') +
+            '</tbody></table></div>';
+          $('#copy').onclick = function () {
+            var csv = toCSV(rows);
+            (navigator.clipboard ? navigator.clipboard.writeText(csv) : Promise.reject()).then(function () { toast('Copied. Paste it into Google Sheets or Excel.'); }).catch(function () {
+              var t = document.createElement('textarea'); t.className = 'i code'; t.value = csv; $('#rep').appendChild(t); t.select(); toast('Select all and copy the text below.');
+            });
+          };
+          var dl = $('#dl'); if (dl) dl.onclick = function () { var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([toCSV(rows)], { type: 'text/csv' })); a.download = 'discipleship-report-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.appendChild(a); a.click(); a.remove(); };
+        }).catch(function (e) { $('#rep').innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+      }
+      ['#fc', '#fs', '#fd'].forEach(function (s) { $(s, m).onchange = run; });
+      run();
+    }).catch(failView);
+  }
+  function viewCertAdmin() {
+    frame({ title: 'Certificates' });
+    api('certQueue').then(function (d) {
+      var m = fill('<h3>Ready to issue</h3>' + (d.ready.length ? '<div class="card stack">' + d.ready.map(function (r) {
+        return '<label class="row"><input type="checkbox" value="' + esc(r.EnrollmentID) + '" checked> <span><b>' + esc(r.Name) + '</b><br><span class="small muted">' + esc(r.Congregation) + ' · ' + esc(r.LevelName) + ' · completed ' + fmtDate(r.CompletedDate) + '</span></span></label>';
+      }).join('') + '<button type="button" class="btn primary" id="issue">Issue selected certificates</button></div>' : '<p class="muted">No one is waiting for a certificate. People appear here after their discipler marks them fit to graduate.</p>') +
+        '<h3>Issued</h3>' + (d.issued.length ? '<div class="list">' + d.issued.map(function (c) { return '<a class="item" href="#/cert/' + esc(c.CertNo) + '"><div class="t">' + esc(c.Name) + '</div><span class="pill plain">' + esc(c.ProgramYear) + '</span><div class="s">' + esc(c.CertNo) + ' · ' + esc(c.LevelName) + ' · issued ' + fmtDate(c.IssuedDate) + '</div></a>'; }).join('') + '</div>' : '<p class="muted">None yet.</p>'));
+      var b = $('#issue', m);
+      if (b) b.onclick = function () {
+        var ids = $$('input:checked', m).map(function (x) { return x.value; });
+        if (!ids.length) { toast('Choose at least one person.'); return; }
+        busy(b, true);
+        api('issueCertificate', { enrollmentIds: ids }).then(function (r) { toast(r.issued.length + ' certificate' + (r.issued.length === 1 ? '' : 's') + ' issued.'); viewCertAdmin(); }).catch(function (x) { toast(x.message); busy(b, false); });
+      };
+    }).catch(failView);
+  }
+  function viewMore() {
+    frame({ title: 'More' });
+    var items = [['#/disciples', 'My disciples', 'Record sessions for people you disciple personally'], ['#/home', 'My progress', 'Your own yearly lessons and status'], ['#/certs', 'My certificates', 'Certificates issued to you'], ['#/audit', 'Activity log', 'Approvals, promotions, PIN resets and certificates']];
+    if (rank() === 3) items = items.concat([['#/setup/congregations', 'Congregations', 'Add or edit congregations and preachers'], ['#/setup/lessons', 'Lessons', 'Lesson checklist and memory verses'], ['#/setup/settings', 'Settings', 'Church name, certificate signatories, validity']]);
+    items.push(['#/profile', 'Profile', 'Change your PIN, sign out']);
+    fill('<div class="list">' + items.map(function (i) { return '<a class="item" href="' + i[0] + '"><div class="t">' + i[1] + '</div><span class="muted">›</span><div class="s">' + i[2] + '</div></a>'; }).join('') + '</div>');
+  }
+  function viewAudit() {
+    frame({ title: 'Activity log', back: '#/more', section: 'more' });
+    api('auditLog').then(function (d) {
+      fill(d.log.length ? '<div class="list">' + d.log.map(function (a) {
+        return '<div class="item" style="cursor:default"><div class="t">' + esc(a.Action) + (a.Target ? ' · ' + esc(a.Target) : '') + '</div><span class="small muted">' + esc(rel(a.Timestamp)) + '</span><div class="s">By ' + esc(a.Who || 'system') + (a.Details ? ' · ' + esc(a.Details) : '') + ' · ' + esc(fmtDate(a.Timestamp)) + '</div></div>';
+      }).join('') + '</div>' : '<p class="muted">No activity yet.</p>');
+    }).catch(failView);
+  }
+
+  /* ---------- admin setup ---------- */
+  function viewCongs() {
+    frame({ title: 'Congregations', back: '#/more', section: 'more' });
+    api('me').then(function (me) {
+      S.me.congregations = me.congregations;
+      var m = fill('<div class="list">' + me.congregations.map(function (c) { return '<button type="button" class="item" data-id="' + esc(c.CongregationID) + '"><div class="t">' + esc(c.Name) + '</div>' + pill(c.Status || 'Active') + '<div class="s">' + esc(c.Location) + (c.Preachers ? ' · Preacher in charge: ' + esc(c.Preachers) : '') + '</div></button>'; }).join('') + '</div>' +
+        '<form class="card" id="f"><h2 id="ft">Add a congregation</h2><input type="hidden" id="cid">' +
+        '<label class="f">Name<input class="i" id="cn" required></label><label class="f">Location<input class="i" id="cl"></label>' +
+        '<label class="f">Preacher(s) in charge<input class="i" id="cp" placeholder="Separate names with commas"></label>' +
+        '<label class="f">Status<select class="i" id="cs"><option>Active</option><option>Inactive</option></select></label>' +
+        '<div class="row"><button class="btn primary">Save congregation</button><button type="button" class="btn quiet" id="clr">Clear</button></div></form>');
+      function edit(c) { $('#ft').textContent = c ? 'Edit ' + c.Name : 'Add a congregation'; $('#cid').value = c ? c.CongregationID : ''; $('#cn').value = c ? c.Name : ''; $('#cl').value = c ? c.Location : ''; $('#cp').value = c ? c.Preachers : ''; $('#cs').value = c ? (c.Status || 'Active') : 'Active'; }
+      $$('[data-id]', m).forEach(function (b) { b.onclick = function () { edit(me.congregations.filter(function (c) { return c.CongregationID === b.dataset.id; })[0]); $('#f').scrollIntoView({ behavior: 'smooth' }); }; });
+      $('#clr').onclick = function () { edit(null); };
+      $('#f').onsubmit = function (e) { e.preventDefault(); api('saveCongregation', { CongregationID: $('#cid').value, Name: $('#cn').value, Location: $('#cl').value, Preachers: $('#cp').value, Status: $('#cs').value }).then(function () { toast('Congregation saved.'); S.info = null; viewCongs(); }).catch(function (x) { toast(x.message); }); };
+    }).catch(failView);
+  }
+  function viewLessonsAdmin() {
+    frame({ title: 'Lessons', back: '#/more', section: 'more' });
+    api('lessonList').then(function (d) {
+      var by = {};
+      d.lessons.forEach(function (l) { var k = l.LevelName || 'Level ' + l.Level; (by[k] = by[k] || []).push(l); });
+      var m = fill('<p class="muted small">This is the checklist disciplers record against. The lesson content stays in the printed booklet. A memory verse shows on a disciple’s page once they finish that lesson.</p>' +
+        '<div class="row"><a class="btn primary sm" href="#/setup/lesson/new">Add a lesson</a></div>' +
+        Object.keys(by).map(function (k) {
+          return '<h3>' + esc(k) + '</h3><div class="list">' + by[k].map(function (l) {
+            return '<div class="item lesson-item" style="cursor:default' + (l.Published ? '' : ';opacity:.65') + '"><div><div class="num">' + esc(l.Number) + '</div><div class="t">' + esc(l.Title) + '</div></div>' +
+              (l.Published ? '' : '<span class="pill plain">Hidden</span>') +
+              '<div class="s">' + (l.MemoryRef ? 'Memory verse: ' + esc(l.MemoryRef) : '<span style="color:var(--warn)">No memory verse yet</span>') +
+              '<div class="row" style="margin-top:6px"><a class="btn sm" href="#/setup/lesson/' + esc(l.LessonID) + '">Edit</a><button type="button" class="btn sm" data-pub="' + esc(l.LessonID) + '" data-on="' + (l.Published ? '' : '1') + '">' + (l.Published ? 'Hide' : 'Include') + '</button></div></div></div>';
+          }).join('') + '</div>';
+        }).join(''));
+      $$('[data-pub]', m).forEach(function (b) { b.onclick = function () { api('setPublished', { lessonId: b.dataset.pub, published: !!b.dataset.on }).then(function () { toast(b.dataset.on ? 'Lesson included in the checklist.' : 'Lesson hidden from the checklist.'); viewLessonsAdmin(); }).catch(function (x) { toast(x.message); }); }; });
+    }).catch(failView);
+  }
+  function viewLessonEdit(id) {
+    var isNew = id === 'new';
+    frame({ title: isNew ? 'New lesson' : 'Edit lesson', back: '#/setup/lessons', section: 'more' });
+    api('lessonList').then(function (r) {
+      var l = r.lessons.filter(function (x) { return x.LessonID === id; })[0];
+      if (!isNew && !l) throw new Error('Lesson not found.');
+      l = l || { Level: '1', LevelName: (r.lessons[0] || {}).LevelName || 'The Foundation · Level One', Order: r.lessons.length + 1 };
+      fill('<form class="card" id="f">' +
+        '<div class="row"><label class="f" style="flex:2 1 140px">Lesson code<input class="i" id="lid" value="' + esc(isNew ? '' : id) + '"' + (isNew ? '' : ' readonly') + ' placeholder="e.g. L2-01" autocapitalize="characters"></label>' +
+        '<label class="f" style="flex:1 1 70px">Level<input class="i" id="lv" inputmode="numeric" value="' + esc(l.Level) + '"></label><label class="f" style="flex:1 1 70px">Order<input class="i" id="lo" inputmode="numeric" value="' + esc(l.Order) + '"></label></div>' +
+        '<label class="f">Level name<input class="i" id="ln" value="' + esc(l.LevelName) + '"></label>' +
+        '<label class="f">Lesson number<input class="i" id="lnum" value="' + esc(l.Number || '') + '" placeholder="Lesson Two"></label>' +
+        '<label class="f">Title<input class="i" id="lt" value="' + esc(l.Title || '') + '" required></label>' +
+        '<label class="f">Memory verse reference<input class="i" id="mr" value="' + esc(l.MemoryRef || '') + '" placeholder="John 3:16"></label>' +
+        '<label class="f">Memory verse text (KJV)<textarea class="i" id="mt" placeholder="Type the verse exactly as in the King James Version">' + esc(l.MemoryText || '') + '</textarea></label>' +
+        '<p class="small muted">Lessons with the same level are tracked together. Order sets their position in the checklist.</p>' +
+        '<button class="btn primary">Save lesson</button></form>');
+      $('#f').onsubmit = function (e) {
+        e.preventDefault();
+        api('saveLesson', { isNew: isNew, LessonID: $('#lid').value.trim(), Level: $('#lv').value, Order: $('#lo').value, LevelName: $('#ln').value, Number: $('#lnum').value, Title: $('#lt').value, MemoryRef: $('#mr').value, MemoryText: $('#mt').value })
+          .then(function () { toast('Lesson saved.'); location.hash = '#/setup/lessons'; }).catch(function (x) { toast(x.message); });
+      };
+    }).catch(failView);
+  }
+  function viewSettings() {
+    frame({ title: 'Settings', back: '#/more', section: 'more' });
+    api('me').then(function (me) {
+      var s = me.settings;
+      var F = [['ChurchName', 'Church name'], ['ProgramName', 'Program name (on certificates)'], ['ValidityDays', 'Days a completion stays valid'], ['StaleDays', 'Flag disciples with no meeting after this many days'], ['Signatory1', 'Certificate signatory 1'], ['Signatory1Title', 'Signatory 1 title'], ['Signatory2', 'Certificate signatory 2'], ['Signatory2Title', 'Signatory 2 title']];
+      fill('<form class="card" id="f">' + F.map(function (x) { return '<label class="f">' + x[1] + '<input class="i" id="s-' + x[0] + '" value="' + esc(s[x[0]]) + '"' + (/Days$/.test(x[0]) ? ' inputmode="numeric"' : '') + '></label>'; }).join('') +
+        '<p class="small muted">If signatory 2 is blank, the certificate shows the moderator who issued it.</p><button class="btn primary">Save settings</button></form>');
+      $('#f').onsubmit = function (e) { e.preventDefault(); var q = {}; F.forEach(function (x) { q[x[0]] = $('#s-' + x[0]).value; }); api('saveSettings', q).then(function () { toast('Settings saved.'); S.info = null; }).catch(function (x) { toast(x.message); }); };
+    }).catch(failView);
+  }
+
+  /* ---------- profile ---------- */
+  function viewProfile() {
+    frame({ title: 'Profile', section: rank() >= 2 ? 'more' : 'profile', back: rank() >= 2 ? '#/more' : null });
+    var u = S.me.user;
+    var m = fill('<div class="card"><h2>' + esc(u.Name) + '</h2><p class="small muted">' + esc(u.Role) + ' · ' + esc(S.me.congregation) + ' · ' + esc(u.Mobile) + '</p></div>' +
+      '<form class="card" id="f"><h3>Change PIN</h3><label class="f">Current PIN<input class="i" id="op" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password"></label>' +
+      '<label class="f">New PIN<input class="i" id="np" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><button class="btn">Change PIN</button></form>' +
+      '<button type="button" class="btn" id="out">Sign out</button>' +
+      (DEMO_MODE ? '<div class="demo"><div><b>Demo mode.</b> Reset brings back the original sample people and progress.</div><div><button type="button" class="btn sm" id="reset">Reset demo data</button></div></div>' : ''));
+    $('#f').onsubmit = function (e) { e.preventDefault(); api('changePin', { oldPin: $('#op').value, newPin: $('#np').value }).then(function () { toast('PIN changed.'); $('#f').reset(); }).catch(function (x) { toast(x.message); }); };
+    $('#out').onclick = signOut;
+    var r = $('#reset', m); if (r) confirmTap(r, 'Tap again to reset', function () { DEMO.reset(); signOut(); toast('Demo data reset.'); });
+  }
+
+  /* ---------- router ---------- */
+  function route() {
+    var parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent), v = parts[0];
+    if (!S.token) { return v === 'register' ? viewRegister() : viewLogin(); }
+    if (!S.me) {
+      app.innerHTML = '<p class="loading">Loading…</p>';
+      return api('me').then(function (me) { S.me = me; route(); }).catch(function (e) { if (!e.auth) authShell('<div class="card"><p class="err">' + esc(e.message) + '</p><button class="btn" onclick="location.reload()">Try again</button></div>'); });
+    }
+    var R = rank();
+    var routes = {
+      '': function () { location.replace('#/' + homeRoute()); },
+      login: function () { location.replace('#/' + homeRoute()); },
+      register: function () { location.replace('#/' + homeRoute()); },
+      home: viewHome, certs: viewMyCerts, cert: function () { viewCert(parts[1]); }, profile: viewProfile,
+      disciples: R >= 1 && viewDisciples, person: R >= 1 && function () { viewPerson(parts[1]); },
+      dash: R >= 2 && viewDash, people: R >= 2 && function () { viewPeople(parts[1]); }, reports: R >= 2 && function () { viewReports(parts[1], parts[2]); },
+      certadmin: R >= 2 && viewCertAdmin, more: R >= 2 && viewMore, audit: R >= 2 && viewAudit,
+      setup: R >= 3 && function () { ({ congregations: viewCongs, lessons: viewLessonsAdmin, lesson: function () { viewLessonEdit(parts[2]); }, settings: viewSettings }[parts[1]] || viewMore)(); }
+    };
+    (routes[v] || function () { location.replace('#/' + homeRoute()); })();
+  }
+
+  /* ---------- global events ---------- */
+  document.addEventListener('click', function (e) {
+    var g = e.target.closest('[data-go]'); if (g) location.hash = g.dataset.go;
+  });
+  window.addEventListener('hashchange', route);
+  route();
+})();
+
+</script>
+</body>
+</html>
