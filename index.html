@@ -1,6 +1,13 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>MBBE Discipleship Tracker</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f5d3a">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" href="icon.svg">
+<title>MBBE Discipleship</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Manrope:wght@500;600;700&display=swap">
 <style>
@@ -210,32 +217,59 @@ tr.click:hover td { background: var(--raise) }
 .filters .i { min-width: 0 }
 .row > select.i { min-width: 0 }
 
+/* tracking edition */
+.checklist { list-style: none; margin: 0; padding: 0; display: grid; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden }
+.checklist li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; padding: 12px 14px; border-top: 1px solid var(--line) }
+.checklist li:first-child { border-top: 0 }
+.checklist .tick { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; margin-top: 2px; color: var(--accent-ink) }
+.checklist li.done .tick { background: var(--accent); border-color: var(--accent) }
+.checklist li.part .tick { border-color: var(--accent); border-style: dashed }
+.cl-body { display: grid; gap: 1px; min-width: 0 }
+.cl-num { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+.cl-title { font-family: var(--serif); font-size: 16.5px; font-weight: 600; line-height: 1.3 }
+.cl-sub { font-size: 12.5px; color: var(--muted) }
+.checklist li.done .cl-sub { color: var(--ok); font-weight: 600 }
+.next { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; background: var(--surface); border-radius: 10px; padding: 10px 12px }
+.next-l { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+.next b { font-family: var(--serif); font-size: 18px }
+.verse { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px }
+.verse blockquote { margin: 0; font-family: var(--serif); font-style: italic; font-size: 18px; line-height: 1.5 }
+.verse figcaption { font-size: 13px }
+.verse figcaption b { color: var(--accent) }
+.confirm { border-color: color-mix(in srgb, var(--warn) 45%, var(--line)) }
+@media (min-width: 700px) { .tiles { grid-template-columns: repeat(5, minmax(0, 1fr)) } }
+.person-item { grid-template-columns: 1fr }
+.person-item .t { white-space: normal }
+.person-item .row { gap: 6px }
+
 </style>
+</head>
+<body>
 <div id="app"><p class="loading">Loading…</p></div>
-<div class="scrim" id="scrim" hidden></div>
-<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
-  <div class="grip"></div>
-  <header><h4><span id="sheet-title"></span><span class="kjv">KJV</span></h4><button type="button" class="close" id="sheet-close" aria-label="Close verse">×</button></header>
-  <div class="sheet-body" id="sheet-body"></div>
-</aside>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
-window.APP_CONFIG = {"API_URL": "", "IS_ARTIFACT": true};
+/* Paste your Apps Script web app URL here. Leave it empty to run the demo with sample data. */
+var API_URL = "";
+</script>
+<script>
+window.APP_CONFIG = { API_URL: API_URL, IS_ARTIFACT: false };
 
 </script>
 <script>
 /* ============================================================
-   MBBE Discipleship Tracker — shared app logic
-   The same code runs in Google Apps Script (with the Sheets
-   adapter in Code.gs) and in the browser demo (local adapter).
+   MBBE Discipleship Tracker — shared app logic (tracking edition)
+   Lessons are taught from the printed booklet. The app records
+   sessions, progress, graduation, certificates and yearly status.
+   The same code runs in Google Apps Script (Sheets adapter in
+   Code.gs) and in the browser demo (local adapter).
    ============================================================ */
 var CORE = (function () {
   var SCHEMA = {
     Users: ['UserID', 'Name', 'Mobile', 'PinHash', 'Role', 'CongregationID', 'Status', 'DisciplerID', 'ModCongregations', 'AppointedBy', 'AppointedAt', 'FailCount', 'LockUntil', 'CreatedAt', 'LastLogin'],
     Congregations: ['CongregationID', 'Name', 'Location', 'Preachers', 'Status'],
-    Lessons: ['LessonID', 'Level', 'LevelName', 'Order', 'Number', 'Title', 'Version', 'Published', 'Content', 'UpdatedAt'],
+    Lessons: ['LessonID', 'Level', 'LevelName', 'Order', 'Number', 'Title', 'MemoryRef', 'MemoryText', 'Published', 'UpdatedAt'],
     Enrollments: ['EnrollmentID', 'UserID', 'ProgramYear', 'Level', 'Status', 'StartDate', 'CompletedDate', 'ExpiryDate', 'ApprovedBy'],
-    Answers: ['AnswerID', 'EnrollmentID', 'LessonID', 'Answers', 'Notes', 'Filled', 'Total', 'Status', 'UpdatedAt', 'SubmittedAt', 'ReviewedBy', 'ReviewedAt', 'Comment'],
+    Sessions: ['SessionID', 'EnrollmentID', 'UserID', 'DisciplerID', 'LessonID', 'Date', 'Finished', 'Notes', 'NextMeeting', 'Confirmed', 'ConfirmedAt', 'CreatedAt'],
     Certificates: ['CertNo', 'UserID', 'EnrollmentID', 'ProgramYear', 'Level', 'LevelName', 'IssuedDate', 'IssuedBy', 'ValidUntil'],
     AuditLog: ['Timestamp', 'UserID', 'Action', 'Target', 'Details'],
     Settings: ['Key', 'Value']
@@ -244,12 +278,14 @@ var CORE = (function () {
     ChurchName: 'Metropolitan Bible Baptist Ekklesia',
     ProgramName: 'Discovery Lessons',
     ValidityDays: '365',
+    StaleDays: '30',
     Signatory1: '', Signatory1Title: 'Senior Pastor',
     Signatory2: '', Signatory2Title: 'Moderator'
   };
   var ROLES = ['Disciple', 'Discipler', 'Moderator', 'Admin'];
   var RANK = { Disciple: 0, Discipler: 1, Moderator: 2, Admin: 3 };
   var TOKEN_DAYS = 30;
+  var DAY = 864e5;
 
   var db; // adapter for this request
 
@@ -266,6 +302,10 @@ var CORE = (function () {
     rows('Settings').forEach(function (r) { if (r.Key) s[r.Key] = str(r.Value); });
     return s;
   }
+  // Manila calendar date (UTC+8) as YYYY-MM-DD
+  function today() { return new Date(db.now().getTime() + 8 * 36e5).toISOString().slice(0, 10); }
+  function dayMs(d) { return Date.parse(str(d).slice(0, 10) + 'T00:00:00Z'); }
+  function isDate(d) { return /^\d{4}-\d{2}-\d{2}$/.test(str(d)) && !isNaN(dayMs(d)); }
   function normMobile(m) {
     var d = str(m).replace(/\D/g, '');
     if (d.indexOf('63') === 0 && d.length === 12) d = '0' + d.slice(2);
@@ -277,7 +317,7 @@ var CORE = (function () {
   function pinOk(pin, stored) { var s = str(stored).split('$'); return s.length === 2 && hashPin(pin, s[0]) === stored; }
 
   function makeToken(u) {
-    var exp = db.now().getTime() + TOKEN_DAYS * 864e5;
+    var exp = db.now().getTime() + TOKEN_DAYS * DAY;
     var body = u.UserID + '.' + exp;
     return body + '.' + db.sign(body);
   }
@@ -295,7 +335,7 @@ var CORE = (function () {
     return [u.CongregationID];
   }
   function inScope(u, target) { var s = scope(u); return s === null || s.indexOf(target.CongregationID) >= 0; }
-  function canReview(u, target) {
+  function canGuide(u, target) {
     if (target.UserID === u.UserID) return false;
     if (RANK[u.Role] >= 2) return inScope(u, target);
     return u.Role === 'Discipler' && target.DisciplerID === u.UserID;
@@ -307,28 +347,16 @@ var CORE = (function () {
   function congName(id) { var c = find('Congregations', 'CongregationID', id); return c ? c.Name : ''; }
   function userName(id) { var u = find('Users', 'UserID', id); return u ? u.Name : ''; }
 
-  /* ---------- lessons ---------- */
+  /* ---------- lessons (titles + memory verses; content stays in the booklet) ---------- */
   function isPub(l) { return str(l.Published).toUpperCase() === 'TRUE'; }
   function lessonsFor(level, all) {
     return rows('Lessons').filter(function (l) { return str(l.Level) === str(level) && (all || isPub(l)); })
       .sort(function (a, b) { return (+a.Order) - (+b.Order); });
   }
-  function lessonMeta(l) { return { LessonID: l.LessonID, Level: l.Level, LevelName: l.LevelName, Order: l.Order, Number: l.Number, Title: l.Title, Published: isPub(l), Version: l.Version, HasContent: !!str(l.Content) }; }
-  function prep(l, withKey) {
-    var c = JSON.parse(str(l.Content) || '{}'), key = [];
-    var L = c.lesson;
-    if (!L) fail('This lesson has no content yet.');
-    var strip = function (s) { return s.replace(/\[(.+?)\]/g, function (_, a) { key.push(a); return '[__' + a.length + ']'; }); };
-    L.points.forEach(function (p) {
-      p.title = strip(p.title);
-      p.passages.forEach(function (ps) { ps[1].forEach(function (v) { v[1] = strip(v[1]); }); });
-    });
-    return { meta: lessonMeta(l), lesson: L, verses: c.verses || {}, total: key.length, key: withKey ? key : null };
-  }
-  function answerKey(l) { return prep(l, true).key; }
-  var normAns = function (s) { return str(s).toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim(); };
+  function levelName(level) { var l = lessonsFor(level, true)[0]; return l && l.LevelName ? l.LevelName : 'Level ' + level; }
+  function lessonMeta(l) { return { LessonID: l.LessonID, Level: l.Level, LevelName: l.LevelName, Order: l.Order, Number: l.Number, Title: l.Title, MemoryRef: l.MemoryRef, MemoryText: l.MemoryText, Published: isPub(l) }; }
 
-  /* ---------- enrollments ---------- */
+  /* ---------- enrollments & sessions ---------- */
   function status(e) {
     if (!e) return 'Not started';
     if (e.Status === 'Completed' && e.ExpiryDate && new Date(e.ExpiryDate) < db.now()) return 'Expired';
@@ -339,39 +367,58 @@ var CORE = (function () {
       .sort(function (a, b) { return str(b.StartDate).localeCompare(str(a.StartDate)); });
     return e[0] || null;
   }
-  function answerRow(enrId, lessonId) {
-    var r = rows('Answers');
-    for (var i = 0; i < r.length; i++) if (r[i].EnrollmentID === enrId && r[i].LessonID === lessonId) return r[i];
-    return null;
+  function sessionsOf(enrId) {
+    return rows('Sessions').filter(function (s) { return s.EnrollmentID === enrId; })
+      .sort(function (a, b) { return str(b.Date).localeCompare(str(a.Date)) || str(b.CreatedAt).localeCompare(str(a.CreatedAt)); });
+  }
+  function sessionView(s) {
+    var l = find('Lessons', 'LessonID', s.LessonID);
+    return { SessionID: s.SessionID, Date: s.Date, LessonID: s.LessonID, Lesson: l ? l.Number : s.LessonID, LessonTitle: l ? l.Title : '', Finished: s.Finished === 'TRUE', Notes: s.Notes, NextMeeting: s.NextMeeting, Confirmed: s.Confirmed === 'TRUE', ConfirmedAt: s.ConfirmedAt, Discipler: userName(s.DisciplerID), DisciplerID: s.DisciplerID };
   }
   function progress(e) {
-    if (!e) return { lessons: [], total: 0, approved: 0, forReview: 0, returned: 0, started: 0, last: '' };
-    var ls = lessonsFor(e.Level), out = { lessons: [], total: ls.length, approved: 0, forReview: 0, returned: 0, started: 0, last: '' };
-    ls.forEach(function (l) {
-      var a = answerRow(e.EnrollmentID, l.LessonID);
-      var st = a ? a.Status : 'Not started';
-      if (st === 'Approved') out.approved++;
-      if (st === 'For review') out.forReview++;
-      if (st === 'Returned') out.returned++;
-      if (a) { out.started++; if (str(a.UpdatedAt) > out.last) out.last = a.UpdatedAt; }
+    var out = { lessons: [], total: 0, finished: 0, sessions: [], lastSession: '', nextMeeting: '', unconfirmed: 0 };
+    if (!e) return out;
+    var ss = sessionsOf(e.EnrollmentID), t = today();
+    out.sessions = ss.map(sessionView);
+    out.lastSession = ss.length ? ss[0].Date : '';
+    out.unconfirmed = ss.filter(function (s) { return s.Confirmed !== 'TRUE'; }).length;
+    for (var i = 0; i < ss.length; i++) if (ss[i].NextMeeting) { if (ss[i].NextMeeting >= t) out.nextMeeting = ss[i].NextMeeting; break; }
+    lessonsFor(e.Level).forEach(function (l) {
+      var mine = ss.filter(function (s) { return s.LessonID === l.LessonID; });
+      var done = mine.filter(function (s) { return s.Finished === 'TRUE'; }).map(function (s) { return s.Date; }).sort();
       var m = lessonMeta(l);
-      m.Status = st; m.Filled = a ? +a.Filled : 0; m.Total = a ? +a.Total : 0; m.Comment = a ? a.Comment : ''; m.AnswerID = a ? a.AnswerID : '';
+      m.FinishedOn = done[0] || ''; m.Sessions = mine.length;
+      m.State = done.length ? 'Finished' : mine.length ? 'Started' : 'Not started';
+      if (done.length) out.finished++;
+      out.total++;
       out.lessons.push(m);
     });
     return out;
   }
   function enrView(e) {
     if (!e) return null;
-    var lv = lessonsFor(e.Level, true)[0];
-    return { EnrollmentID: e.EnrollmentID, ProgramYear: e.ProgramYear, Level: e.Level, LevelName: lv ? lv.LevelName : 'Level ' + e.Level, Status: status(e), StartDate: e.StartDate, CompletedDate: e.CompletedDate, ExpiryDate: e.ExpiryDate, ApprovedBy: userName(e.ApprovedBy) };
+    return { EnrollmentID: e.EnrollmentID, ProgramYear: e.ProgramYear, Level: e.Level, LevelName: levelName(e.Level), Status: status(e), StartDate: e.StartDate, CompletedDate: e.CompletedDate, ExpiryDate: e.ExpiryDate, ApprovedBy: userName(e.ApprovedBy) };
+  }
+  // Which level the next session belongs to
+  function logLevel(e) {
+    var st = status(e);
+    if (!e || st === 'Expired') return 1;
+    if (st === 'Completed') return lessonsFor(+e.Level + 1).length ? +e.Level + 1 : null;
+    return +e.Level;
   }
   function overview(u) {
-    var e = current(u.UserID), p = progress(e), st = status(e);
-    var next = e && st === 'Completed' && lessonsFor(+e.Level + 1).length ? +e.Level + 1 : null;
+    var e = current(u.UserID), p = progress(e);
+    var verses = [];
+    rows('Enrollments').filter(function (x) { return x.UserID === u.UserID; }).forEach(function (en) {
+      progress(en).lessons.forEach(function (l) {
+        if (l.FinishedOn && l.MemoryText && !verses.some(function (v) { return v.LessonID === l.LessonID; })) verses.push({ LessonID: l.LessonID, Lesson: l.Number, Title: l.Title, Ref: l.MemoryRef, Text: l.MemoryText, Level: l.Level, Order: l.Order });
+      });
+    });
+    verses.sort(function (a, b) { return (+a.Level - +b.Level) || (+a.Order - +b.Order); });
     return {
-      enrollment: enrView(e), progress: p, canStart: !e || st === 'Expired', nextLevel: next,
-      discipler: userName(u.DisciplerID),
-      certificates: rows('Certificates').filter(function (c) { return c.UserID === u.UserID; }).reverse()
+      enrollment: enrView(e), progress: p, discipler: userName(u.DisciplerID), memoryVerses: verses,
+      certificates: rows('Certificates').filter(function (c) { return c.UserID === u.UserID; }).reverse(),
+      settings: { StaleDays: settings().StaleDays }
     };
   }
 
@@ -381,15 +428,21 @@ var CORE = (function () {
     return rows('Users').filter(function (x) { return s === null || s.indexOf(x.CongregationID) >= 0; });
   }
   function personRow(x) {
-    var e = current(x.UserID), p = progress(e);
+    var e = current(x.UserID), p = progress(e), st = status(e), staleDays = +settings().StaleDays || 30;
+    var since = p.lastSession ? dayMs(p.lastSession) : (e ? dayMs(str(e.StartDate).slice(0, 10)) : 0);
+    var stale = st === 'In progress' && since && (dayMs(today()) - since) / DAY > staleDays;
+    var expiring = st === 'Completed' && e.ExpiryDate && (new Date(e.ExpiryDate) - db.now()) / DAY <= 60;
     return {
       UserID: x.UserID, Name: x.Name, Mobile: x.Mobile, Role: x.Role, Status: x.Status,
       CongregationID: x.CongregationID, Congregation: congName(x.CongregationID),
       DisciplerID: x.DisciplerID, Discipler: userName(x.DisciplerID), ModCongregations: x.ModCongregations,
       Year: e ? e.ProgramYear : '', Level: e ? e.Level : '', EnrollmentID: e ? e.EnrollmentID : '',
-      LessonStatus: status(e), Approved: p.approved, TotalLessons: p.total, ForReview: p.forReview,
-      LastActivity: p.last || x.LastLogin || x.CreatedAt || '', ExpiryDate: e ? e.ExpiryDate : '',
-      HasCert: e ? !!rows('Certificates').filter(function (c) { return c.EnrollmentID === e.EnrollmentID; }).length : false
+      LessonStatus: st, Finished: p.finished, TotalLessons: p.total, Sessions: p.sessions.length,
+      LastSession: p.lastSession, NextMeeting: p.nextMeeting, Unconfirmed: p.unconfirmed,
+      ReadyToGraduate: st === 'In progress' && p.total > 0 && p.finished === p.total,
+      Stale: !!stale, Expiring: !!expiring, ExpiryDate: e ? e.ExpiryDate : '',
+      HasCert: e ? rows('Certificates').some(function (c) { return c.EnrollmentID === e.EnrollmentID; }) : false,
+      CreatedAt: x.CreatedAt
     };
   }
   function target(u, id, mustScope) {
@@ -433,8 +486,7 @@ var CORE = (function () {
     return { token: makeToken(u), user: pub(u) };
   };
   A.me = function (q, u) {
-    var s = settings();
-    return { user: pub(u), congregation: congName(u.CongregationID), settings: s, congregations: rows('Congregations'), scope: scope(u) };
+    return { user: pub(u), congregation: congName(u.CongregationID), settings: settings(), congregations: rows('Congregations'), scope: scope(u) };
   };
   A.changePin = function (q, u) {
     if (!pinOk(str(q.oldPin), u.PinHash)) fail('Your current PIN is not correct.');
@@ -445,69 +497,24 @@ var CORE = (function () {
   };
 
   /* disciple */
-  A.home = function (q, u) { return overview(u); };
-  A.startEnrollment = function (q, u) {
-    var e = current(u.UserID), st = status(e), level = 1;
-    if (e && st === 'Completed' && q.nextLevel) { level = +e.Level + 1; if (!lessonsFor(level).length) fail('The next level has no lessons yet.'); }
-    else if (e && st !== 'Expired') fail('You already have lessons in progress this year.');
-    if (!lessonsFor(level).length) fail('No lessons are published yet. Please check back soon.');
-    var rec = { EnrollmentID: 'E-' + db.uid().slice(0, 8), UserID: u.UserID, ProgramYear: String(db.now().getFullYear()), Level: String(level), Status: 'In progress', StartDate: nowIso(), CompletedDate: '', ExpiryDate: '', ApprovedBy: '' };
-    db.insert('Enrollments', rec);
-    audit(u, 'Started lessons', rec.EnrollmentID, 'Level ' + level);
-    return overview(u);
+  A.home = function (q, u) {
+    var o = overview(u);
+    o.progress.sessions.forEach(function (s) { s.Notes = ''; }); // discipler notes stay private
+    return o;
   };
-  A.getLesson = function (q, u) {
-    var who = q.userId ? target(u, q.userId) : u;
-    if (who.UserID !== u.UserID && !canReview(u, who)) fail('You can only open lessons of your own disciples.');
-    var l = find('Lessons', 'LessonID', q.lessonId);
-    if (!l) fail('Lesson not found.');
-    var e = current(who.UserID);
-    var reviewer = who.UserID !== u.UserID;
-    var out = prep(l, reviewer);
-    var a = e ? answerRow(e.EnrollmentID, l.LessonID) : null;
-    out.answers = a ? JSON.parse(str(a.Answers) || '{}') : {};
-    out.notes = a ? a.Notes : '';
-    out.status = a ? a.Status : 'Not started';
-    out.comment = a ? a.Comment : '';
-    out.answerId = a ? a.AnswerID : '';
-    out.person = { UserID: who.UserID, Name: who.Name };
-    out.editable = !reviewer && !!e && status(e) === 'In progress' && str(e.Level) === str(l.Level) && (!a || a.Status === 'In progress' || a.Status === 'Returned');
-    return out;
-  };
-  A.saveAnswers = function (q, u) {
-    var e = current(u.UserID);
-    if (!e || status(e) !== 'In progress') fail('Start this year\'s lessons first.');
-    var l = find('Lessons', 'LessonID', q.lessonId);
-    if (!l || str(l.Level) !== str(e.Level)) fail('This lesson is not part of your current level.');
-    var total = prep(l, false).total, ans = q.answers || {}, clean = {}, filled = 0;
-    Object.keys(ans).forEach(function (k) { var v = str(ans[k]).slice(0, 2000); if (/^b\d+$/.test(k) && v) { clean[k] = v; if (v.trim()) filled++; } });
-    var a = answerRow(e.EnrollmentID, l.LessonID), t = nowIso();
-    if (a) {
-      if (a.Status === 'For review' || a.Status === 'Approved') fail('This lesson is already submitted. Ask your discipler to return it if you need changes.');
-      db.update('Answers', 'AnswerID', a.AnswerID, { Answers: JSON.stringify(clean), Notes: str(q.notes).slice(0, 5000), Filled: String(filled), Total: String(total), UpdatedAt: t });
-    } else {
-      db.insert('Answers', { AnswerID: 'A-' + db.uid().slice(0, 8), EnrollmentID: e.EnrollmentID, LessonID: l.LessonID, Answers: JSON.stringify(clean), Notes: str(q.notes).slice(0, 5000), Filled: String(filled), Total: String(total), Status: 'In progress', UpdatedAt: t, SubmittedAt: '', ReviewedBy: '', ReviewedAt: '', Comment: '' });
-    }
-    return { savedAt: t, filled: filled, total: total };
-  };
-  A.submitLesson = function (q, u) {
-    A.saveAnswers(q, u);
-    var e = current(u.UserID), a = answerRow(e.EnrollmentID, q.lessonId);
-    db.update('Answers', 'AnswerID', a.AnswerID, { Status: 'For review', SubmittedAt: nowIso() });
-    audit(u, 'Submitted lesson', q.lessonId, a.Filled + '/' + a.Total + ' blanks');
-    return { status: 'For review' };
-  };
-  A.checkAnswers = function (q, u) {
-    var l = find('Lessons', 'LessonID', q.lessonId);
-    if (!l) fail('Lesson not found.');
-    var key = answerKey(l), ans = q.answers || {};
-    return { results: key.map(function (k, i) { var v = ans['b' + (i + 1)]; return !v ? null : normAns(v) === normAns(k); }) };
+  A.confirmSession = function (q, u) {
+    var s = find('Sessions', 'SessionID', q.sessionId);
+    if (!s || s.UserID !== u.UserID) fail('Session not found.');
+    if (s.Confirmed === 'TRUE') return { ok: true };
+    db.update('Sessions', 'SessionID', s.SessionID, { Confirmed: 'TRUE', ConfirmedAt: nowIso() });
+    audit(u, 'Confirmed session', s.DisciplerID, s.Date + ' ' + s.LessonID);
+    return { ok: true };
   };
   A.certificate = function (q, u) {
     var c = find('Certificates', 'CertNo', q.certNo);
     if (!c) fail('Certificate not found.');
     var owner = find('Users', 'UserID', c.UserID);
-    if (c.UserID !== u.UserID && !(RANK[u.Role] >= 2 && inScope(u, owner))) fail('You cannot view this certificate.');
+    if (c.UserID !== u.UserID && !(RANK[u.Role] >= 1 && (canGuide(u, owner) || u.UserID === owner.DisciplerID))) fail('You cannot view this certificate.');
     return { cert: c, name: owner.Name, congregation: congName(owner.CongregationID), settings: settings(), issuedBy: userName(c.IssuedBy) };
   };
 
@@ -518,61 +525,89 @@ var CORE = (function () {
   };
   A.person = function (q, u) {
     var t = target(u, q.userId);
-    if (!canReview(u, t)) fail('You can only view your own disciples.');
-    var o = overview(t); o.person = personRow(t); return o;
+    if (!canGuide(u, t)) fail('You can only view your own disciples.');
+    var o = overview(t), e = current(t.UserID), lv = logLevel(e);
+    o.person = personRow(t);
+    o.logLevel = lv;
+    o.logLessons = lv ? lessonsFor(lv).map(lessonMeta) : [];
+    o.canLog = !!lv && o.logLessons.length > 0;
+    return o;
   };
-  A.review = function (q, u) {
+  A.logSession = function (q, u) {
     need(u, 'Discipler');
-    var a = find('Answers', 'AnswerID', q.answerId);
-    if (!a) fail('Lesson answers not found.');
-    var e = find('Enrollments', 'EnrollmentID', a.EnrollmentID), t = target(u, e.UserID);
-    if (!canReview(u, t)) fail('You can only review your own disciples.');
-    if (a.Status !== 'For review') fail('This lesson is not waiting for review.');
-    var ok = q.decision === 'approve';
-    if (!ok && !str(q.comment).trim()) fail('Add a short note so your disciple knows what to fix.');
-    db.update('Answers', 'AnswerID', a.AnswerID, { Status: ok ? 'Approved' : 'Returned', ReviewedBy: u.UserID, ReviewedAt: nowIso(), Comment: str(q.comment).slice(0, 1000) });
-    audit(u, ok ? 'Approved lesson' : 'Returned lesson', t.UserID, a.LessonID);
-    return { status: ok ? 'Approved' : 'Returned' };
+    var t = target(u, q.userId);
+    if (!canGuide(u, t)) fail('You can only log sessions for your own disciples.');
+    if (t.Status !== 'Active') fail('This account is not active.');
+    var l = find('Lessons', 'LessonID', q.lessonId);
+    if (!l || !isPub(l)) fail('Choose the lesson you covered.');
+    var d = str(q.date);
+    if (!isDate(d)) fail('Enter the date you met.');
+    if (d > today()) fail('The meeting date can’t be in the future.');
+    var nm = str(q.nextMeeting);
+    if (nm && (!isDate(nm) || nm < d)) fail('The next meeting must be on or after the session date.');
+    var e = current(t.UserID), lv = logLevel(e);
+    if (!lv) fail(t.Name + ' has completed every level for this year.');
+    if (str(l.Level) !== String(lv)) fail('This lesson isn’t part of ' + t.Name.split(' ')[0] + '’s current level (' + levelName(lv) + ').');
+    if (!e || status(e) !== 'In progress') {
+      e = { EnrollmentID: 'E-' + db.uid().slice(0, 8), UserID: t.UserID, ProgramYear: d.slice(0, 4), Level: String(lv), Status: 'In progress', StartDate: d + 'T00:00:00.000Z', CompletedDate: '', ExpiryDate: '', ApprovedBy: '' };
+      db.insert('Enrollments', e);
+      audit(u, 'Started lessons', t.UserID, levelName(lv) + ' ' + e.ProgramYear);
+    }
+    var s = { SessionID: 'S-' + db.uid().slice(0, 8), EnrollmentID: e.EnrollmentID, UserID: t.UserID, DisciplerID: u.UserID, LessonID: l.LessonID, Date: d, Finished: q.finished === false || q.finished === 'false' ? 'FALSE' : 'TRUE', Notes: str(q.notes).slice(0, 1000), NextMeeting: nm, Confirmed: 'FALSE', ConfirmedAt: '', CreatedAt: nowIso() };
+    db.insert('Sessions', s);
+    audit(u, 'Logged session', t.UserID, l.Number + (s.Finished === 'TRUE' ? ' finished' : ' continued') + ' · ' + d);
+    return { ok: true, session: sessionView(s) };
+  };
+  A.deleteSession = function (q, u) {
+    need(u, 'Discipler');
+    var s = find('Sessions', 'SessionID', q.sessionId);
+    if (!s) fail('Session not found.');
+    var t = target(u, s.UserID);
+    if (!(s.DisciplerID === u.UserID || (RANK[u.Role] >= 2 && inScope(u, t)))) fail('Only the discipler who logged it, or a moderator, can remove this session.');
+    var e = find('Enrollments', 'EnrollmentID', s.EnrollmentID);
+    if (e && e.Status !== 'In progress') fail('This level is already completed, so its sessions can’t be removed.');
+    db.update('Sessions', 'SessionID', s.SessionID, { EnrollmentID: 'deleted:' + s.EnrollmentID, UserID: 'deleted:' + s.UserID });
+    audit(u, 'Removed session', t.UserID, s.Date + ' ' + s.LessonID);
+    return { ok: true };
   };
   A.graduate = function (q, u) {
     need(u, 'Discipler');
     var e = find('Enrollments', 'EnrollmentID', q.enrollmentId);
     if (!e) fail('Enrollment not found.');
     var t = target(u, e.UserID);
-    if (!canReview(u, t)) fail('You can only approve your own disciples.');
-    var p = progress(e);
-    if (!p.total || p.approved < p.total) fail('All ' + p.total + ' lessons must be approved first (' + p.approved + ' approved).');
+    if (!canGuide(u, t)) fail('You can only approve your own disciples.');
     if (status(e) !== 'In progress') fail('This level is already ' + status(e).toLowerCase() + '.');
+    var p = progress(e);
+    if (!p.total || p.finished < p.total) fail('All ' + p.total + ' lessons must be finished first (' + p.finished + ' finished).');
     var days = +settings().ValidityDays || 365;
-    db.update('Enrollments', 'EnrollmentID', e.EnrollmentID, { Status: 'Completed', CompletedDate: nowIso(), ExpiryDate: new Date(db.now().getTime() + days * 864e5).toISOString(), ApprovedBy: u.UserID });
-    audit(u, 'Approved to graduate', t.UserID, 'Level ' + e.Level + ' ' + e.ProgramYear);
+    db.update('Enrollments', 'EnrollmentID', e.EnrollmentID, { Status: 'Completed', CompletedDate: nowIso(), ExpiryDate: new Date(db.now().getTime() + days * DAY).toISOString(), ApprovedBy: u.UserID });
+    audit(u, 'Approved to graduate', t.UserID, levelName(e.Level) + ' ' + e.ProgramYear);
     return { ok: true };
   };
-  A.library = function (q, u) {
-    need(u, 'Discipler');
-    var all = RANK[u.Role] >= 3;
-    return { lessons: rows('Lessons').filter(function (l) { return all || isPub(l); }).sort(function (a, b) { return (+a.Level - +b.Level) || (+a.Order - +b.Order); }).map(lessonMeta) };
-  };
-  A.libraryLesson = function (q, u) {
-    need(u, 'Discipler');
-    var l = find('Lessons', 'LessonID', q.lessonId);
-    if (!l) fail('Lesson not found.');
-    var out = prep(l, true); out.answers = {}; out.editable = false; out.status = ''; return out;
+  A.lessonList = function (q, u) {
+    return { lessons: rows('Lessons').filter(function (l) { return RANK[u.Role] >= 3 || isPub(l); }).sort(function (a, b) { return (+a.Level - +b.Level) || (+a.Order - +b.Order); }).map(lessonMeta) };
   };
 
   /* moderator */
   A.dashboard = function (q, u) {
     need(u, 'Moderator');
-    var people = scopedUsers(u).filter(function (x) { return x.Status === 'Active' && (x.Role === 'Disciple' || x.Role === 'Discipler'); }).map(personRow);
-    var counts = { people: people.length, pending: scopedUsers(u).filter(function (x) { return x.Status === 'Pending'; }).length, 'Not started': 0, 'In progress': 0, Completed: 0, Expired: 0, forReview: 0, unassigned: 0 };
-    people.forEach(function (p) { counts[p.LessonStatus] = (counts[p.LessonStatus] || 0) + 1; counts.forReview += p.ForReview; if (p.Role === 'Disciple' && !p.DisciplerID) counts.unassigned++; });
-    var disciplers = scopedUsers(u).filter(function (x) { return x.Role === 'Discipler' && x.Status === 'Active'; }).map(function (d) {
+    var all = scopedUsers(u);
+    var people = all.filter(function (x) { return x.Status === 'Active' && RANK[x.Role] <= 1; }).map(personRow);
+    var counts = { people: people.length, pending: all.filter(function (x) { return x.Status === 'Pending'; }).length, 'Not started': 0, 'In progress': 0, Completed: 0, Expired: 0, stale: 0, ready: 0, expiring: 0, unassigned: 0 };
+    people.forEach(function (p) {
+      counts[p.LessonStatus] = (counts[p.LessonStatus] || 0) + 1;
+      if (p.Stale) counts.stale++; if (p.ReadyToGraduate) counts.ready++; if (p.Expiring) counts.expiring++;
+      if (p.Role === 'Disciple' && !p.DisciplerID) counts.unassigned++;
+    });
+    var monthAgo = new Date(dayMs(today()) - 30 * DAY).toISOString().slice(0, 10);
+    var disciplers = all.filter(function (x) { return x.Role === 'Discipler' && x.Status === 'Active'; }).map(function (d) {
       var mine = people.filter(function (p) { return p.DisciplerID === d.UserID; });
-      return { UserID: d.UserID, Name: d.Name, Congregation: congName(d.CongregationID), Disciples: mine.length, Completed: mine.filter(function (p) { return p.LessonStatus === 'Completed'; }).length, InProgress: mine.filter(function (p) { return p.LessonStatus === 'In progress'; }).length, ForReview: mine.reduce(function (s, p) { return s + p.ForReview; }, 0) };
+      var recent = rows('Sessions').filter(function (s) { return s.DisciplerID === d.UserID && s.Date >= monthAgo && str(s.UserID).indexOf('deleted:') !== 0; }).length;
+      return { UserID: d.UserID, Name: d.Name, Congregation: congName(d.CongregationID), Disciples: mine.length, Completed: mine.filter(function (p) { return p.LessonStatus === 'Completed'; }).length, InProgress: mine.filter(function (p) { return p.LessonStatus === 'In progress'; }).length, Stale: mine.filter(function (p) { return p.Stale; }).length, Sessions30: recent };
     });
     var byCong = {};
     people.forEach(function (p) { var c = byCong[p.Congregation] = byCong[p.Congregation] || { Congregation: p.Congregation, People: 0, Completed: 0 }; c.People++; if (p.LessonStatus === 'Completed') c.Completed++; });
-    return { counts: counts, disciplers: disciplers, congregations: Object.keys(byCong).map(function (k) { return byCong[k]; }) };
+    return { counts: counts, disciplers: disciplers, congregations: Object.keys(byCong).map(function (k) { return byCong[k]; }), staleDays: +settings().StaleDays || 30 };
   };
   A.people = function (q, u) {
     need(u, 'Moderator');
@@ -596,17 +631,18 @@ var CORE = (function () {
   };
   A.setRole = function (q, u) {
     need(u, 'Moderator');
-    var t = target(u, q.userId, true), role = str(q.role);
+    var t = target(u, q.userId, true), role = str(q.role), old = t.Role;
     if (ROLES.indexOf(role) < 0) fail('Unknown role.');
-    if (u.Role !== 'Admin' && (RANK[role] > 1 || RANK[t.Role] > 1)) fail('Only the admin can change moderator or admin roles.');
+    if (role === old && role !== 'Moderator') fail(t.Name + ' is already a ' + role.toLowerCase() + '.');
+    if (u.Role !== 'Admin' && (RANK[role] > 1 || RANK[old] > 1)) fail('Only the admin can change moderator or admin roles.');
     if (t.UserID === u.UserID) fail('You cannot change your own role.');
     var patch = { Role: role, AppointedBy: u.UserID, AppointedAt: nowIso() };
     if (role === 'Moderator') patch.ModCongregations = str(q.modCongregations || t.ModCongregations || t.CongregationID);
     db.update('Users', 'UserID', t.UserID, patch);
-    if (RANK[t.Role] >= 1 && RANK[role] < 1) {
+    if (RANK[old] >= 1 && RANK[role] < 1) {
       rows('Users').filter(function (x) { return x.DisciplerID === t.UserID; }).forEach(function (x) { db.update('Users', 'UserID', x.UserID, { DisciplerID: '' }); });
     }
-    audit(u, role === 'Discipler' && t.Role === 'Disciple' ? 'Promoted to discipler' : 'Changed role', t.UserID, t.Role + ' → ' + role);
+    audit(u, role === 'Discipler' && old === 'Disciple' ? 'Promoted to discipler' : 'Changed role', t.UserID, old + ' → ' + role);
     return { ok: true };
   };
   A.setStatus = function (q, u) {
@@ -622,7 +658,7 @@ var CORE = (function () {
   A.resetPin = function (q, u) {
     need(u, 'Discipler');
     var t = target(u, q.userId);
-    if (!(canReview(u, t) || (u.Role === 'Admin'))) fail('You can only reset PINs of people you oversee.');
+    if (!(canGuide(u, t) || u.Role === 'Admin')) fail('You can only reset PINs of people you oversee.');
     if (u.Role !== 'Admin' && RANK[t.Role] >= RANK[u.Role]) fail('Only the admin can reset this PIN.');
     var pin = String(1000 + Math.floor(Math.random() * 9000));
     db.update('Users', 'UserID', t.UserID, { PinHash: hashPin(pin), FailCount: '0', LockUntil: '' });
@@ -644,15 +680,18 @@ var CORE = (function () {
     need(u, 'Moderator');
     var r = scopedUsers(u).filter(function (x) { return x.Status === 'Active' && RANK[x.Role] <= 1; }).map(personRow);
     if (q.congregationId) r = r.filter(function (x) { return x.CongregationID === q.congregationId; });
-    if (q.status) r = r.filter(function (x) { return x.LessonStatus === q.status; });
     if (q.disciplerId) r = r.filter(function (x) { return x.DisciplerID === q.disciplerId; });
+    var f = str(q.status);
+    if (f === 'Stale') r = r.filter(function (x) { return x.Stale; });
+    else if (f === 'Ready') r = r.filter(function (x) { return x.ReadyToGraduate; });
+    else if (f === 'Expiring') r = r.filter(function (x) { return x.Expiring; });
+    else if (f) r = r.filter(function (x) { return x.LessonStatus === f; });
     r.sort(function (a, b) { return (a.Congregation + a.Name).localeCompare(b.Congregation + b.Name); });
     return { rows: r, generated: nowIso() };
   };
   A.certQueue = function (q, u) {
     need(u, 'Moderator');
-    var people = scopedUsers(u);
-    var ids = {}; people.forEach(function (p) { ids[p.UserID] = p; });
+    var ids = {}; scopedUsers(u).forEach(function (p) { ids[p.UserID] = p; });
     var issued = rows('Certificates').filter(function (c) { return ids[c.UserID]; });
     var have = {}; issued.forEach(function (c) { have[c.EnrollmentID] = 1; });
     var ready = rows('Enrollments').filter(function (e) { return ids[e.UserID] && status(e) === 'Completed' && !have[e.EnrollmentID]; })
@@ -664,12 +703,11 @@ var CORE = (function () {
     var ids = [].concat(q.enrollmentIds || q.enrollmentId || []), out = [];
     ids.forEach(function (id) {
       var e = find('Enrollments', 'EnrollmentID', id);
-      if (!e || e.Status !== 'Completed') fail('Only completed lessons can get a certificate.');
+      if (!e || status(e) !== 'Completed') fail('Only completed lessons can get a certificate.');
       target(u, e.UserID, true);
       if (rows('Certificates').some(function (c) { return c.EnrollmentID === id; })) return;
       var yr = e.ProgramYear, n = rows('Certificates').filter(function (c) { return c.ProgramYear === yr; }).length + 1;
-      var lv = lessonsFor(e.Level, true)[0];
-      var c = { CertNo: 'MBBE-DG-' + yr + '-' + ('000' + n).slice(-4), UserID: e.UserID, EnrollmentID: id, ProgramYear: yr, Level: e.Level, LevelName: lv ? lv.LevelName : 'Level ' + e.Level, IssuedDate: nowIso(), IssuedBy: u.UserID, ValidUntil: e.ExpiryDate };
+      var c = { CertNo: 'MBBE-DG-' + yr + '-' + ('000' + n).slice(-4), UserID: e.UserID, EnrollmentID: id, ProgramYear: yr, Level: e.Level, LevelName: levelName(e.Level), IssuedDate: nowIso(), IssuedBy: u.UserID, ValidUntil: e.ExpiryDate };
       db.insert('Certificates', c);
       audit(u, 'Issued certificate', e.UserID, c.CertNo);
       out.push(c.CertNo);
@@ -687,30 +725,26 @@ var CORE = (function () {
     audit(u, 'Saved congregation', name);
     return { ok: true };
   };
-  A.adminLessons = function (q, u) { need(u, 'Admin'); return A.library(q, u); };
   A.saveLesson = function (q, u) {
     need(u, 'Admin');
-    var id = str(q.LessonID).trim(); if (!id) fail('Lesson ID is required.');
-    var rec = { Level: str(q.Level || 1), LevelName: str(q.LevelName), Order: str(q.Order || 1), Number: str(q.Number), Title: str(q.Title), UpdatedAt: nowIso() };
-    if (q.Content != null && str(q.Content).trim()) {
-      try { var c = JSON.parse(q.Content); if (!c.lesson || !c.lesson.points) throw 0; } catch (e) { fail('Lesson content is not valid lesson JSON.'); }
-      rec.Content = str(q.Content);
-    }
+    var id = str(q.LessonID).trim();
+    if (!/^[A-Za-z0-9-]{2,20}$/.test(id)) fail('Lesson code must be 2–20 letters, numbers or dashes, like L1-02.');
+    if (!str(q.Title).trim()) fail('Lesson title is required.');
+    var rec = { Level: str(+q.Level || 1), LevelName: str(q.LevelName).trim(), Order: str(+q.Order || 1), Number: str(q.Number).trim(), Title: str(q.Title).trim(), MemoryRef: str(q.MemoryRef).trim(), MemoryText: str(q.MemoryText).trim(), UpdatedAt: nowIso() };
     var ex = find('Lessons', 'LessonID', id);
-    if (ex) { if (rec.Content && rec.Content !== ex.Content) rec.Version = String((+ex.Version || 1) + 1); db.update('Lessons', 'LessonID', id, rec); }
-    else { rec.LessonID = id; rec.Version = '1'; rec.Published = 'FALSE'; rec.Content = rec.Content || ''; db.insert('Lessons', rec); }
-    audit(u, 'Saved lesson', id);
+    if (ex && q.isNew === true) fail('A lesson with the code ' + id + ' already exists.');
+    if (ex) db.update('Lessons', 'LessonID', id, rec);
+    else { if (q.isNew === false) fail('Lesson not found.'); rec.LessonID = id; rec.Published = 'TRUE'; db.insert('Lessons', rec); }
+    audit(u, 'Saved lesson', id, rec.Number + ' ' + rec.Title);
     return { ok: true };
   };
   A.setPublished = function (q, u) {
     need(u, 'Admin');
     var l = find('Lessons', 'LessonID', q.lessonId); if (!l) fail('Lesson not found.');
-    if (q.published && !str(l.Content)) fail('Add the lesson content before publishing.');
     db.update('Lessons', 'LessonID', l.LessonID, { Published: q.published ? 'TRUE' : 'FALSE' });
-    audit(u, q.published ? 'Published lesson' : 'Unpublished lesson', l.LessonID);
+    audit(u, q.published ? 'Included lesson' : 'Hid lesson', l.LessonID);
     return { ok: true };
   };
-  A.lessonSource = function (q, u) { need(u, 'Admin'); var l = find('Lessons', 'LessonID', q.lessonId); if (!l) fail('Lesson not found.'); return { Content: l.Content }; };
   A.saveSettings = function (q, u) {
     need(u, 'Admin');
     Object.keys(DEFAULTS).forEach(function (k) {
@@ -759,7 +793,96 @@ if (typeof module !== 'undefined') module.exports = CORE;
 
 </script>
 <script>
-var LESSON_SEED = [{"LessonID": "L1-01", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "1", "Number": "Lesson One", "Title": "Jesus Christ, the Hope of Sinners", "Version": "1", "Published": "TRUE", "Content": "{\"lesson\":{\"id\":\"L1-01\",\"level\":\"Level One \\u00b7 The Foundation\",\"number\":\"Lesson One\",\"title\":\"Jesus Christ, the Hope of Sinners\",\"memory\":\"Romans 10:13\",\"intro\":\"Adam was the first man directly created by God as expressly detailed in {{Genesis 1:26-27}}. He was a perfect creation [but not righteous] before the Fall in {{Genesis 3:6}}. When Adam sinned, he brought death to all men and decay and deterioration to the whole earth ({{Romans 5:12}}). But God in all His goodness and love for man provided a way of Redemption and Reconciliation. Let us discover through the Lessons on Foundations of Faith, the LOVE OF GOD that leads a sinner to the salvation of his soul and reconciliation with his Creator.\",\"question\":\"What does the Bible say about man and his condition before a holy God?\",\"points\":[{\"title\":\"That man is God's [creation].\",\"passages\":[[\"Genesis 1:26\",[[26,\"And God said, Let us make man in our image, after our likeness: and let them have dominion over the fish of the sea, and over the fowl of the air, and over the cattle, and over all the earth, and over every creeping thing that creepeth upon the earth.\"]]],[\"Genesis 1:27\",[[27,\"So God created man in his own image, in the image of God [created] he him; male and female [created] he them.\"]]]]},{\"title\":\"That man was created for fellowship with God but that [fellowship] was broken when Adam and Eve sinned.\",\"passages\":[[\"Genesis 3:6\",[[6,\"And when the woman saw that the tree was good for food, and that it was pleasant to the eyes, and a tree to be desired to make one wise, she [took] of the fruit thereof, and did [eat], and [gave] also unto her husband with her; and he did [eat].\"]]],[\"Genesis 3:17\",[[17,\"And unto Adam he said, Because thou hast [hearkened] unto the voice of thy wife, and hast eaten of the tree, of which I [commanded] thee, saying, Thou [shalt] [not] [eat] of it: cursed is the ground for thy sake; in sorrow shalt thou eat of it all the days of thy life;\"]]],[\"Genesis 3:19\",[[19,\"In the sweat of thy face shalt thou eat bread, till thou [return] unto the [ground]; for out of it wast thou taken: for [dust] thou art, and unto dust shalt thou return.\"]]],[\"Genesis 3:23\",[[23,\"Therefore the LORD God [sent him forth] from the garden of Eden, to till the ground from whence he was taken.\"]]],[\"Genesis 3:24\",[[24,\"So he [drove out] the man;\"]]]]},{\"title\":\"That man's [sin] is a [transgression] of God's law.\",\"passages\":[[\"1 John 3:4\",[[4,\"Whosoever committeth sin [transgresseth] also the law: for [sin] is the transgression of the law.\"]]],[\"Isaiah 30:1\",[[1,\"Woe to the rebellious children, saith the LORD, that take counsel, but not of me; and that cover with a covering, but not of my spirit, that they may add [sin] to [sin]:\"]]]]},{\"title\":\"That the penalty for man's sin is [death] and that he is eternally condemned.\",\"passages\":[[\"Ezekiel 18:4\",[[4,\"the soul that sinneth, it shall [die].\"]]],[\"Romans 6:23\",[[23,\"For the [wages] of [sin] is death;\"]]],[\"Hebrews 9:27\",[[27,\"And as it is appointed unto men once to die, but after this the judgment:\"]]],[\"Revelation 20:11-14\",[[11,\"And I saw a great white throne, and him that sat on it, from whose face the earth and the heaven fled away; and there was found no place for them.\"],[12,\"And I saw the dead, small and great, stand before God; and the books were opened: and another book was opened, which is the book of life: and the dead were judged out of those things which were written in the books, according to their works.\"],[13,\"And the sea gave up the dead which were in it; and death and hell delivered up the [dead] which were in them: and they were judged every man according to their works.\"],[14,\"And [death] and [hell] were cast into the [lake] of [fire]. This is the [second] death.\"]]],[\"Revelation 21:8\",[[8,\"[But the fearful, and unbelieving, and the abominable, and murderers, and whoremongers, and sorcerers, and idolaters, and all liars, shall have their part in the lake which burneth with fire and brimstone: which is the second death.]\"]]]]},{\"title\":\"That man though under eternal condemnation and will perish because of his sin, can still be saved through faith in Jesus Christ and have eternal life.\",\"passages\":[[\"John 3:13-17\",[[13,\"And [no] man hath ascended up to heaven, but he that came down from heaven, even the Son of man which is in heaven.\"],[14,\"And as Moses [lifted] up the [serpent] in the wilderness, even so must the [Son] of man be [lifted] up:\"],[15,\"That whosoever [believeth] in him should not [perish], but have [eternal life].\"],[16,\"For [God] so [loved] the world, that he [gave] his only begotten Son, that whosoever [believeth] in him should not [perish], but have [everlasting] life.\"],[17,\"For God sent [not] his [Son] into the [world] to [condemn] the world; but that the world [through] [him] might be [saved].\"]]],[\"Romans 5:6-8\",[[6,\"For when we were yet without strength, in due time [Christ] died for the [ungodly].\"],[7,\"For scarcely for a righteous man will one die: yet peradventure for a good man some would even dare to die.\"],[8,\"But God commendeth his love toward us, in that, while [we] were [yet] sinners, Christ [died] for us.\"]]],[\"Romans 6:23\",[[23,\"For the wages of sin is death; but the gift of God is [eternal] life through Jesus Christ our Lord.\"]]],[\"Romans 10:13\",[[13,\"For [whosoever] shall [call] upon the [name] of the Lord shall be [saved].\"]]],[\"Romans 10:9-10\",[[9,\"That if thou shalt [confess] with thy [mouth] the Lord Jesus, and shalt [believe] in thine [heart] that God hath raised him from the dead, thou shalt be [saved].\"],[10,\"For with the [heart] man [believeth] unto righteousness; and with the mouth [confession] is made unto [salvation].\"]]]]}],\"faith\":\"Faith, as the Bible declares it, is believing in the Lord Jesus Christ. He became a man and died on the cross of Calvary to save you and me. Come to Him now and receive His gift of eternal life and forgiveness for all your sins.\",\"prayer\":\"Lord, I confess that I am a lost sinner and bound for eternal destruction. Now I repent of all my sins and accept Jesus Christ as my own personal Savior and Lord by faith. Thank you for saving my soul today. In Christ's name, Amen.\",\"assurances\":[[\"You now have an everlasting life\",\"John 3:15-16\"],[\"You are forgiven of all your sins\",\"1 John 1:9\"],[\"You are now a child of God\",\"John 1:12\"],[\"You now have in you a new heart\",\"2 Corinthians 5:17\"]],\"closing\":\"2 Corinthians 5:17-19\"},\"verses\":{\"1 John 1:9\":[[9,\"If we confess our sins, he is faithful and just to forgive us our sins, and to cleanse us from all unrighteousness.\"]],\"1 John 3:4\":[[4,\"Whosoever committeth sin transgresseth also the law: for sin is the transgression of the law.\"]],\"2 Corinthians 5:17\":[[17,\"Therefore if any man be in Christ, he is a new creature: old things are passed away; behold, all things are become new.\"]],\"2 Corinthians 5:17-19\":[[17,\"Therefore if any man be in Christ, he is a new creature: old things are passed away; behold, all things are become new.\"],[18,\"And all things are of God, who hath reconciled us to himself by Jesus Christ, and hath given to us the ministry of reconciliation;\"],[19,\"To wit, that God was in Christ, reconciling the world unto himself, not imputing their trespasses unto them; and hath committed unto us the word of reconciliation.\"]],\"Ezekiel 18:4\":[[4,\"Behold, all souls are mine; as the soul of the father, so also the soul of the son is mine: the soul that sinneth, it shall die.\"]],\"Genesis 1:26\":[[26,\"And God said, Let us make man in our image, after our likeness: and let them have dominion over the fish of the sea, and over the fowl of the air, and over the cattle, and over all the earth, and over every creeping thing that creepeth upon the earth.\"]],\"Genesis 1:26-27\":[[26,\"And God said, Let us make man in our image, after our likeness: and let them have dominion over the fish of the sea, and over the fowl of the air, and over the cattle, and over all the earth, and over every creeping thing that creepeth upon the earth.\"],[27,\"So God created man in his own image, in the image of God created he him; male and female created he them.\"]],\"Genesis 1:27\":[[27,\"So God created man in his own image, in the image of God created he him; male and female created he them.\"]],\"Genesis 3:17\":[[17,\"And unto Adam he said, Because thou hast hearkened unto the voice of thy wife, and hast eaten of the tree, of which I commanded thee, saying, Thou shalt not eat of it: cursed is the ground for thy sake; in sorrow shalt thou eat of it all the days of thy life;\"]],\"Genesis 3:19\":[[19,\"In the sweat of thy face shalt thou eat bread, till thou return unto the ground; for out of it wast thou taken: for dust thou art, and unto dust shalt thou return.\"]],\"Genesis 3:23\":[[23,\"Therefore the LORD God sent him forth from the garden of Eden, to till the ground from whence he was taken.\"]],\"Genesis 3:24\":[[24,\"So he drove out the man; and he placed at the east of the garden of Eden Cherubims, and a flaming sword which turned every way, to keep the way of the tree of life.\"]],\"Genesis 3:6\":[[6,\"And when the woman saw that the tree was good for food, and that it was pleasant to the eyes, and a tree to be desired to make one wise, she took of the fruit thereof, and did eat, and gave also unto her husband with her; and he did eat.\"]],\"Hebrews 9:27\":[[27,\"And as it is appointed unto men once to die, but after this the judgment:\"]],\"Isaiah 30:1\":[[1,\"Woe to the rebellious children, saith the LORD, that take counsel, but not of me; and that cover with a covering, but not of my spirit, that they may add sin to sin:\"]],\"John 1:12\":[[12,\"But as many as received him, to them gave he power to become the sons of God, even to them that believe on his name:\"]],\"John 3:13-17\":[[13,\"And no man hath ascended up to heaven, but he that came down from heaven, even the Son of man which is in heaven.\"],[14,\"And as Moses lifted up the serpent in the wilderness, even so must the Son of man be lifted up:\"],[15,\"That whosoever believeth in him should not perish, but have eternal life.\"],[16,\"For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.\"],[17,\"For God sent not his Son into the world to condemn the world; but that the world through him might be saved.\"]],\"John 3:15-16\":[[15,\"That whosoever believeth in him should not perish, but have eternal life.\"],[16,\"For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.\"]],\"Revelation 20:11-14\":[[11,\"And I saw a great white throne, and him that sat on it, from whose face the earth and the heaven fled away; and there was found no place for them.\"],[12,\"And I saw the dead, small and great, stand before God; and the books were opened: and another book was opened, which is the book of life: and the dead were judged out of those things which were written in the books, according to their works.\"],[13,\"And the sea gave up the dead which were in it; and death and hell delivered up the dead which were in them: and they were judged every man according to their works.\"],[14,\"And death and hell were cast into the lake of fire. This is the second death.\"]],\"Revelation 21:8\":[[8,\"But the fearful, and unbelieving, and the abominable, and murderers, and whoremongers, and sorcerers, and idolaters, and all liars, shall have their part in the lake which burneth with fire and brimstone: which is the second death.\"]],\"Romans 10:13\":[[13,\"For whosoever shall call upon the name of the Lord shall be saved.\"]],\"Romans 10:9-10\":[[9,\"That if thou shalt confess with thy mouth the Lord Jesus, and shalt believe in thine heart that God hath raised him from the dead, thou shalt be saved.\"],[10,\"For with the heart man believeth unto righteousness; and with the mouth confession is made unto salvation.\"]],\"Romans 5:12\":[[12,\"Wherefore, as by one man sin entered into the world, and death by sin; and so death passed upon all men, for that all have sinned:\"]],\"Romans 5:6-8\":[[6,\"For when we were yet without strength, in due time Christ died for the ungodly.\"],[7,\"For scarcely for a righteous man will one die: yet peradventure for a good man some would even dare to die.\"],[8,\"But God commendeth his love toward us, in that, while we were yet sinners, Christ died for us.\"]],\"Romans 6:23\":[[23,\"For the wages of sin is death; but the gift of God is eternal life through Jesus Christ our Lord.\"]]}}"}, {"LessonID": "L1-02", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "2", "Number": "Lesson Two", "Title": "The Eternal Security of the Believer", "Version": "1", "Published": "FALSE", "Content": ""}, {"LessonID": "L1-03", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "3", "Number": "Lesson Three", "Title": "Baptism & the Importance of the Ekklesia", "Version": "1", "Published": "FALSE", "Content": ""}, {"LessonID": "L1-04A", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "4", "Number": "Lesson Four-A", "Title": "The Three Changes of a Converted Life", "Version": "1", "Published": "FALSE", "Content": ""}, {"LessonID": "L1-04B", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "5", "Number": "Lesson Four-B", "Title": "The Practical Christian Walk", "Version": "1", "Published": "FALSE", "Content": ""}, {"LessonID": "L1-05", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "6", "Number": "Lesson Five", "Title": "The Holy Scriptures", "Version": "1", "Published": "FALSE", "Content": ""}, {"LessonID": "L1-06", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "7", "Number": "Lesson Six", "Title": "Stewardship", "Version": "1", "Published": "FALSE", "Content": ""}, {"LessonID": "L1-07", "Level": "1", "LevelName": "The Foundation \u00b7 Level One", "Order": "8", "Number": "Lesson Seven", "Title": "Fruit-Bearing", "Version": "1", "Published": "FALSE", "Content": ""}];
+var LESSON_SEED = [
+ {
+  "LessonID": "L1-01",
+  "Level": "1",
+  "LevelName": "The Foundation · Level One",
+  "Order": "1",
+  "Number": "Lesson One",
+  "Title": "Jesus Christ, the Hope of Sinners",
+  "MemoryRef": "Romans 10:13",
+  "MemoryText": "For whosoever shall call upon the name of the Lord shall be saved.",
+  "Published": "TRUE"
+ },
+ {
+  "LessonID": "L1-02",
+  "Level": "1",
+  "LevelName": "The Foundation · Level One",
+  "Order": "2",
+  "Number": "Lesson Two",
+  "Title": "The Eternal Security of the Believer",
+  "MemoryRef": "",
+  "MemoryText": "",
+  "Published": "TRUE"
+ },
+ {
+  "LessonID": "L1-03",
+  "Level": "1",
+  "LevelName": "The Foundation · Level One",
+  "Order": "3",
+  "Number": "Lesson Three",
+  "Title": "Baptism & the Importance of the Ekklesia",
+  "MemoryRef": "",
+  "MemoryText": "",
+  "Published": "TRUE"
+ },
+ {
+  "LessonID": "L1-04A",
+  "Level": "1",
+  "LevelName": "The Foundation · Level One",
+  "Order": "4",
+  "Number": "Lesson Four-A",
+  "Title": "The Three Changes of a Converted Life",
+  "MemoryRef": "",
+  "MemoryText": "",
+  "Published": "TRUE"
+ },
+ {
+  "LessonID": "L1-04B",
+  "Level": "1",
+  "LevelName": "The Foundation · Level One",
+  "Order": "5",
+  "Number": "Lesson Four-B",
+  "Title": "The Practical Christian Walk",
+  "MemoryRef": "",
+  "MemoryText": "",
+  "Published": "TRUE"
+ },
+ {
+  "LessonID": "L1-05",
+  "Level": "1",
+  "LevelName": "The Foundation · Level One",
+  "Order": "6",
+  "Number": "Lesson Five",
+  "Title": "The Holy Scriptures",
+  "MemoryRef": "",
+  "MemoryText": "",
+  "Published": "TRUE"
+ },
+ {
+  "LessonID": "L1-06",
+  "Level": "1",
+  "LevelName": "The Foundation · Level One",
+  "Order": "7",
+  "Number": "Lesson Six",
+  "Title": "Stewardship",
+  "MemoryRef": "",
+  "MemoryText": "",
+  "Published": "TRUE"
+ },
+ {
+  "LessonID": "L1-07",
+  "Level": "1",
+  "LevelName": "The Foundation · Level One",
+  "Order": "8",
+  "Number": "Lesson Seven",
+  "Title": "Fruit-Bearing",
+  "MemoryRef": "",
+  "MemoryText": "",
+  "Published": "TRUE"
+ }
+];
 if (typeof module !== 'undefined') module.exports = LESSON_SEED;
 
 </script>
@@ -784,15 +907,10 @@ var DEMO = (function () {
       now: function () { return new Date(); }
     };
   }
-  function keyOf(content) {
-    var c = JSON.parse(content), k = [];
-    var grab = function (s) { s.replace(/\[(.+?)\]/g, function (_, a) { k.push(a); return ''; }); };
-    c.lesson.points.forEach(function (p) { grab(p.title); p.passages.forEach(function (ps) { ps[1].forEach(function (v) { grab(v[1]); }); }); });
-    return k;
-  }
   function seed(a) {
     var day = 864e5, now = Date.now(), iso = function (ms) { return new Date(ms).toISOString(); };
-    var yr = String(new Date().getFullYear());
+    var d = function (n) { return new Date(now + 8 * 36e5 + n * day).toISOString().slice(0, 10); };
+    var yr = d(0).slice(0, 4);
     [['C-main', 'MBBE Main', 'Sta. Ana, Manila', 'Sample Preacher A'], ['C-qc', 'MBBE Quezon City', 'Quezon City', 'Sample Preacher B'], ['C-bat', 'MBBE Batangas', 'Tanauan, Batangas', 'Sample Preacher C']]
       .forEach(function (c) { a.insert('Congregations', { CongregationID: c[0], Name: c[1], Location: c[2], Preachers: c[3], Status: 'Active' }); });
     LESSON_SEED.forEach(function (l) { var r = JSON.parse(JSON.stringify(l)); r.UpdatedAt = iso(now); a.insert('Lessons', r); });
@@ -802,32 +920,49 @@ var DEMO = (function () {
     };
     U('U-admin', 'Admin (you)', '09170000001', 'Admin', 'C-main', 'Active', '', '', 120);
     U('U-mod1', 'Grace Mendoza', '09170000002', 'Moderator', 'C-main', 'Active', '', 'C-main,C-qc', 110);
-    U('U-dr1', 'Paolo Reyes', '09170000003', 'Discipler', 'C-main', 'Active', '', '', 100);
+    U('U-dr1', 'Paolo Reyes', '09170000003', 'Discipler', 'C-main', 'Active', 'U-mod1', '', 100);
     U('U-dr2', 'Liza Bautista', '09170000004', 'Discipler', 'C-qc', 'Active', '', '', 100);
     U('U-d1', 'Ana Cruz', '09170000005', 'Disciple', 'C-main', 'Active', 'U-dr1', '', 40);
-    U('U-d2', 'Mark Villanueva', '09170000006', 'Disciple', 'C-main', 'Active', 'U-dr1', '', 50);
-    U('U-d3', 'Joy Santos', '09170000007', 'Disciple', 'C-main', 'Active', 'U-dr1', '', 90);
-    U('U-d4', 'Ben Ramos', '09170000008', 'Disciple', 'C-qc', 'Active', 'U-dr2', '', 20);
+    U('U-d2', 'Mark Villanueva', '09170000006', 'Disciple', 'C-main', 'Active', 'U-dr1', '', 80);
+    U('U-d3', 'Joy Santos', '09170000007', 'Disciple', 'C-main', 'Active', 'U-dr1', '', 200);
+    U('U-d4', 'Ben Ramos', '09170000008', 'Disciple', 'C-qc', 'Active', 'U-dr2', '', 70);
     U('U-d5', 'Rico Lim', '09170000009', 'Disciple', 'C-qc', 'Active', 'U-dr2', '', 400);
     U('U-d6', 'Carla Dizon', '09170000010', 'Disciple', 'C-qc', 'Pending', '', '', 1);
     U('U-d7', 'Noel Garcia', '09170000011', 'Disciple', 'C-main', 'Active', '', '', 3);
 
-    var key = keyOf(LESSON_SEED[0].Content), total = key.length;
-    var ans = function (n, wrong) { var o = {}; for (var i = 0; i < n; i++) o['b' + (i + 1)] = key[i]; (wrong || []).forEach(function (w) { o['b' + w[0]] = w[1]; }); return o; };
-    var E = function (id, user, year, status, start, done, exp, by) { a.insert('Enrollments', { EnrollmentID: id, UserID: user, ProgramYear: year, Level: '1', Status: status, StartDate: iso(start), CompletedDate: done ? iso(done) : '', ExpiryDate: exp ? iso(exp) : '', ApprovedBy: by || '' }); };
-    var AN = function (id, enr, o, status, upd, sub, by, rev, comment) {
-      var f = Object.keys(o).length;
-      a.insert('Answers', { AnswerID: id, EnrollmentID: enr, LessonID: 'L1-01', Answers: JSON.stringify(o), Notes: '', Filled: String(f), Total: String(total), Status: status, UpdatedAt: iso(upd), SubmittedAt: sub ? iso(sub) : '', ReviewedBy: by || '', ReviewedAt: rev ? iso(rev) : '', Comment: comment || '' });
+    var E = function (id, user, year, status, startDay, doneDay, expDay, by) { a.insert('Enrollments', { EnrollmentID: id, UserID: user, ProgramYear: year, Level: '1', Status: status, StartDate: d(startDay) + 'T00:00:00.000Z', CompletedDate: doneDay != null ? iso(now + doneDay * day) : '', ExpiryDate: expDay != null ? iso(now + expDay * day) : '', ApprovedBy: by || '' }); };
+    var n = 0;
+    var S = function (enr, user, disc, lesson, dayN, fin, notes, next, conf) {
+      a.insert('Sessions', { SessionID: 'S-demo' + (++n), EnrollmentID: enr, UserID: user, DisciplerID: disc, LessonID: lesson, Date: d(dayN), Finished: fin ? 'TRUE' : 'FALSE', Notes: notes || '', NextMeeting: next != null ? d(next) : '', Confirmed: conf ? 'TRUE' : 'FALSE', ConfirmedAt: conf ? iso(now + (dayN + 1) * day) : '', CreatedAt: iso(now + dayN * day) });
     };
-    E('E-d1', 'U-d1', yr, 'In progress', now - 9 * day); AN('A-d1', 'E-d1', ans(22), 'In progress', now - 1 * day);
-    E('E-d2', 'U-d2', yr, 'In progress', now - 20 * day); AN('A-d2', 'E-d2', ans(total, [[9, 'took'], [30, 'death'], [41, 'love']]), 'For review', now - 2 * day, now - 2 * day);
-    E('E-d3', 'U-d3', yr, 'Completed', now - 80 * day, now - 30 * day, now + 335 * day, 'U-dr1'); AN('A-d3', 'E-d3', ans(total), 'Approved', now - 40 * day, now - 40 * day, 'U-dr1', now - 31 * day);
-    a.insert('Certificates', { CertNo: 'MBBE-DG-' + yr + '-0001', UserID: 'U-d3', EnrollmentID: 'E-d3', ProgramYear: yr, Level: '1', LevelName: 'The Foundation · Level One', IssuedDate: iso(now - 28 * day), IssuedBy: 'U-mod1', ValidUntil: iso(now + 335 * day) });
-    E('E-d5', 'U-d5', String(+yr - 1), 'Completed', now - 420 * day, now - 380 * day, now - 15 * day, 'U-dr2'); AN('A-d5', 'E-d5', ans(total), 'Approved', now - 390 * day, now - 390 * day, 'U-dr2', now - 381 * day);
-    E('E-dr1', 'U-dr1', yr, 'In progress', now - 5 * day);
-    [['Settings', 'Signatory1', 'Sample Senior Pastor'], ['Settings', 'Signatory2', 'Grace Mendoza']].forEach(function (s) { a.insert(s[0], { Key: s[1], Value: s[2] }); });
+    var L = LESSON_SEED.map(function (l) { return l.LessonID; });
+    // Ana: 3 of 8 finished, next meeting soon, latest session not yet confirmed
+    E('E-d1', 'U-d1', yr, 'In progress', -35);
+    S('E-d1', 'U-d1', 'U-dr1', L[0], -35, true, 'Very attentive. Asked about assurance.', -28, true);
+    S('E-d1', 'U-d1', 'U-dr1', L[1], -28, false, 'Covered points 1–3.', -21, true);
+    S('E-d1', 'U-d1', 'U-dr1', L[1], -21, true, '', -14, true);
+    S('E-d1', 'U-d1', 'U-dr1', L[2], -4, true, 'Wants to be baptized next month.', 3, false);
+    // Mark: all 8 finished, waiting for the discipler to mark fit to graduate
+    E('E-d2', 'U-d2', yr, 'In progress', -75);
+    L.forEach(function (id, i) { S('E-d2', 'U-d2', 'U-dr1', id, -75 + i * 9, true, '', null, true); });
+    // Joy: completed this year, certificate issued
+    E('E-d3', 'U-d3', yr, 'Completed', -150, -60, 305, 'U-dr1');
+    L.forEach(function (id, i) { S('E-d3', 'U-d3', 'U-dr1', id, -150 + i * 11, true, '', null, true); });
+    a.insert('Certificates', { CertNo: 'MBBE-DG-' + yr + '-0001', UserID: 'U-d3', EnrollmentID: 'E-d3', ProgramYear: yr, Level: '1', LevelName: 'The Foundation · Level One', IssuedDate: iso(now - 55 * day), IssuedBy: 'U-mod1', ValidUntil: iso(now + 305 * day) });
+    // Ben: started, but no session in 45 days
+    E('E-d4', 'U-d4', yr, 'In progress', -60);
+    S('E-d4', 'U-d4', 'U-dr2', L[0], -60, true, '', -53, true);
+    S('E-d4', 'U-d4', 'U-dr2', L[1], -45, false, 'Busy with work; will reschedule.', null, false);
+    // Rico: completed last year, now expired
+    E('E-d5', 'U-d5', String(+yr - 1), 'Completed', -420, -380, -15, 'U-dr2');
+    L.forEach(function (id, i) { S('E-d5', 'U-d5', 'U-dr2', id, -420 + i * 5, true, '', null, true); });
+    // Paolo (a discipler) doing his own yearly lessons with Grace; completion expires soon
+    E('E-dr1', 'U-dr1', String(+yr - 1), 'Completed', -400, -320, 45, 'U-mod1');
+    L.forEach(function (id, i) { S('E-dr1', 'U-dr1', 'U-mod1', id, -400 + i * 10, true, '', null, true); });
+    a.insert('Certificates', { CertNo: 'MBBE-DG-' + (+yr - 1) + '-0001', UserID: 'U-dr1', EnrollmentID: 'E-dr1', ProgramYear: String(+yr - 1), Level: '1', LevelName: 'The Foundation · Level One', IssuedDate: iso(now - 318 * day), IssuedBy: 'U-mod1', ValidUntil: iso(now + 45 * day) });
+    [['Signatory1', 'Sample Senior Pastor'], ['Signatory2', 'Grace Mendoza']].forEach(function (s) { a.insert('Settings', { Key: s[0], Value: s[1] }); });
   }
-  var KEY = 'mbbe-disc-demo-v1', tables = null, adapter;
+  var KEY = 'mbbe-disc-demo-v2', tables = null, adapter;
   function load() {
     try { tables = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { tables = null; }
     var save = function () { try { localStorage.setItem(KEY, JSON.stringify(tables)); } catch (e) {} };
@@ -871,7 +1006,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     if (s < 86400) return Math.floor(s / 3600) + ' hr ago'; if (s < 86400 * 30) return Math.floor(s / 86400) + ' days ago';
     return fmtDate(iso);
   }
-  var PILL = { 'Completed': 'ok', 'Approved': 'ok', 'Active': 'ok', 'In progress': 'info', 'For review': 'warn', 'Pending': 'warn', 'Returned': 'miss', 'Expired': 'miss', 'Inactive': 'miss' };
+  var PILL = { 'Completed': 'ok', 'Active': 'ok', 'In progress': 'info', 'Pending': 'warn', 'Returned': 'miss', 'Expired': 'miss', 'Inactive': 'miss' };
   function pill(t, label) { return '<span class="pill ' + (PILL[t] || '') + '">' + esc(label || t) + '</span>'; }
   function toast(msg) {
     var t = $('#toast'); t.textContent = msg; t.hidden = false;
@@ -919,8 +1054,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   function rank() { return { Disciple: 0, Discipler: 1, Moderator: 2, Admin: 3 }[role()] || 0; }
   function navItems() {
     var r = role();
-    if (r === 'Disciple') return [['home', 'Home', 'home'], ['certs', 'Certificates', 'award'], ['profile', 'Profile', 'user']];
-    if (r === 'Discipler') return [['disciples', 'Disciples', 'users'], ['library', 'Library', 'book'], ['home', 'My lessons', 'home'], ['profile', 'Profile', 'user']];
+    if (r === 'Disciple') return [['home', 'My progress', 'home'], ['certs', 'Certificates', 'award'], ['profile', 'Profile', 'user']];
+    if (r === 'Discipler') return [['disciples', 'Disciples', 'users'], ['home', 'My progress', 'home'], ['certs', 'Certificates', 'award'], ['profile', 'Profile', 'user']];
     return [['dash', 'Dashboard', 'chart'], ['people', 'People', 'users'], ['reports', 'Reports', 'table'], ['certadmin', 'Certificates', 'award'], ['more', 'More', 'more']];
   }
   function homeRoute() { return { Disciple: 'home', Discipler: 'disciples' }[role()] || 'dash'; }
@@ -952,69 +1087,10 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   }
   function failView(e) { fill('<div class="card"><p class="err">' + esc(e.message) + '</p><button class="btn" type="button" onclick="location.reload()">Try again</button></div>'); }
 
-  /* ---------- verse sheet ---------- */
-  var VERSES = {};
-  var lastFocus = null;
-  function openVerse(ref) {
-    lastFocus = document.activeElement;
-    $('#sheet-title').textContent = ref;
-    $('#sheet-body').innerHTML = (VERSES[ref] || []).map(function (v) { return '<p><sup>' + v[0] + '</sup>' + esc(v[1]) + '</p>'; }).join('') || '<p>Verse text not available.</p>';
-    $('#sheet').hidden = $('#scrim').hidden = false;
-    requestAnimationFrame(function () { $('#sheet').classList.add('on'); $('#scrim').classList.add('on'); });
-    $('#sheet-close').focus();
-  }
-  function closeVerse() {
-    $('#sheet').classList.remove('on'); $('#scrim').classList.remove('on');
-    setTimeout(function () { $('#sheet').hidden = $('#scrim').hidden = true; }, 220);
-    if (lastFocus) lastFocus.focus();
-  }
-
-  /* ---------- lesson renderer ---------- */
-  var BIG = '<button type="button" class="back" id="big" aria-label="Larger text" title="Larger text" style="font-family:var(--serif);font-weight:700;font-size:15px">Aa</button>';
-  var refBtn = function (r) { return '<button type="button" class="ref" data-ref="' + esc(r) + '">' + esc(r) + '</button>'; };
-  function lessonHTML(d, opt) {
-    var L = d.lesson, n = 0, vals = opt.values || {}, key = d.key || [];
-    VERSES = d.verses || {};
-    var blanks = function (s) {
-      return esc(s).replace(/\[__(\d+)\]/g, function (_, len) {
-        var i = n++, id = 'b' + (i + 1), v = vals[id] || '', cls = 'b', extra = '';
-        if (opt.mode === 'review') {
-          var k = key[i] || '';
-          var good = v && v.toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim() === k.toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
-          cls += !v ? ' empty' : good ? ' ok' : ' miss';
-          if (!good) extra = '<span class="fix">' + (v ? '→ ' : '') + esc(k) + '</span>';
-        }
-        var ro = opt.mode !== 'do' || !opt.editable ? ' readonly' : '';
-        if (+len > 40) return '<textarea class="' + cls + ' long" id="' + id + '" aria-label="Write the whole verse" placeholder="' + (opt.mode === 'do' ? 'Write the whole verse here' : '') + '"' + ro + '>' + esc(v) + '</textarea>' + extra;
-        return '<input class="' + cls + '" id="' + id + '" value="' + esc(v) + '" style="width:' + (Math.max(5, +len + 2) + 1) + 'ch" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Blank ' + (i + 1) + '"' + ro + '>' + extra;
-      });
-    };
-    var withRefs = function (s) { return esc(s).replace(/\{\{(.+?)\}\}/g, function (_, r) { return refBtn(r); }); };
-    var mem = VERSES[L.memory] ? VERSES[L.memory].map(function (x) { return x[1]; }).join(' ') : '';
-    var pts = L.points.map(function (p, i) {
-      return '<section class="point"><h4><span class="n">' + (i + 1) + '</span><span>' + blanks(p.title) + '</span></h4>' +
-        p.passages.map(function (ps) {
-          return '<div class="passage">' + refBtn(ps[0]) + ps[1].map(function (v) { return '<p class="vs"><span class="vn">V.' + v[0] + '</span>' + blanks(v[1]) + '</p>'; }).join('') + '</div>';
-        }).join('') + '</section>';
-    }).join('');
-    var closing = L.closing && VERSES[L.closing] ? '<div class="passage">' + refBtn(L.closing) + VERSES[L.closing].map(function (v) { return '<p class="vs" style="font-style:italic"><span class="vn">V.' + v[0] + '</span>' + esc(v[1]) + '</p>'; }).join('') + '</div>' : '';
-    return '<article class="reader" id="reader">' +
-      '<header><div class="eyebrow">' + esc(L.level || '') + ' · ' + esc(L.number || '') + '</div><h2 class="lt">' + esc(L.title) + '</h2></header>' +
-      (mem ? '<blockquote class="memory">“' + esc(mem) + '”<br>' + refBtn(L.memory) + '</blockquote>' : '') +
-      (L.intro ? '<p>' + withRefs(L.intro) + '</p>' : '') +
-      (L.question ? '<p class="ask">' + esc(L.question) + '</p>' : '') + pts +
-      (L.faith ? '<p>' + esc(L.faith) + '</p>' : '') +
-      (L.prayer ? '<p>You can pray this prayer right now and be reconciled to God, our Creator:</p><blockquote class="prayer">“' + esc(L.prayer) + '”</blockquote>' : '') +
-      (L.assurances ? '<section><h3>When you pray this sinner’s prayer</h3><ol class="assure">' + L.assurances.map(function (a) { return '<li>' + esc(a[0]) + ' ' + refBtn(a[1]) + '</li>'; }).join('') + '</ol></section>' : '') +
-      closing + '<p class="end">-o0o0o-</p></article>';
-  }
-  function fieldsIn(root) { return $$('.b', root); }
-  function valuesOf(root) { var o = {}; fieldsIn(root).forEach(function (f) { if (f.value) o[f.id] = f.value; }); return o; }
-
   /* ---------- auth screens ---------- */
   function authShell(body) {
     app.innerHTML = '<div class="auth"><div class="auth-in">' +
-      '<div class="brand"><div class="eyebrow">' + esc(S.info ? S.info.churchName : 'Metropolitan Bible Baptist Ekklesia') + '</div><h1>Discipleship</h1><p class="muted">' + esc(S.info ? S.info.programName : 'Discovery Lessons') + ' · yearly lessons, progress and certificates</p></div>' +
+      '<div class="brand"><div class="eyebrow">' + esc(S.info ? S.info.churchName : 'Metropolitan Bible Baptist Ekklesia') + '</div><h1>Discipleship</h1><p class="muted">' + esc(S.info ? S.info.programName : 'Discovery Lessons') + ' · yearly progress, meetings and certificates</p></div>' +
       body + '</div></div>';
   }
   function loadInfo() { return S.info ? Promise.resolve(S.info) : api('publicInfo').then(function (i) { S.info = i; return i; }); }
@@ -1066,110 +1142,84 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     }).catch(function (e) { authShell('<div class="card"><p class="err">' + esc(e.message) + '</p></div>'); });
   }
 
-  /* ---------- disciple: home / my lessons ---------- */
-  function viewHome() {
-    var r = role();
-    frame({ title: r === 'Disciple' ? 'My lessons' : 'My own lessons', section: r === 'Disciple' ? 'home' : (r === 'Discipler' ? 'home' : 'more'), back: rank() >= 2 ? '#/more' : null });
-    api('home').then(function (d) {
-      var e = d.enrollment, p = d.progress, yr = new Date().getFullYear();
-      var html = '';
-      if (!e) {
-        html += '<div class="card hero"><h3>' + yr + ' discipleship</h3><h2>Start this year’s lessons</h2><p>Every member finishes the discipleship lessons once a year. Begin with Level One, The Foundation.</p><button class="btn primary" id="start">Start lessons</button></div>';
-      } else {
-        var pct = p.total ? Math.round(p.approved / p.total * 100) : 0;
-        html += '<div class="card hero"><div class="spread"><h3>Program year ' + esc(e.ProgramYear) + '</h3>' + pill(e.Status) + '</div>' +
-          '<h2>' + esc(e.LevelName) + '</h2>' +
-          '<div class="track" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100"><div class="fill" style="width:' + pct + '%"></div></div>' +
-          '<p class="small">' + p.approved + ' of ' + p.total + ' lessons approved' + (p.forReview ? ' · ' + p.forReview + ' waiting for review' : '') + (d.discipler ? ' · Discipler: <b>' + esc(d.discipler) + '</b>' : ' · No discipler assigned yet') + '</p>';
-        if (e.Status === 'Completed') html += '<p>Completed on ' + fmtDate(e.CompletedDate) + '. Your status is valid until <b>' + fmtDate(e.ExpiryDate) + '</b>.</p>';
-        if (e.Status === 'Expired') html += '<p>Your completion expired on ' + fmtDate(e.ExpiryDate) + '. Retake the lessons to renew your status for ' + yr + '.</p>';
-        if (d.canStart) html += '<button class="btn primary" id="start">Retake lessons for ' + yr + '</button>';
-        if (d.nextLevel) html += '<button class="btn primary" id="next">Start Level ' + d.nextLevel + '</button>';
-        if (e.Status === 'In progress' && p.total && p.approved === p.total) html += '<p class="small">All lessons approved. Your discipler will mark you fit to graduate.</p>';
-        html += '</div>';
-        if (e.Status === 'Completed') {
-          var c = d.certificates.filter(function (x) { return x.EnrollmentID === e.EnrollmentID; })[0];
-          html += c ? '<a class="card" href="#/cert/' + esc(c.CertNo) + '"><div class="spread"><b>Your certificate is ready</b>' + pill('Completed', 'View') + '</div><p class="small muted">' + esc(c.CertNo) + ' · issued ' + fmtDate(c.IssuedDate) + '</p></a>'
-            : '<div class="card"><p>Congratulations on completing the lessons. Your moderator will issue your certificate.</p></div>';
-        }
-        html += '<h3>Lessons</h3><div class="list">' + (p.lessons.length ? p.lessons.map(function (l) {
-          var sub = l.Status === 'Returned' ? 'Returned by your discipler: ' + esc(l.Comment) : l.Total ? l.Filled + ' of ' + l.Total + ' blanks answered' : 'Not opened yet';
-          return '<a class="item lesson-item" href="#/lesson/' + esc(l.LessonID) + '"><div><div class="num">' + esc(l.Number) + '</div><div class="t">' + esc(l.Title) + '</div></div>' + pill(l.Status) + '<div class="s">' + sub + '</div></a>';
-        }).join('') : '<p class="muted">No lessons are published for this level yet.</p>') + '</div>';
-      }
-      var m = fill(html);
-      var st = $('#start', m), nx = $('#next', m);
-      if (st) st.onclick = function () { busy(st, true); api('startEnrollment').then(function () { toast('Your lessons are ready.'); viewHome(); }).catch(function (x) { toast(x.message); busy(st, false); }); };
-      if (nx) nx.onclick = function () { busy(nx, true); api('startEnrollment', { nextLevel: true }).then(function () { toast('Next level started.'); viewHome(); }).catch(function (x) { toast(x.message); busy(nx, false); }); };
-    }).catch(failView);
+  /* ---------- shared bits for the tracking views ---------- */
+  function fmtDay(d) { if (!d) return ''; var x = new Date(String(d).slice(0, 10) + 'T12:00:00'); return isNaN(x) ? '' : x.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  function fmtDayShort(d) { if (!d) return ''; var x = new Date(String(d).slice(0, 10) + 'T12:00:00'); return isNaN(x) ? '' : x.toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric' }); }
+  function todayStr() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function daysAgo(d) { if (!d) return null; return Math.round((new Date(todayStr() + 'T12:00:00') - new Date(String(d).slice(0, 10) + 'T12:00:00')) / 864e5); }
+  function agoText(d) { var n = daysAgo(d); if (n == null) return 'never'; if (n <= 0) return 'today'; if (n === 1) return 'yesterday'; if (n < 45) return n + ' days ago'; return fmtDay(d); }
+  var CHECK = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  function checklist(lessons) {
+    if (!lessons.length) return '<p class="muted">No lessons are set up for this level yet.</p>';
+    return '<ol class="checklist">' + lessons.map(function (l) {
+      var cls = l.State === 'Finished' ? 'done' : l.State === 'Started' ? 'part' : '';
+      var sub = l.State === 'Finished' ? 'Finished ' + fmtDay(l.FinishedOn) : l.State === 'Started' ? 'Started · ' + l.Sessions + ' session' + (l.Sessions === 1 ? '' : 's') + ' so far' : 'Not yet';
+      return '<li class="' + cls + '"><span class="tick">' + (cls === 'done' ? CHECK : '') + '</span><span class="cl-body"><span class="cl-num">' + esc(l.Number) + '</span><span class="cl-title">' + esc(l.Title) + '</span><span class="cl-sub">' + sub + '</span></span></li>';
+    }).join('') + '</ol>';
+  }
+  function progressBar(p) {
+    var pct = p.total ? Math.round(p.finished / p.total * 100) : 0;
+    return '<div class="track" role="progressbar" aria-label="Lessons finished" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100"><div class="fill" style="width:' + pct + '%"></div></div>';
   }
 
-  /* ---------- disciple: do a lesson ---------- */
-  function viewLesson(id) {
-    frame({ title: 'Lesson', back: '#/home', nav: false, tools: BIG });
-    api('getLesson', { lessonId: id }).then(function (d) {
-      var draftKey = 'dt-draft-' + S.me.user.UserID + '-' + id;
-      var draft = LS.get(draftKey);
-      var values = d.answers || {}, notes = d.notes || '', dirty = false;
-      if (draft && d.editable) { values = draft.answers || values; notes = draft.notes != null ? draft.notes : notes; dirty = true; }
-      $('.top h1').textContent = d.lesson.number;
-      var banner = '';
-      if (d.status === 'Returned') banner = '<div class="card" style="border-color:var(--miss)"><b>Returned by your discipler</b><p>' + esc(d.comment) + '</p><p class="small muted">Update your answers, then submit again.</p></div>';
-      else if (d.status === 'For review') banner = '<div class="card"><b>Submitted for review.</b><p class="small muted">Your discipler is reviewing this lesson. You can read it but not change it.</p></div>';
-      else if (d.status === 'Approved') banner = '<div class="card"><b>Approved.</b>' + (d.comment ? '<p>' + esc(d.comment) + '</p>' : '') + '</div>';
-      else if (!d.editable) banner = '<div class="card"><p>Start this year’s lessons from your home page to answer this lesson.</p></div>';
-      var m = fill(banner + lessonHTML(d, { mode: 'do', editable: d.editable, values: values }) +
-        '<section class="stack"><h3><label for="notes">My notes</label></h3><textarea class="i" id="notes" placeholder="Questions for your discipler, thoughts, prayer points"' + (d.editable ? '' : ' readonly') + '>' + esc(notes) + '</textarea></section>' +
-        '<div class="dock"><div class="spread"><span class="small"><b id="cnt"></b></span><span class="small muted" id="saved" aria-live="polite"></span></div>' +
-        '<div class="track"><div class="fill" id="bar"></div></div>' +
-        (d.editable ? '<div class="row"><button type="button" class="btn primary sm" id="submit">Submit for review</button><button type="button" class="btn sm" id="check">Check answers</button></div>' : '') +
-        '</div>');
-      var fields = fieldsIn(m);
-      function count() {
-        var f = fields.filter(function (x) { return x.value.trim(); }).length;
-        $('#cnt').textContent = f + ' of ' + d.total + ' blanks';
-        $('#bar').style.width = (f / d.total * 100) + '%';
-        return f;
+  /* ---------- disciple: my progress ---------- */
+  function viewHome() {
+    var r = role();
+    frame({ title: r === 'Disciple' ? 'My discipleship' : 'My progress', section: r === 'Disciple' ? 'home' : (r === 'Discipler' ? 'home' : 'more'), back: rank() >= 2 ? '#/more' : null });
+    api('home').then(function (d) {
+      var e = d.enrollment, p = d.progress, yr = new Date().getFullYear(), first = S.me.user.Name.split(' ')[0];
+      var html = '<div class="card hero">';
+      if (!e) {
+        html += '<h3>' + yr + ' discipleship</h3><h2>Welcome, ' + esc(first) + '</h2>' +
+          '<p>You’ll go through the Discovery Lessons with ' + (d.discipler ? '<b>' + esc(d.discipler) + '</b>' : 'your discipler') + ' using the printed booklet. Each time you meet, your discipler records the lesson here so you can follow your progress.</p>' +
+          (d.discipler ? '' : '<p class="small">Your moderator will assign your discipler soon.</p>');
+      } else {
+        html += '<div class="spread"><h3>Program year ' + esc(e.ProgramYear) + '</h3>' + pill(e.Status) + '</div>' +
+          '<h2>' + esc(e.LevelName) + '</h2>' + progressBar(p) +
+          '<p class="small"><b>' + p.finished + ' of ' + p.total + '</b> lessons finished' + (d.discipler ? ' · Discipler: <b>' + esc(d.discipler) + '</b>' : '') + '</p>';
+        if (e.Status === 'In progress' && p.nextMeeting) html += '<div class="next"><span class="next-l">Next meeting</span><b>' + esc(fmtDayShort(p.nextMeeting)) + '</b></div>';
+        if (e.Status === 'In progress' && p.total && p.finished === p.total) html += '<p class="small">All lessons finished. Your discipler will confirm that you’re ready to graduate.</p>';
+        if (e.Status === 'Completed') {
+          html += '<p>Completed on ' + fmtDate(e.CompletedDate) + '. Your discipleship status is valid until <b>' + fmtDate(e.ExpiryDate) + '</b>.</p>';
+          var left = Math.ceil((new Date(e.ExpiryDate) - new Date()) / 864e5);
+          if (left <= 60) html += '<p class="small"><b>Renew soon.</b> Your status expires in ' + left + ' day' + (left === 1 ? '' : 's') + '. Plan this year’s lessons with your discipler.</p>';
+        }
+        if (e.Status === 'Expired') html += '<p>Your completion expired on ' + fmtDate(e.ExpiryDate) + '. Retake the lessons with your discipler to renew your status for ' + yr + '.</p>';
       }
-      count();
-      $('#big').onclick = function () { $('#reader').classList.toggle('big'); };
-      if (!d.editable) return;
-      var timer = null, saving = false;
-      function snapshot() { return { answers: valuesOf(m), notes: $('#notes').value, t: Date.now() }; }
-      function save() {
-        if (saving) { timer = setTimeout(save, 800); return Promise.resolve(); }
-        saving = true; var snap = snapshot(); $('#saved').textContent = 'Saving…';
-        return api('saveAnswers', { lessonId: id, answers: snap.answers, notes: snap.notes }).then(function () {
-          saving = false; var cur = LS.get(draftKey); if (cur && cur.t <= snap.t) LS.del(draftKey); dirty = false;
-          $('#saved').textContent = 'Saved ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-        }).catch(function (e) {
-          saving = false; $('#saved').textContent = e.offline ? 'Saved on this phone. Will sync when you’re online.' : e.message;
-        });
+      html += '</div>';
+
+      var pending = p.sessions.filter(function (s) { return !s.Confirmed; });
+      if (pending.length) {
+        html += '<h3>Please confirm</h3><div class="list">' + pending.map(function (s) {
+          return '<div class="card confirm" data-sid="' + esc(s.SessionID) + '"><p>Did you meet with <b>' + esc(s.Discipler) + '</b> on <b>' + esc(fmtDayShort(s.Date)) + '</b> for <b>' + esc(s.Lesson) + '</b>?</p><div class="row"><button type="button" class="btn primary sm" data-confirm>Yes, we met</button><span class="small muted">If not, tell your discipler.</span></div></div>';
+        }).join('') + '</div>';
       }
-      function changed() { dirty = true; LS.set(draftKey, snapshot()); count(); clearTimeout(timer); timer = setTimeout(save, 1200); $('#saved').textContent = 'Editing…'; }
-      fields.forEach(function (f) { f.addEventListener('input', function () { f.classList.remove('ok', 'miss'); changed(); }); });
-      $('#notes').addEventListener('input', changed);
-      window.addEventListener('online', function () { if (dirty) save(); });
-      if (dirty) save();
-      $('#check').onclick = function () {
-        var b = this; busy(b, true);
-        api('checkAnswers', { lessonId: id, answers: valuesOf(m) }).then(function (r) {
-          var ok = 0, wrong = 0;
-          r.results.forEach(function (x, i) { var f = $('#b' + (i + 1), m); if (!f) return; f.classList.remove('ok', 'miss'); if (x === true) { f.classList.add('ok'); ok++; } else if (x === false) { f.classList.add('miss'); wrong++; } });
-          toast(ok + ' correct' + (wrong ? ', ' + wrong + ' to look at again' : '') + '. ' + (d.total - ok - wrong) + ' still blank.');
-          busy(b, false);
-        }).catch(function (e) { toast(e.message); busy(b, false); });
-      };
-      confirmTap($('#submit'), 'Tap again to submit', function () {
-        var left = d.total - count();
-        clearTimeout(timer);
-        api('submitLesson', { lessonId: id, answers: valuesOf(m), notes: $('#notes').value }).then(function () {
-          LS.del(draftKey); toast(left ? 'Submitted with ' + left + ' blanks left. Your discipler will review it.' : 'Submitted. Your discipler will review it.'); location.hash = '#/home';
-        }).catch(function (e) { toast(e.message); });
+      if (e && e.Status === 'Completed') {
+        var c = d.certificates.filter(function (x) { return x.EnrollmentID === e.EnrollmentID; })[0];
+        html += c ? '<a class="card" href="#/cert/' + esc(c.CertNo) + '"><div class="spread"><b>Your certificate is ready</b>' + pill('Completed', 'View') + '</div><p class="small muted">' + esc(c.CertNo) + ' · issued ' + fmtDate(c.IssuedDate) + '</p></a>'
+          : '<div class="card"><p>Congratulations on finishing the lessons. Your moderator will issue your certificate.</p></div>';
+      }
+      if (e) html += '<h3>Lessons</h3>' + checklist(p.lessons);
+      if (d.memoryVerses.length) {
+        html += '<h3>Memory verses</h3><div class="list">' + d.memoryVerses.map(function (v) {
+          return '<figure class="verse"><blockquote>“' + esc(v.Text) + '”</blockquote><figcaption><b>' + esc(v.Ref) + '</b> · KJV<span class="muted"> · ' + esc(v.Lesson) + '</span></figcaption></figure>';
+        }).join('') + '</div>';
+      }
+      if (p.sessions.length) {
+        html += '<h3>Meetings</h3><div class="list">' + p.sessions.map(function (s) {
+          return '<div class="item" style="cursor:default"><div class="t">' + esc(fmtDay(s.Date)) + '</div>' + (s.Confirmed ? '<span class="small muted">Confirmed</span>' : pill('Pending', 'To confirm')) +
+            '<div class="s">' + esc(s.Lesson) + ' · ' + esc(s.LessonTitle) + (s.Finished ? '' : ' (continued next time)') + ' · with ' + esc(s.Discipler) + '</div></div>';
+        }).join('') + '</div>';
+      }
+      var m = fill(html);
+      $$('[data-confirm]', m).forEach(function (b) {
+        b.onclick = function () {
+          var c = b.closest('[data-sid]'); busy(b, true);
+          api('confirmSession', { sessionId: c.dataset.sid }).then(function () { toast('Thank you. Meeting confirmed.'); viewHome(); }).catch(function (x) { toast(x.message); busy(b, false); });
+        };
       });
     }).catch(failView);
   }
-
   /* ---------- certificates ---------- */
   function viewMyCerts() {
     frame({ title: 'Certificates' });
@@ -1199,21 +1249,36 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   }
 
   /* ---------- discipler ---------- */
+  function flags(p) {
+    var f = '';
+    if (p.Status !== 'Active') return pill(p.Status);
+    if (p.ReadyToGraduate) f += pill('Pending', 'Ready to graduate');
+    else if (p.Stale) f += pill('Returned', p.LastSession ? 'No meeting ' + daysAgo(p.LastSession) + 'd' : 'No meeting yet');
+    else if (p.Expiring) f += pill('Pending', 'Expires ' + fmtDate(p.ExpiryDate));
+    return f + pill(p.LessonStatus);
+  }
   function personItem(p, extra) {
-    var sub = [p.Congregation];
-    if (p.TotalLessons) sub.push(p.Approved + '/' + p.TotalLessons + ' lessons approved');
+    var sub = [];
+    if (extra !== 'nodisc') sub.push(p.Congregation);
+    if (p.TotalLessons && p.LessonStatus !== 'Not started') sub.push(p.Finished + '/' + p.TotalLessons + ' lessons');
+    if (p.LastSession) sub.push('last met ' + agoText(p.LastSession));
+    if (p.NextMeeting) sub.push('next ' + fmtDayShort(p.NextMeeting));
     if (p.Discipler && extra !== 'nodisc') sub.push('Discipler: ' + p.Discipler);
-    sub.push('active ' + rel(p.LastActivity));
-    return '<a class="item" href="#/person/' + esc(p.UserID) + '"><div class="t">' + esc(p.Name) + (p.Role !== 'Disciple' ? ' <span class="pill plain">' + esc(p.Role) + '</span>' : '') + '</div>' +
-      '<div class="row">' + (p.ForReview ? pill('For review', p.ForReview + ' to review') : '') + (p.Status !== 'Active' ? pill(p.Status) : pill(p.LessonStatus)) + '</div>' +
+    return '<a class="item person-item" href="#/person/' + esc(p.UserID) + '"><div class="t">' + esc(p.Name) + (p.Role !== 'Disciple' ? ' <span class="pill plain">' + esc(p.Role) + '</span>' : '') + '</div>' +
+      '<div class="row">' + flags(p) + '</div>' +
       '<div class="s">' + esc(sub.filter(Boolean).join(' · ')) + '</div></a>';
   }
+  function priority(p) { return p.ReadyToGraduate ? 0 : p.Stale ? 1 : p.LessonStatus === 'In progress' ? 2 : p.LessonStatus === 'Not started' || p.LessonStatus === 'Expired' ? 3 : 4; }
   function viewDisciples() {
     frame({ title: 'My disciples' });
     api('myDisciples').then(function (d) {
-      var need = d.people.filter(function (p) { return p.ForReview; });
-      fill((need.length ? '<div class="card hero"><b>' + need.length + ' ' + (need.length === 1 ? 'disciple has' : 'disciples have') + ' lessons waiting for your review.</b></div>' : '') +
-        (d.people.length ? '<div class="list">' + d.people.sort(function (a, b) { return b.ForReview - a.ForReview || a.Name.localeCompare(b.Name); }).map(function (p) { return personItem(p, 'nodisc'); }).join('') + '</div>'
+      var ready = d.people.filter(function (p) { return p.ReadyToGraduate; }).length, stale = d.people.filter(function (p) { return p.Stale; }).length;
+      var note = [];
+      if (ready) note.push(ready + ' ready to graduate');
+      if (stale) note.push(stale + ' with no meeting in ' + (S.me.settings.StaleDays || 30) + '+ days');
+      fill((note.length ? '<div class="card hero"><b>' + esc(note.join(' · ')) + '</b></div>' : '') +
+        '<p class="muted small">Teach from the printed booklet, then open a disciple to record the session.</p>' +
+        (d.people.length ? '<div class="list">' + d.people.sort(function (a, b) { return priority(a) - priority(b) || a.Name.localeCompare(b.Name); }).map(function (p) { return personItem(p, 'nodisc'); }).join('') + '</div>'
           : '<div class="card"><h2>No disciples yet</h2><p>Your moderator assigns disciples to you. They will appear here with their progress.</p></div>'));
     }).catch(failView);
   }
@@ -1222,21 +1287,46 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     var reqs = [api('person', { userId: uid })];
     if (rank() >= 2) reqs.push(api('people'));
     Promise.all(reqs).then(function (res) {
-      var d = res[0], p = d.person, e = d.enrollment, pr = d.progress, ppl = res[1];
+      var d = res[0], p = d.person, e = d.enrollment, pr = d.progress, ppl = res[1], first = p.Name.split(' ')[0];
       $('.top h1').textContent = p.Name;
-      var html = '<div class="card"><div class="spread"><h2>' + esc(p.Name) + '</h2>' + pill(p.Status === 'Active' ? p.LessonStatus : p.Status) + '</div>' +
+      var html = '<div class="card"><div class="spread"><h2>' + esc(p.Name) + '</h2><div class="row">' + flags(p) + '</div></div>' +
         '<p class="small muted">' + esc(p.Role) + ' · ' + esc(p.Congregation) + ' · <span style="user-select:all">' + esc(p.Mobile) + '</span></p>' +
         '<p class="small">' + (p.Discipler ? 'Discipler: <b>' + esc(p.Discipler) + '</b>' : 'No discipler assigned') + '</p>' +
-        (e ? '<p class="small">' + esc(e.LevelName) + ' · ' + esc(e.ProgramYear) + ' · ' + pr.approved + ' of ' + pr.total + ' lessons approved' + (e.ExpiryDate ? ' · valid until ' + fmtDate(e.ExpiryDate) : '') + '</p>' : '<p class="small muted">Hasn’t started this year’s lessons.</p>') +
+        (e ? progressBar(pr) + '<p class="small"><b>' + pr.finished + ' of ' + pr.total + '</b> lessons finished · ' + esc(e.LevelName) + ' · ' + esc(e.ProgramYear) +
+          (pr.lastSession ? ' · last met ' + agoText(pr.lastSession) : '') + (pr.nextMeeting ? ' · next ' + esc(fmtDayShort(pr.nextMeeting)) : '') +
+          (e.ExpiryDate ? ' · valid until ' + fmtDate(e.ExpiryDate) : '') + '</p>' : '<p class="small muted">No lessons recorded yet. Logging the first session starts this year’s lessons.</p>') +
         '</div>';
-      if (e && e.Status === 'In progress' && pr.total && pr.approved === pr.total) {
-        html += '<div class="card hero"><b>All lessons approved.</b><p class="small">Mark ' + esc(p.Name.split(' ')[0]) + ' as fit to graduate. This completes ' + esc(e.LevelName) + ' for ' + esc(e.ProgramYear) + '.</p><button class="btn primary" id="grad">Mark fit to graduate</button></div>';
+      if (p.ReadyToGraduate) {
+        html += '<div class="card hero"><b>All lessons finished.</b><p class="small">Mark ' + esc(first) + ' as fit to graduate. This completes ' + esc(e.LevelName) + ' for ' + esc(e.ProgramYear) + ' and lets the moderator issue the certificate.</p><button class="btn primary" id="grad">Mark fit to graduate</button></div>';
       }
-      if (e) html += '<h3>Lessons</h3><div class="list">' + pr.lessons.map(function (l) {
-        var open = l.AnswerID;
-        return '<' + (open ? 'a href="#/review/' + esc(uid) + '/' + esc(l.LessonID) + '"' : 'div') + ' class="item lesson-item"><div><div class="num">' + esc(l.Number) + '</div><div class="t">' + esc(l.Title) + '</div></div>' + pill(l.Status) +
-          '<div class="s">' + (l.Total ? l.Filled + ' of ' + l.Total + ' blanks' : 'Not opened yet') + (l.Status === 'For review' ? ' · tap to review' : '') + '</div></' + (open ? 'a' : 'div') + '>';
-      }).join('') + '</div>';
+      if (d.canLog) {
+        var next = d.logLessons.filter(function (l) {
+          var mine = (e && String(e.Level) === String(d.logLevel)) ? pr.lessons.filter(function (x) { return x.LessonID === l.LessonID; })[0] : null;
+          return !mine || mine.State !== 'Finished';
+        })[0] || d.logLessons[0];
+        var newYear = !e || e.Status !== 'In progress';
+        html += '<form class="card" id="logf"><h3 style="margin:0">Record a session</h3>' +
+          (newYear ? '<p class="small muted">' + (e && e.Status === 'Completed' ? 'This starts ' + esc(d.logLessons[0].LevelName || 'the next level') + '.' : 'This starts ' + esc(first) + '’s lessons for this year.') + '</p>' : '') +
+          '<div class="row"><label class="f" style="flex:1 1 140px">Date you met<input class="i" type="date" id="ld" value="' + todayStr() + '" max="' + todayStr() + '" required></label>' +
+          '<label class="f" style="flex:2 1 200px">Lesson covered<select class="i" id="ll">' + d.logLessons.map(function (l) { return '<option value="' + esc(l.LessonID) + '"' + (l.LessonID === next.LessonID ? ' selected' : '') + '>' + esc(l.Number) + ' · ' + esc(l.Title) + '</option>'; }).join('') + '</select></label></div>' +
+          '<label class="row small" style="font-weight:700"><input type="checkbox" id="lf" checked> Finished this lesson</label>' +
+          '<label class="f">Notes for yourself and the moderator <span style="font-weight:500">(optional, not shown to ' + esc(first) + ')</span><textarea class="i" id="ln" style="min-height:70px" placeholder="Prayer points, questions, follow-up"></textarea></label>' +
+          '<label class="f">Next meeting <span style="font-weight:500">(optional)</span><input class="i" type="date" id="lnm" min="' + todayStr() + '"></label>' +
+          '<p class="err" id="lerr" hidden></p><button class="btn primary">Save session</button></form>';
+      } else if (e && e.Status === 'Completed') {
+        html += '<div class="card"><p class="small">' + esc(first) + ' has completed this year’s lessons. Sessions can be recorded again after the status expires on ' + fmtDate(e.ExpiryDate) + '.</p></div>';
+      }
+      if (e) html += '<h3>Lessons · ' + esc(e.LevelName) + '</h3>' + checklist(pr.lessons);
+      if (pr.sessions.length) {
+        html += '<h3>Sessions</h3><div class="list">' + pr.sessions.map(function (s) {
+          var canDel = e && e.Status === 'In progress' && (s.DisciplerID === S.me.user.UserID || rank() >= 2);
+          return '<div class="item" style="cursor:default" data-sid="' + esc(s.SessionID) + '"><div class="t">' + esc(fmtDay(s.Date)) + ' · ' + esc(s.Lesson) + '</div>' +
+            (s.Confirmed ? '<span class="small" style="color:var(--ok);font-weight:700">Confirmed</span>' : '<span class="small muted">Not confirmed</span>') +
+            '<div class="s">' + esc(s.LessonTitle) + (s.Finished ? ' · finished' : ' · continued') + ' · by ' + esc(s.Discipler) + (s.NextMeeting ? ' · next ' + esc(fmtDayShort(s.NextMeeting)) : '') +
+            (s.Notes ? '<br><span style="color:var(--ink)">' + esc(s.Notes) + '</span>' : '') +
+            (canDel ? '<br><button type="button" class="btn quiet sm" data-del style="padding-left:0">Remove this session</button>' : '') + '</div></div>';
+        }).join('') + '</div>';
+      }
       if (d.certificates.length) html += '<h3>Certificates</h3><div class="list">' + d.certificates.map(function (c) { return '<a class="item" href="#/cert/' + esc(c.CertNo) + '"><div class="t">' + esc(c.LevelName) + ' · ' + esc(c.ProgramYear) + '</div><span class="pill plain">' + esc(c.CertNo) + '</span></a>'; }).join('') + '</div>';
 
       html += '<h3>Manage</h3><div class="card stack">';
@@ -1258,10 +1348,21 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         (ppl ? (p.Status === 'Active' ? '<button type="button" class="btn sm danger" id="deact">Deactivate account</button>' : '<button type="button" class="btn sm" id="react">Reactivate account</button>') : '') + '</div>' +
         '<p class="small" id="pinout" hidden></p></div>';
       var m = fill(html);
+
+      var lf = $('#logf', m);
+      if (lf) lf.onsubmit = function (ev) {
+        ev.preventDefault(); var err = $('#lerr'), b = $('button', lf); err.hidden = true; busy(b, true);
+        api('logSession', { userId: uid, date: $('#ld').value, lessonId: $('#ll').value, finished: $('#lf').checked, notes: $('#ln').value, nextMeeting: $('#lnm').value })
+          .then(function () { toast('Session saved.'); viewPerson(uid); })
+          .catch(function (x) { err.textContent = x.message; err.hidden = false; busy(b, false); });
+      };
+      $$('[data-del]', m).forEach(function (b) {
+        confirmTap(b, 'Tap again to remove', function () { api('deleteSession', { sessionId: b.closest('[data-sid]').dataset.sid }).then(function () { toast('Session removed.'); viewPerson(uid); }).catch(function (x) { toast(x.message); }); });
+      });
       var g = $('#grad', m);
       if (g) confirmTap(g, 'Tap again to confirm', function () { api('graduate', { enrollmentId: e.EnrollmentID }).then(function () { toast(p.Name + ' completed ' + e.LevelName + '.'); viewPerson(uid); }).catch(function (x) { toast(x.message); }); });
       confirmTap($('#pin', m), 'Tap again to reset PIN', function () {
-        api('resetPin', { userId: uid }).then(function (r) { var o = $('#pinout'); o.innerHTML = 'Temporary PIN: <b style="font-size:20px;letter-spacing:.15em;user-select:all">' + esc(r.tempPin) + '</b><br><span class="muted">Give this to ' + esc(p.Name.split(' ')[0]) + ' in person. They can change it under Profile.</span>'; o.hidden = false; }).catch(function (x) { toast(x.message); });
+        api('resetPin', { userId: uid }).then(function (r) { var o = $('#pinout'); o.innerHTML = 'Temporary PIN: <b style="font-size:20px;letter-spacing:.15em;user-select:all">' + esc(r.tempPin) + '</b><br><span class="muted">Give this to ' + esc(first) + ' in person. They can change it under Profile.</span>'; o.hidden = false; }).catch(function (x) { toast(x.message); });
       });
       if (ppl) {
         $('#assign').onclick = function () { api('assign', { userId: uid, disciplerId: $('#disc').value }).then(function () { toast('Discipler saved.'); }).catch(function (x) { toast(x.message); }); };
@@ -1279,51 +1380,6 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       }
     }).catch(failView);
   }
-  function viewReview(uid, lid) {
-    frame({ title: 'Review', back: '#/person/' + uid, nav: false, tools: BIG });
-    api('getLesson', { lessonId: lid, userId: uid }).then(function (d) {
-      $('.top h1').textContent = d.person.Name + ' · ' + d.lesson.number;
-      var key = d.key, ok = 0, filled = 0;
-      key.forEach(function (k, i) { var v = d.answers['b' + (i + 1)]; if (v) { filled++; if (v.toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim() === k.toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim()) ok++; } });
-      var html = '<div class="card"><div class="spread"><b>' + ok + ' of ' + d.total + ' match the answer key</b>' + pill(d.status) + '</div><p class="small muted">' + filled + ' answered · green matches the key, amber differs (the key is shown beside it), dashed is blank. Meaning matters more than exact wording.</p></div>' +
-        lessonHTML(d, { mode: 'review', values: d.answers }) +
-        (d.notes ? '<div class="card"><h3>Disciple’s notes</h3><p style="white-space:pre-wrap">' + esc(d.notes) + '</p></div>' : '');
-      if (d.status === 'For review') html += '<div class="dock"><label class="f" for="cm">Note to ' + esc(d.person.Name.split(' ')[0]) + '</label><textarea class="i" id="cm" style="min-height:70px" placeholder="Encouragement, or what to fix if you return it"></textarea><div class="row"><button type="button" class="btn primary sm" id="ap">Approve lesson</button><button type="button" class="btn sm danger" id="rt">Return for changes</button></div></div>';
-      else if (d.comment) html += '<div class="card"><h3>Your note</h3><p>' + esc(d.comment) + '</p></div>';
-      var m = fill(html);
-      $('#big').onclick = function () { $('#reader').classList.toggle('big'); };
-      function decide(dec) { api('review', { answerId: d.answerId, decision: dec, comment: $('#cm').value }).then(function () { toast(dec === 'approve' ? 'Lesson approved.' : 'Lesson returned with your note.'); location.hash = '#/person/' + uid; }).catch(function (x) { toast(x.message); }); }
-      var ap = $('#ap', m); if (ap) { ap.onclick = function () { decide('approve'); }; $('#rt', m).onclick = function () { decide('return'); }; }
-    }).catch(failView);
-  }
-  function viewLibrary() {
-    frame({ title: 'Lesson library', section: rank() >= 2 ? 'more' : 'library', back: rank() >= 2 ? '#/more' : null });
-    api('library').then(function (d) {
-      var by = {};
-      d.lessons.forEach(function (l) { (by[l.LevelName || 'Level ' + l.Level] = by[l.LevelName || 'Level ' + l.Level] || []).push(l); });
-      fill('<p class="muted">Open a lesson to present it blank to your disciples, or switch on the answer key to prepare.</p>' + Object.keys(by).map(function (k) {
-        return '<h3>' + esc(k) + '</h3><div class="list">' + by[k].map(function (l) {
-          return (l.HasContent ? '<a class="item lesson-item" href="#/libl/' + esc(l.LessonID) + '">' : '<div class="item lesson-item" style="opacity:.6;cursor:default">') + '<div><div class="num">' + esc(l.Number) + '</div><div class="t">' + esc(l.Title) + '</div></div>' + (l.HasContent ? (l.Published ? '' : pill('Pending', 'Draft')) : '<span class="pill plain">Coming soon</span>') + (l.HasContent ? '</a>' : '</div>');
-        }).join('') + '</div>';
-      }).join(''));
-    }).catch(failView);
-  }
-  function viewLibraryLesson(id) {
-    frame({ title: 'Lesson', back: '#/library', nav: false, tools: BIG });
-    api('libraryLesson', { lessonId: id }).then(function (d) {
-      $('.top h1').textContent = d.lesson.number;
-      var m = fill(lessonHTML(d, { mode: 'library', values: {} }) +
-        '<div class="dock"><div class="spread"><div class="seg" role="group" aria-label="View"><button type="button" id="v-blank" aria-pressed="true">Blank</button><button type="button" id="v-key" aria-pressed="false">Answer key</button></div><span class="small muted">Tap a green reference for the verse</span></div></div>');
-      var fields = fieldsIn(m);
-      function mode(k) {
-        $('#v-blank').setAttribute('aria-pressed', String(!k)); $('#v-key').setAttribute('aria-pressed', String(k));
-        fields.forEach(function (f, i) { f.value = k ? d.key[i] : ''; f.classList.toggle('key', k); });
-      }
-      $('#v-blank').onclick = function () { mode(false); }; $('#v-key').onclick = function () { mode(true); };
-      $('#big').onclick = function () { $('#reader').classList.toggle('big'); };
-    }).catch(failView);
-  }
-
   /* ---------- moderator ---------- */
   function viewDash() {
     frame({ title: 'Dashboard' });
@@ -1331,237 +1387,15 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       var c = d.counts;
       var tile = function (n, label, go, alert) { return '<button type="button" class="tile' + (alert && n ? ' alert' : '') + '" data-go="' + go + '"><b>' + n + '</b><span>' + label + '</span></button>'; };
       var html = '<div class="tiles">' +
-        tile(c.people, 'Members taking lessons', '#/reports') +
-        tile(c.forReview, 'Lessons to review', '#/reports/For review', true) +
+        tile(c.people, 'Members tracked', '#/reports') +
+        tile(c.ready, 'Ready to graduate', '#/reports/Ready', true) +
+        tile(c.stale, 'No meeting in ' + d.staleDays + '+ days', '#/reports/Stale', true) +
         tile(c.pending, 'Registrations to approve', '#/people/pending', true) +
         tile(c.unassigned, 'Without a discipler', '#/people/unassigned', true) +
         tile(c['Not started'], 'Not started', '#/reports/Not started') +
         tile(c['In progress'], 'In progress', '#/reports/In progress') +
-        tile(c.Completed, 'Completed this year', '#/reports/Completed') +
+        tile(c.Completed, 'Completed', '#/reports/Completed') +
+        tile(c.expiring, 'Expiring within 60 days', '#/reports/Expiring', true) +
         tile(c.Expired, 'Expired, need to retake', '#/reports/Expired', true) + '</div>';
       html += '<h3>Disciplers</h3>' + (d.disciplers.length ? '<div class="list">' + d.disciplers.map(function (x) {
-        return '<a class="item" href="#/reports//' + esc(x.UserID) + '"><div class="t">' + esc(x.Name) + '</div>' + (x.ForReview ? pill('For review', x.ForReview + ' to review') : '<span></span>') +
-          '<div class="s">' + esc(x.Congregation) + ' · ' + x.Disciples + ' disciples · ' + x.InProgress + ' in progress · ' + x.Completed + ' completed</div></a>';
-      }).join('') + '</div>' : '<p class="muted">No disciplers yet. Promote a disciple from the People tab.</p>');
-      html += '<h3>Completion by congregation</h3><div class="list">' + d.congregations.map(function (x) {
-        var pct = x.People ? Math.round(x.Completed / x.People * 100) : 0;
-        return '<div class="card"><div class="spread"><b>' + esc(x.Congregation) + '</b><span class="small muted">' + x.Completed + ' of ' + x.People + ' · ' + pct + '%</span></div><div class="track"><div class="fill" style="width:' + pct + '%"></div></div></div>';
-      }).join('') + '</div>';
-      fill(html);
-    }).catch(failView);
-  }
-  function viewPeople(filter) {
-    frame({ title: 'People' });
-    api('people').then(function (d) {
-      var f = filter || (d.people.some(function (p) { return p.Status === 'Pending'; }) ? 'pending' : 'disciples'), q = '';
-      var groups = {
-        pending: function (p) { return p.Status === 'Pending'; },
-        disciples: function (p) { return p.Status === 'Active' && p.Role === 'Disciple'; },
-        unassigned: function (p) { return p.Status === 'Active' && p.Role === 'Disciple' && !p.DisciplerID; },
-        disciplers: function (p) { return p.Status === 'Active' && p.Role === 'Discipler'; },
-        leaders: function (p) { return p.Status === 'Active' && (p.Role === 'Moderator' || p.Role === 'Admin'); },
-        inactive: function (p) { return p.Status === 'Inactive'; }
-      };
-      var labels = { pending: 'To approve', disciples: 'Disciples', unassigned: 'No discipler', disciplers: 'Disciplers', leaders: 'Moderators', inactive: 'Inactive' };
-      var m = fill('<div class="chips" role="group" aria-label="Filter">' + Object.keys(groups).map(function (k) { return '<button type="button" class="chip" data-f="' + k + '" aria-pressed="' + (k === f) + '">' + labels[k] + '<span class="n">' + d.people.filter(groups[k]).length + '</span></button>'; }).join('') + '</div>' +
-        '<input class="i" id="q" type="search" placeholder="Search by name or mobile" aria-label="Search people">' +
-        '<div class="list" id="plist"></div>');
-      var discOpts = '<option value="">Assign a discipler later</option>' + d.disciplers.map(function (x) { return '<option value="' + esc(x.UserID) + '">' + esc(x.Name) + '</option>'; }).join('');
-      function draw() {
-        var list = d.people.filter(groups[f]).filter(function (p) { return !q || (p.Name + ' ' + p.Mobile).toLowerCase().indexOf(q) >= 0; }).sort(function (a, b) { return a.Name.localeCompare(b.Name); });
-        $('#plist').innerHTML = list.length ? list.map(function (p) {
-          if (p.Status !== 'Pending') return personItem(p);
-          return '<div class="card" data-uid="' + esc(p.UserID) + '"><div class="spread"><b>' + esc(p.Name) + '</b>' + pill('Pending') + '</div><p class="small muted">' + esc(p.Congregation) + ' · ' + esc(p.Mobile) + ' · registered ' + rel(p.LastActivity || '') + '</p>' +
-            '<div class="row"><select class="i" style="flex:1;min-width:0" aria-label="Discipler for ' + esc(p.Name) + '">' + discOpts + '</select><button type="button" class="btn primary sm" data-approve>Approve</button><button type="button" class="btn quiet sm" data-reject>Decline</button></div></div>';
-        }).join('') : '<p class="muted">No one here.</p>';
-        $$('[data-approve]').forEach(function (b) { b.onclick = function () { var c = b.closest('[data-uid]'); busy(b, true); api('approveUser', { userId: c.dataset.uid, disciplerId: $('select', c).value }).then(function () { toast('Approved.'); viewPeople(f); }).catch(function (x) { toast(x.message); busy(b, false); }); }; });
-        $$('[data-reject]').forEach(function (b) { confirmTap(b, 'Tap again', function () { var c = b.closest('[data-uid]'); api('setStatus', { userId: c.dataset.uid, status: 'Inactive' }).then(function () { toast('Registration declined.'); viewPeople(f); }).catch(function (x) { toast(x.message); }); }); });
-      }
-      $$('.chip', m).forEach(function (c) { c.onclick = function () { f = c.dataset.f; $$('.chip', m).forEach(function (x) { x.setAttribute('aria-pressed', String(x === c)); }); draw(); }; });
-      $('#q').oninput = function () { q = this.value.toLowerCase().trim(); draw(); };
-      draw();
-    }).catch(failView);
-  }
-  var COLS = [['Name', 'Name'], ['LessonStatus', 'Status'], ['Approved', 'Approved'], ['TotalLessons', 'Lessons'], ['ForReview', 'To review'], ['Discipler', 'Discipler'], ['Congregation', 'Congregation'], ['Role', 'Role'], ['Year', 'Year'], ['Level', 'Level'], ['ExpiryDate', 'Valid until'], ['HasCert', 'Certificate'], ['LastActivity', 'Last activity'], ['Mobile', 'Mobile']];
-  function cell(r, k) { var v = r[k]; if (k === 'ExpiryDate' || k === 'LastActivity') return fmtDate(v); if (k === 'HasCert') return v ? 'Yes' : ''; return v == null ? '' : v; }
-  function toCSV(rows) { return [COLS.map(function (c) { return c[1]; })].concat(rows.map(function (r) { return COLS.map(function (c) { return cell(r, c[0]); }); })).map(function (line) { return line.map(function (v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n'); }
-  function viewReports(status, discId) {
-    frame({ title: 'Reports' });
-    api('people').then(function (pd) {
-      var congs = S.me.congregations.filter(function (c) { return !S.me.scope || S.me.scope.indexOf(c.CongregationID) >= 0; });
-      var m = fill('<div class="filters">' +
-        '<select class="i" id="fc" aria-label="Congregation"><option value="">All congregations</option>' + congs.map(function (c) { return '<option value="' + esc(c.CongregationID) + '">' + esc(c.Name) + '</option>'; }).join('') + '</select>' +
-        '<select class="i" id="fs" aria-label="Status"><option value="">Any status</option>' + ['Not started', 'In progress', 'Completed', 'Expired', 'For review'].map(function (s) { return '<option' + (s === status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
-        '<select class="i" id="fd" aria-label="Discipler"><option value="">Any discipler</option>' + pd.disciplers.map(function (x) { return '<option value="' + esc(x.UserID) + '"' + (x.UserID === discId ? ' selected' : '') + '>' + esc(x.Name) + '</option>'; }).join('') + '</select>' +
-        '</div><div id="rep" class="stack"></div>');
-      var rows = [];
-      function run() {
-        var st = $('#fs').value;
-        $('#rep').innerHTML = '<p class="loading">Loading…</p>';
-        api('report', { congregationId: $('#fc').value, status: st === 'For review' ? '' : st, disciplerId: $('#fd').value }).then(function (r) {
-          rows = st === 'For review' ? r.rows.filter(function (x) { return x.ForReview; }) : r.rows;
-          var done = rows.filter(function (x) { return x.LessonStatus === 'Completed'; }).length;
-          $('#rep').innerHTML = '<div class="spread"><p class="small"><b>' + rows.length + ' people</b> · ' + done + ' completed (' + (rows.length ? Math.round(done / rows.length * 100) : 0) + '%) · as of ' + fmtDate(r.generated) + '</p><div class="row">' +
-            '<button type="button" class="btn sm" id="copy">Copy as CSV</button>' + (IS_ARTIFACT ? '' : '<button type="button" class="btn sm" id="dl">Download CSV</button>') + '</div></div>' +
-            '<div class="tablewrap"><table><thead><tr>' + COLS.map(function (c) { return '<th' + (/Approved|TotalLessons|ForReview/.test(c[0]) ? ' class="num"' : '') + '>' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
-            (rows.length ? rows.map(function (x) { return '<tr class="click" data-go="#/person/' + esc(x.UserID) + '">' + COLS.map(function (c) { var v = cell(x, c[0]); return c[0] === 'LessonStatus' ? '<td>' + pill(v) + '</td>' : '<td' + (/Approved|TotalLessons|ForReview/.test(c[0]) ? ' class="num"' : '') + '>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="' + COLS.length + '" class="muted">No one matches these filters.</td></tr>') +
-            '</tbody></table></div>';
-          $('#copy').onclick = function () {
-            var csv = toCSV(rows);
-            (navigator.clipboard ? navigator.clipboard.writeText(csv) : Promise.reject()).then(function () { toast('Copied. Paste it into Google Sheets or Excel.'); }).catch(function () {
-              var t = document.createElement('textarea'); t.className = 'i code'; t.value = csv; $('#rep').appendChild(t); t.select(); toast('Select all and copy the text below.');
-            });
-          };
-          var dl = $('#dl'); if (dl) dl.onclick = function () { var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([toCSV(rows)], { type: 'text/csv' })); a.download = 'discipleship-report-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.appendChild(a); a.click(); a.remove(); };
-        }).catch(function (e) { $('#rep').innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
-      }
-      ['#fc', '#fs', '#fd'].forEach(function (s) { $(s, m).onchange = run; });
-      run();
-    }).catch(failView);
-  }
-  function viewCertAdmin() {
-    frame({ title: 'Certificates' });
-    api('certQueue').then(function (d) {
-      var m = fill('<h3>Ready to issue</h3>' + (d.ready.length ? '<div class="card stack">' + d.ready.map(function (r) {
-        return '<label class="row"><input type="checkbox" value="' + esc(r.EnrollmentID) + '" checked> <span><b>' + esc(r.Name) + '</b><br><span class="small muted">' + esc(r.Congregation) + ' · ' + esc(r.LevelName) + ' · completed ' + fmtDate(r.CompletedDate) + '</span></span></label>';
-      }).join('') + '<button type="button" class="btn primary" id="issue">Issue selected certificates</button></div>' : '<p class="muted">No one is waiting for a certificate. People appear here after their discipler marks them fit to graduate.</p>') +
-        '<h3>Issued</h3>' + (d.issued.length ? '<div class="list">' + d.issued.map(function (c) { return '<a class="item" href="#/cert/' + esc(c.CertNo) + '"><div class="t">' + esc(c.Name) + '</div><span class="pill plain">' + esc(c.ProgramYear) + '</span><div class="s">' + esc(c.CertNo) + ' · ' + esc(c.LevelName) + ' · issued ' + fmtDate(c.IssuedDate) + '</div></a>'; }).join('') + '</div>' : '<p class="muted">None yet.</p>'));
-      var b = $('#issue', m);
-      if (b) b.onclick = function () {
-        var ids = $$('input:checked', m).map(function (x) { return x.value; });
-        if (!ids.length) { toast('Choose at least one person.'); return; }
-        busy(b, true);
-        api('issueCertificate', { enrollmentIds: ids }).then(function (r) { toast(r.issued.length + ' certificate' + (r.issued.length === 1 ? '' : 's') + ' issued.'); viewCertAdmin(); }).catch(function (x) { toast(x.message); busy(b, false); });
-      };
-    }).catch(failView);
-  }
-  function viewMore() {
-    frame({ title: 'More' });
-    var items = [['#/library', 'Lesson library', 'Present lessons blank or with the answer key'], ['#/home', 'My own lessons', 'Your yearly lessons and status'], ['#/disciples', 'My disciples', 'People you disciple personally'], ['#/audit', 'Activity log', 'Approvals, promotions, PIN resets and certificates']];
-    if (rank() === 3) items = items.concat([['#/setup/congregations', 'Congregations', 'Add or edit congregations and preachers'], ['#/setup/lessons', 'Lessons', 'Add booklets, publish lessons'], ['#/setup/settings', 'Settings', 'Church name, certificate signatories, validity']]);
-    items.push(['#/profile', 'Profile', 'Change your PIN, sign out']);
-    fill('<div class="list">' + items.map(function (i) { return '<a class="item" href="' + i[0] + '"><div class="t">' + i[1] + '</div><span class="muted">›</span><div class="s">' + i[2] + '</div></a>'; }).join('') + '</div>');
-  }
-  function viewAudit() {
-    frame({ title: 'Activity log', back: '#/more', section: 'more' });
-    api('auditLog').then(function (d) {
-      fill(d.log.length ? '<div class="list">' + d.log.map(function (a) {
-        return '<div class="item" style="cursor:default"><div class="t">' + esc(a.Action) + (a.Target ? ' · ' + esc(a.Target) : '') + '</div><span class="small muted">' + esc(rel(a.Timestamp)) + '</span><div class="s">By ' + esc(a.Who || 'system') + (a.Details ? ' · ' + esc(a.Details) : '') + ' · ' + esc(fmtDate(a.Timestamp)) + '</div></div>';
-      }).join('') + '</div>' : '<p class="muted">No activity yet.</p>');
-    }).catch(failView);
-  }
-
-  /* ---------- admin setup ---------- */
-  function viewCongs() {
-    frame({ title: 'Congregations', back: '#/more', section: 'more' });
-    api('me').then(function (me) {
-      S.me.congregations = me.congregations;
-      var m = fill('<div class="list">' + me.congregations.map(function (c) { return '<button type="button" class="item" data-id="' + esc(c.CongregationID) + '"><div class="t">' + esc(c.Name) + '</div>' + pill(c.Status || 'Active') + '<div class="s">' + esc(c.Location) + (c.Preachers ? ' · Preacher in charge: ' + esc(c.Preachers) : '') + '</div></button>'; }).join('') + '</div>' +
-        '<form class="card" id="f"><h2 id="ft">Add a congregation</h2><input type="hidden" id="cid">' +
-        '<label class="f">Name<input class="i" id="cn" required></label><label class="f">Location<input class="i" id="cl"></label>' +
-        '<label class="f">Preacher(s) in charge<input class="i" id="cp" placeholder="Separate names with commas"></label>' +
-        '<label class="f">Status<select class="i" id="cs"><option>Active</option><option>Inactive</option></select></label>' +
-        '<div class="row"><button class="btn primary">Save congregation</button><button type="button" class="btn quiet" id="clr">Clear</button></div></form>');
-      function edit(c) { $('#ft').textContent = c ? 'Edit ' + c.Name : 'Add a congregation'; $('#cid').value = c ? c.CongregationID : ''; $('#cn').value = c ? c.Name : ''; $('#cl').value = c ? c.Location : ''; $('#cp').value = c ? c.Preachers : ''; $('#cs').value = c ? (c.Status || 'Active') : 'Active'; }
-      $$('[data-id]', m).forEach(function (b) { b.onclick = function () { edit(me.congregations.filter(function (c) { return c.CongregationID === b.dataset.id; })[0]); $('#f').scrollIntoView({ behavior: 'smooth' }); }; });
-      $('#clr').onclick = function () { edit(null); };
-      $('#f').onsubmit = function (e) { e.preventDefault(); api('saveCongregation', { CongregationID: $('#cid').value, Name: $('#cn').value, Location: $('#cl').value, Preachers: $('#cp').value, Status: $('#cs').value }).then(function () { toast('Congregation saved.'); S.info = null; viewCongs(); }).catch(function (x) { toast(x.message); }); };
-    }).catch(failView);
-  }
-  function viewLessonsAdmin() {
-    frame({ title: 'Lessons', back: '#/more', section: 'more' });
-    api('adminLessons').then(function (d) {
-      var m = fill('<div class="row"><a class="btn primary sm" href="#/setup/lesson/new">Add a lesson</a></div><div class="list">' + d.lessons.map(function (l) {
-        return '<div class="item lesson-item"><div><div class="num">' + esc(l.LevelName || 'Level ' + l.Level) + ' · ' + esc(l.Number) + '</div><div class="t">' + esc(l.Title) + '</div></div>' +
-          (l.Published ? pill('Completed', 'Published') : l.HasContent ? pill('Pending', 'Draft') : '<span class="pill plain">No content</span>') +
-          '<div class="s row"><a class="btn sm" href="#/setup/lesson/' + esc(l.LessonID) + '">Edit</a>' + (l.HasContent ? '<a class="btn sm" href="#/libl/' + esc(l.LessonID) + '">Preview</a>' : '') +
-          '<button type="button" class="btn sm" data-pub="' + esc(l.LessonID) + '" data-on="' + (l.Published ? '' : '1') + '"' + (l.HasContent ? '' : ' disabled') + '>' + (l.Published ? 'Unpublish' : 'Publish') + '</button> <span class="muted small">v' + esc(l.Version) + '</span></div></div>';
-      }).join('') + '</div>');
-      $$('[data-pub]', m).forEach(function (b) { b.onclick = function () { api('setPublished', { lessonId: b.dataset.pub, published: !!b.dataset.on }).then(function () { toast(b.dataset.on ? 'Lesson published. Disciples can now see it.' : 'Lesson unpublished.'); viewLessonsAdmin(); }).catch(function (x) { toast(x.message); }); }; });
-    }).catch(failView);
-  }
-  function viewLessonEdit(id) {
-    frame({ title: id === 'new' ? 'New lesson' : 'Edit lesson', back: '#/setup/lessons', section: 'more' });
-    var isNew = id === 'new';
-    Promise.all([api('adminLessons'), isNew ? Promise.resolve({ Content: '' }) : api('lessonSource', { lessonId: id })]).then(function (r) {
-      var l = r[0].lessons.filter(function (x) { return x.LessonID === id; })[0] || { Level: '1', LevelName: 'The Foundation · Level One', Order: r[0].lessons.length + 1 };
-      var src = r[1].Content ? JSON.stringify(JSON.parse(r[1].Content), null, 1) : '';
-      fill('<form class="card" id="f">' +
-        '<label class="f">Lesson ID<input class="i" id="lid" value="' + esc(isNew ? '' : id) + '"' + (isNew ? '' : ' readonly') + ' placeholder="e.g. L1-02"></label>' +
-        '<div class="row"><label class="f" style="flex:1 1 90px">Level<input class="i" id="lv" inputmode="numeric" value="' + esc(l.Level) + '"></label><label class="f" style="flex:1 1 90px">Order<input class="i" id="lo" inputmode="numeric" value="' + esc(l.Order) + '"></label></div>' +
-        '<label class="f">Level name<input class="i" id="ln" value="' + esc(l.LevelName) + '"></label>' +
-        '<label class="f">Lesson number<input class="i" id="lnum" value="' + esc(l.Number || '') + '" placeholder="Lesson Two"></label>' +
-        '<label class="f">Title<input class="i" id="lt" value="' + esc(l.Title || '') + '"></label>' +
-        '<label class="f">Lesson content (lesson file)<textarea class="i code" id="lc" spellcheck="false" placeholder="Paste the lesson file prepared from the booklet">' + esc(src) + '</textarea></label>' +
-        '<p class="small muted">The lesson file holds the text, the blanks and their answers, and the KJV verses for the verse cards. Changing it on a published lesson creates a new version; answers already saved stay with the person.</p>' +
-        '<div class="row"><button class="btn primary">Save lesson</button>' + (isNew ? '' : '<a class="btn" href="#/libl/' + esc(id) + '">Preview</a>') + '</div></form>');
-      $('#f').onsubmit = function (e) {
-        e.preventDefault();
-        api('saveLesson', { LessonID: $('#lid').value, Level: $('#lv').value, Order: $('#lo').value, LevelName: $('#ln').value, Number: $('#lnum').value, Title: $('#lt').value, Content: $('#lc').value.trim() ? JSON.stringify(JSON.parse($('#lc').value)) : '' })
-          .then(function () { toast('Lesson saved.'); location.hash = '#/setup/lessons'; }).catch(function (x) { toast(x.message); });
-      };
-    }).catch(failView);
-  }
-  function viewSettings() {
-    frame({ title: 'Settings', back: '#/more', section: 'more' });
-    api('me').then(function (me) {
-      var s = me.settings;
-      var F = [['ChurchName', 'Church name'], ['ProgramName', 'Program name (on certificates)'], ['ValidityDays', 'Days a completion stays valid'], ['Signatory1', 'Certificate signatory 1'], ['Signatory1Title', 'Signatory 1 title'], ['Signatory2', 'Certificate signatory 2'], ['Signatory2Title', 'Signatory 2 title']];
-      fill('<form class="card" id="f">' + F.map(function (x) { return '<label class="f">' + x[1] + '<input class="i" id="s-' + x[0] + '" value="' + esc(s[x[0]]) + '"' + (x[0] === 'ValidityDays' ? ' inputmode="numeric"' : '') + '></label>'; }).join('') +
-        '<p class="small muted">If signatory 2 is blank, the certificate shows the moderator who issued it.</p><button class="btn primary">Save settings</button></form>');
-      $('#f').onsubmit = function (e) { e.preventDefault(); var q = {}; F.forEach(function (x) { q[x[0]] = $('#s-' + x[0]).value; }); api('saveSettings', q).then(function () { toast('Settings saved.'); S.info = null; }).catch(function (x) { toast(x.message); }); };
-    }).catch(failView);
-  }
-
-  /* ---------- profile ---------- */
-  function viewProfile() {
-    frame({ title: 'Profile', section: rank() >= 2 ? 'more' : 'profile', back: rank() >= 2 ? '#/more' : null });
-    var u = S.me.user;
-    var m = fill('<div class="card"><h2>' + esc(u.Name) + '</h2><p class="small muted">' + esc(u.Role) + ' · ' + esc(S.me.congregation) + ' · ' + esc(u.Mobile) + '</p></div>' +
-      '<form class="card" id="f"><h3>Change PIN</h3><label class="f">Current PIN<input class="i" id="op" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password"></label>' +
-      '<label class="f">New PIN<input class="i" id="np" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><button class="btn">Change PIN</button></form>' +
-      '<button type="button" class="btn" id="out">Sign out</button>' +
-      (DEMO_MODE ? '<div class="demo"><div><b>Demo mode.</b> Reset brings back the original sample people and progress.</div><div><button type="button" class="btn sm" id="reset">Reset demo data</button></div></div>' : ''));
-    $('#f').onsubmit = function (e) { e.preventDefault(); api('changePin', { oldPin: $('#op').value, newPin: $('#np').value }).then(function () { toast('PIN changed.'); $('#f').reset(); }).catch(function (x) { toast(x.message); }); };
-    $('#out').onclick = signOut;
-    var r = $('#reset', m); if (r) confirmTap(r, 'Tap again to reset', function () { DEMO.reset(); signOut(); toast('Demo data reset.'); });
-  }
-
-  /* ---------- router ---------- */
-  function route() {
-    var parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent), v = parts[0];
-    if (!S.token) { return v === 'register' ? viewRegister() : viewLogin(); }
-    if (!S.me) {
-      app.innerHTML = '<p class="loading">Loading…</p>';
-      return api('me').then(function (me) { S.me = me; route(); }).catch(function (e) { if (!e.auth) authShell('<div class="card"><p class="err">' + esc(e.message) + '</p><button class="btn" onclick="location.reload()">Try again</button></div>'); });
-    }
-    var R = rank();
-    var routes = {
-      '': function () { location.replace('#/' + homeRoute()); },
-      login: function () { location.replace('#/' + homeRoute()); },
-      register: function () { location.replace('#/' + homeRoute()); },
-      home: viewHome, lesson: function () { viewLesson(parts[1]); },
-      certs: viewMyCerts, cert: function () { viewCert(parts[1]); }, profile: viewProfile,
-      disciples: R >= 1 && viewDisciples, person: R >= 1 && function () { viewPerson(parts[1]); },
-      review: R >= 1 && function () { viewReview(parts[1], parts[2]); },
-      library: R >= 1 && viewLibrary, libl: R >= 1 && function () { viewLibraryLesson(parts[1]); },
-      dash: R >= 2 && viewDash, people: R >= 2 && function () { viewPeople(parts[1]); }, reports: R >= 2 && function () { viewReports(parts[1], parts[2]); },
-      certadmin: R >= 2 && viewCertAdmin, more: R >= 2 && viewMore, audit: R >= 2 && viewAudit,
-      setup: R >= 3 && function () { ({ congregations: viewCongs, lessons: viewLessonsAdmin, lesson: function () { viewLessonEdit(parts[2]); }, settings: viewSettings }[parts[1]] || viewMore)(); }
-    };
-    (routes[v] || function () { location.replace('#/' + homeRoute()); })();
-  }
-
-  /* ---------- global events ---------- */
-  document.addEventListener('click', function (e) {
-    var r = e.target.closest('.ref'); if (r) { openVerse(r.dataset.ref); return; }
-    var g = e.target.closest('[data-go]'); if (g) location.hash = g.dataset.go;
-  });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('#sheet').hidden) closeVerse(); });
-  $('#scrim').onclick = closeVerse; $('#sheet-close').onclick = closeVerse;
-  window.addEventListener('hashchange', route);
-  route();
-})();
-
-</script>
-</body></html>
+        return '<a class="item" href="#/reports//' + esc(x.UserID) + '"><div class="t">' + esc(x.Name) + '</div>' + (x.Stale ? pill('Returned',
