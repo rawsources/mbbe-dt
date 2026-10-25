@@ -246,6 +246,14 @@ tr.click:hover td { background: var(--raise) }
 </head>
 <body>
 <div id="app"><p class="loading">Loading…</p></div>
+<script>
+window.addEventListener('error', function (e) {
+  var a = document.getElementById('app');
+  if (a && a.querySelector('.loading') && !a.querySelector('.boot-err')) {
+    a.innerHTML = '<div style="max-width:420px;margin:40px auto;padding:0 16px;font-family:system-ui,sans-serif"><p class="boot-err" style="font-weight:700">The app couldn’t start.</p><p style="color:#5b685e">Error: ' + String(e.message).replace(/</g, '&lt;') + '</p><p style="color:#5b685e">Re-upload index.html without editing it, then refresh this page.</p></div>';
+  }
+});
+</script>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* Paste your Apps Script web app URL here. Leave it empty to run the demo with sample data. */
@@ -1026,9 +1034,21 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     var req = Object.assign({ action: action, token: S.token }, params || {});
     var p = DEMO_MODE
       ? new Promise(function (res) { setTimeout(function () { res(DEMO.call(req)); }, 120); })
-      : fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(req) })
-          .then(function (r) { return r.json(); })
-          .catch(function () { return { ok: false, error: 'Can’t reach the server. Check your internet connection and try again.', offline: true }; });
+      : (function () {
+          var ctl = window.AbortController ? new AbortController() : null;
+          var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 30000);
+          return fetch(CFG.API_URL, { method: 'POST', redirect: 'follow', body: JSON.stringify(req), signal: ctl ? ctl.signal : undefined })
+            .then(function (r) { return r.text(); })
+            .then(function (t) {
+              clearTimeout(timer);
+              try { return JSON.parse(t); }
+              catch (e) { return { ok: false, error: 'The server sent an unexpected reply. In Apps Script, check that the deployment is a Web app with “Who has access” set to Anyone.' }; }
+            })
+            .catch(function (e) {
+              clearTimeout(timer);
+              return { ok: false, offline: true, error: e && e.name === 'AbortError' ? 'The server is taking too long to answer. Please try again.' : 'Can’t reach the server. Check your internet connection and try again.' };
+            });
+        })();
     return p.then(function (res) {
       if (!res.ok) { var e = new Error(res.error); e.auth = res.auth; e.offline = res.offline; if (res.auth) { signOut(); } throw e; }
       return res.data;
@@ -1382,20 +1402,4 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   }
   /* ---------- moderator ---------- */
   function viewDash() {
-    frame({ title: 'Dashboard' });
-    api('dashboard').then(function (d) {
-      var c = d.counts;
-      var tile = function (n, label, go, alert) { return '<button type="button" class="tile' + (alert && n ? ' alert' : '') + '" data-go="' + go + '"><b>' + n + '</b><span>' + label + '</span></button>'; };
-      var html = '<div class="tiles">' +
-        tile(c.people, 'Members tracked', '#/reports') +
-        tile(c.ready, 'Ready to graduate', '#/reports/Ready', true) +
-        tile(c.stale, 'No meeting in ' + d.staleDays + '+ days', '#/reports/Stale', true) +
-        tile(c.pending, 'Registrations to approve', '#/people/pending', true) +
-        tile(c.unassigned, 'Without a discipler', '#/people/unassigned', true) +
-        tile(c['Not started'], 'Not started', '#/reports/Not started') +
-        tile(c['In progress'], 'In progress', '#/reports/In progress') +
-        tile(c.Completed, 'Completed', '#/reports/Completed') +
-        tile(c.expiring, 'Expiring within 60 days', '#/reports/Expiring', true) +
-        tile(c.Expired, 'Expired, need to retake', '#/reports/Expired', true) + '</div>';
-      html += '<h3>Disciplers</h3>' + (d.disciplers.length ? '<div class="list">' + d.disciplers.map(function (x) {
-        return '<a class="item" href="#/reports//' + esc(x.UserID) + '"><div class="t">' + esc(x.Name) + '</div>' + (x.Stale ? pill('Returned',
+    frame({ titl
