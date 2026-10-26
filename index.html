@@ -713,6 +713,26 @@ fieldset.fs legend { font-size: 12.5px; font-weight: 700; color: var(--muted) }
 .pdates input.i, .filters .i { min-width: 0; width: 100% }
 input[type="date"].i { min-width: 0; -webkit-appearance: none; appearance: none; display: block }
 
+/* lesson picker grouped by level */
+.lpick { display: grid; gap: 8px }
+.lgroup { display: grid; gap: 6px }
+.lg-h { display: flex; align-items: center; gap: 8px; font-size: 13px; flex-wrap: wrap }
+.lg-tag { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--info); white-space: nowrap }
+.lg-tag.ok { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok) }
+.lt.wide { height: auto; min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 8px 12px; text-align: left; justify-content: flex-start }
+.lt-b { width: 38px; height: 38px; border-radius: 11px; background: var(--blank); display: grid; place-items: center; font-size: 15px; flex: none }
+.lt-t { display: grid; gap: 1px; flex: 1; min-width: 0 }
+.lt-t b { font-size: 14.5px; font-weight: 800; line-height: 1.25 }
+.lt-t small { font-size: 11.5px }
+.lt.wide[aria-pressed="true"] .lt-b { background: rgba(255, 255, 255, .25) }
+.lt.wide[aria-pressed="true"] .lg-tag { background: rgba(255, 255, 255, .25); color: #fff }
+.lt[disabled] { opacity: .55; cursor: not-allowed }
+.cmp { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; padding: 12px; border-radius: 14px; background: var(--flame-soft); border: 1px solid color-mix(in srgb, var(--flame) 40%, transparent); cursor: pointer }
+.cmp input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--flame) }
+.cmp > span { display: grid; gap: 2px }
+.cmp b { font-size: 14px }
+@media (min-width: 640px) { .lpick { grid-template-columns: repeat(2, minmax(0, 1fr)) } .lgroup { grid-column: 1 / -1 } .lgroup .ltiles { grid-template-columns: repeat(8, minmax(0, 1fr)) } }
+
 </style>
 </head>
 <body>
@@ -728,7 +748,7 @@ window.addEventListener('error', function (e) {
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* Self-update: GitHub Pages lets browsers keep a page for 10 minutes. On open, check for a newer copy and reload once if found. */
-window.APP_BUILD = '20261026190708';
+window.APP_BUILD = '20261026200052';
 (function () {
   if (!/^https?:/.test(location.protocol) || !window.fetch || window.APP_CONFIG_IS_ARTIFACT) return;
   try { if (sessionStorage.getItem('dt-upd') === window.APP_BUILD) return; } catch (e) {}
@@ -884,7 +904,7 @@ var CORE = (function () {
   }
   function current(userId) {
     var e = (idx('Enrollments', 'UserID')[userId] || []).slice()
-      .sort(function (a, b) { return str(b.StartDate).localeCompare(str(a.StartDate)); });
+      .sort(function (a, b) { return str(b.StartDate).slice(0, 10).localeCompare(str(a.StartDate).slice(0, 10)) || ((b.Status === 'In progress') - (a.Status === 'In progress')) || ((+b.Level) - (+a.Level)) || str(b.CompletedDate).localeCompare(str(a.CompletedDate)); });
     return e[0] || null;
   }
   function sessionsOf(enrId) {
@@ -927,11 +947,25 @@ var CORE = (function () {
     return { EnrollmentID: e.EnrollmentID, ProgramYear: e.ProgramYear, Level: e.Level, LevelName: levelName(e.Level), Status: status(e), StartDate: e.StartDate, CompletedDate: e.CompletedDate, ExpiryDate: e.ExpiryDate, ApprovedBy: userName(e.ApprovedBy) };
   }
   // Which level the next session belongs to
-  function logLevel(e) {
-    var st = status(e);
-    if (!e || st === 'Expired') return 1;
-    if (st === 'Completed') return lessonsFor(+e.Level + 1).length ? +e.Level + 1 : null;
-    return +e.Level;
+  // All levels that have lessons, in order: [{ Level, LevelName, Lessons }]
+  function allLevels() {
+    var m = {};
+    rows('Lessons').filter(isPub).forEach(function (l) { var k = str(l.Level); m[k] = m[k] || { Level: k, LevelName: l.LevelName || 'Level ' + k, Lessons: 0 }; m[k].Lessons++; });
+    return Object.keys(m).map(function (k) { return m[k]; }).sort(function (a, b) { return (+a.Level) - (+b.Level); });
+  }
+  // Levels this person has completed and are still valid
+  function doneLevels(userId) {
+    var d = {}; (idx('Enrollments', 'UserID')[userId] || []).forEach(function (e) { if (status(e) === 'Completed') d[str(e.Level)] = e; }); return d;
+  }
+  // Which level the next session most likely belongs to: the one in progress, otherwise the first not yet completed
+  function logLevel(e, userId) {
+    if (e && status(e) === 'In progress') return +e.Level;
+    var done = doneLevels(userId || (e && e.UserID)), lv = allLevels().filter(function (x) { return !done[x.Level]; })[0];
+    return lv ? +lv.Level : null;
+  }
+  function levelsFor(userId) {
+    var e = current(userId), done = doneLevels(userId), inProg = e && status(e) === 'In progress' ? str(e.Level) : '';
+    return allLevels().map(function (x) { x.State = done[x.Level] ? 'done' : x.Level === inProg ? 'current' : ''; x.CompletedDate = done[x.Level] ? done[x.Level].CompletedDate : ''; return x; });
   }
   function overview(u) {
     var e = current(u.UserID), p = progress(e);
@@ -943,7 +977,7 @@ var CORE = (function () {
     });
     verses.sort(function (a, b) { return (+a.Level - +b.Level) || (+a.Order - +b.Order); });
     return {
-      enrollment: enrView(e), progress: p, discipler: userName(u.DisciplerID), memoryVerses: verses,
+      enrollment: enrView(e), progress: p, discipler: userName(u.DisciplerID), memoryVerses: verses, levels: levelsFor(u.UserID),
       certificates: rows('Certificates').filter(function (c) { return c.UserID === u.UserID; }).reverse(),
       settings: { StaleDays: settings().StaleDays }
     };
@@ -966,7 +1000,7 @@ var CORE = (function () {
       ReadyToGraduate: st === 'In progress' && p.total > 0 && p.finished === p.total,
       Stale: !!stale, Expiring: !!expiring, ExpiryDate: e ? e.ExpiryDate : '',
       HasCert: e ? !!find('Certificates', 'EnrollmentID', e.EnrollmentID) : false,
-      CreatedAt: x.CreatedAt, PhotoID: personPhoto(x.UserID), Disciples: isTrue(x.Disciples), TakesLessons: isTrue(x.TakesLessons), Tracked: tracked(x), IsSample: isTrue(x.IsSample)
+      CreatedAt: x.CreatedAt, PhotoID: personPhoto(x.UserID), Disciples: isTrue(x.Disciples), TakesLessons: isTrue(x.TakesLessons), Tracked: tracked(x), LevelsDone: Object.keys(doneLevels(x.UserID)).length, LevelsTotal: allLevels().length, LevelName: e ? levelName(e.Level) : '', IsSample: isTrue(x.IsSample)
     };
   }
   function target(u, id, mustScope) {
@@ -1096,12 +1130,14 @@ var CORE = (function () {
   A.person = function (q, u) {
     var t = target(u, q.userId);
     if (!canGuide(u, t)) fail('You can only view your own disciples.');
-    var o = overview(t), e = current(t.UserID), lv = logLevel(e);
+    var o = overview(t), e = current(t.UserID), lv = logLevel(e, t.UserID), done = doneLevels(t.UserID), inProg = e && status(e) === 'In progress' ? str(e.Level) : '';
     o.person = personRow(t);
     o.logLevel = lv;
-    o.logLessons = lv ? lessonsFor(lv).map(lessonMeta) : [];
+    o.levels = levelsFor(t.UserID);
+    // every lesson of every level, so the discipler can record whichever book they covered
+    o.logLessons = rows('Lessons').filter(isPub).sort(function (a, b) { return (+a.Level - +b.Level) || (+a.Order - +b.Order); }).map(lessonMeta);
     o.tracked = tracked(t);
-    o.canLog = o.tracked && !!lv && o.logLessons.length > 0;
+    o.canLog = o.tracked && o.levels.some(function (x) { return x.State !== 'done'; });
     return o;
   };
   A.logSession = function (q, u) {
@@ -1118,9 +1154,18 @@ var CORE = (function () {
     if (d > today()) fail('The meeting date can’t be in the future.');
     var nm = str(q.nextMeeting);
     if (nm && (!isDate(nm) || nm < d)) fail('The next meeting must be on or after the session date.');
-    var e = current(t.UserID), lv = logLevel(e);
-    if (!lv) fail(t.Name + ' has completed every level for this year.');
-    if (str(l.Level) !== String(lv)) fail('This lesson isn’t part of ' + t.Name.split(' ')[0] + '’s current level (' + levelName(lv) + ').');
+    var e = current(t.UserID), lv = +l.Level, first = t.Name.split(' ')[0];
+    if (doneLevels(t.UserID)[str(lv)]) fail(first + ' has already completed ' + levelName(lv) + '. Choose another level.');
+    if (e && status(e) === 'In progress' && +e.Level !== lv) {
+      var pe = progress(e);
+      if (pe.total && pe.finished === pe.total) { completeLevel(e, u, t); e = null; } // moving on: the finished level is complete
+      else if (pe.finished || pe.sessions.length) fail(first + ' has started ' + levelName(e.Level) + ' but hasn’t finished it. Record that level again to continue, or remove its session first.');
+      else {
+        upd('Enrollments', 'EnrollmentID', e.EnrollmentID, { Level: String(lv) }); // nothing finished yet: switch the open level
+        audit(u, 'Changed level', t.UserID, levelName(lv));
+        e = find('Enrollments', 'EnrollmentID', e.EnrollmentID);
+      }
+    }
     if (!e || status(e) !== 'In progress') {
       var eid = /^E-[a-z0-9]{6,24}$/.test(str(q.enrollmentId)) && !find('Enrollments', 'EnrollmentID', q.enrollmentId) ? str(q.enrollmentId) : 'E-' + db.uid().slice(0, 8);
       e = { EnrollmentID: eid, UserID: t.UserID, ProgramYear: d.slice(0, 4), Level: String(lv), Status: 'In progress', StartDate: d + 'T00:00:00.000Z', CompletedDate: '', ExpiryDate: '', ApprovedBy: '' };
@@ -1130,7 +1175,9 @@ var CORE = (function () {
     var s = { SessionID: sid || 'S-' + db.uid().slice(0, 8), EnrollmentID: e.EnrollmentID, UserID: t.UserID, DisciplerID: u.UserID, LessonID: l.LessonID, Date: d, Finished: q.finished === false || q.finished === 'false' ? 'FALSE' : 'TRUE', Notes: str(q.notes).slice(0, 1000), NextMeeting: nm, Confirmed: 'FALSE', ConfirmedAt: '', CreatedAt: nowIso() };
     ins('Sessions', s);
     audit(u, 'Logged session', t.UserID, l.Number + (s.Finished === 'TRUE' ? ' finished' : ' continued') + ' · ' + d);
-    return { ok: true, session: sessionView(s) };
+    var completed = false;
+    if ((q.complete === true || q.complete === 'true') && s.Finished === 'TRUE') { var pp = progress(e); if (pp.total && pp.finished === pp.total) { completeLevel(e, u, t); completed = true; } }
+    return { ok: true, session: sessionView(s), enrollmentId: e.EnrollmentID, completed: completed };
   };
   A.deleteSession = function (q, u) {
     need(u, 'Discipler');
@@ -1154,10 +1201,30 @@ var CORE = (function () {
     if (status(e) !== 'In progress') fail('This level is already ' + status(e).toLowerCase() + '.');
     var p = progress(e);
     if (!p.total || p.finished < p.total) fail('All ' + p.total + ' lessons must be finished first (' + p.finished + ' finished).');
+    completeLevel(e, u, t);
+    return { ok: true };
+  };
+  function completeLevel(e, u, t) {
     var days = +settings().ValidityDays || 365;
     upd('Enrollments', 'EnrollmentID', e.EnrollmentID, { Status: 'Completed', CompletedDate: nowIso(), ExpiryDate: new Date(db.now().getTime() + days * DAY).toISOString(), ApprovedBy: u.UserID });
     audit(u, 'Approved to graduate', t.UserID, levelName(e.Level) + ' ' + e.ProgramYear);
-    return { ok: true };
+  }
+  // Several waiting changes from a phone in one request, followed by a fresh copy: one trip to the server instead of many.
+  var BATCHABLE = { addPerson: 1, logSession: 1, deleteSession: 1, confirmSession: 1, graduate: 1, approveUser: 1, assign: 1, setRole: 1, setStatus: 1, updatePerson: 1, setOptions: 1, setPublished: 1, saveLesson: 1, saveSettings: 1 };
+  A.batch = function (q, u) {
+    var out = [];
+    [].concat(q.ops || []).slice(0, 50).forEach(function (op) {
+      try {
+        if (!op || !BATCHABLE[op.action]) fail('This change can’t be sent with others.');
+        IDX = {};
+        var me = find('Users', 'UserID', u.UserID); // the person may have changed in an earlier step
+        if (!me || me.Status !== 'Active') fail('AUTH: Please sign in again.');
+        out.push({ ok: true, data: A[op.action](op.params || {}, me) });
+      } catch (e) { var m = String(e && e.message || e); out.push({ ok: false, error: m.replace('AUTH: ', '') }); }
+    });
+    IDX = {};
+    var me2 = find('Users', 'UserID', u.UserID);
+    return { results: out, snapshot: q.snapshot && me2 ? A.snapshot({}, me2) : null };
   };
   A.lessonList = function (q, u) {
     return { lessons: rows('Lessons').filter(function (l) { return RANK[u.Role] >= 3 || isPub(l); }).sort(function (a, b) { return (+a.Level - +b.Level) || (+a.Order - +b.Order); }).map(lessonMeta) };
@@ -1996,21 +2063,42 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       return d;
     });
   }
-  // Send waiting changes, one at a time, in order.
+  // Send waiting changes. All of them go in one request, and the reply carries a fresh copy (one trip instead of many).
+  var BATCH = true;
   function flush() {
+    if (DEMO_MODE || syncing || !OUTBOX.length || !S.token) return Promise.resolve();
+    if (!BATCH) return flushOne();
+    syncing = true; syncState();
+    var ops = OUTBOX.slice(0, 30);
+    return remote('batch', { ops: ops.map(function (o) { return { action: o.action, params: o.params }; }), snapshot: true }).then(function (r) {
+      syncing = false;
+      var bad = (r.results || []).filter(function (x) { return !x.ok; });
+      OUTBOX = OUTBOX.slice(ops.length); LS.set(boxKey(), OUTBOX);
+      if (bad.length) toast('Couldn’t save a change: ' + bad[0].error + ' Your screen has been refreshed.');
+      if (OUTBOX.length) return flush(); // more changes came in meanwhile; this copy is already out of date
+      if (r.snapshot) { setSnapshot(r.snapshot); syncState(); rerender(); return; }
+      syncState(); return pull().catch(function () {});
+    }, function (e) {
+      syncing = false;
+      if (/Unknown action/.test(e.message)) { BATCH = false; return flushOne(); } // the server hasn't been updated yet
+      syncState(); clearTimeout(flush.t); flush.t = setTimeout(flush, e.offline ? 20000 : 8000);
+    });
+  }
+  // One at a time, for an older server.
+  function flushOne() {
     if (DEMO_MODE || syncing || !OUTBOX.length || !S.token) return Promise.resolve();
     syncing = true; syncState();
     var op = OUTBOX[0];
     return remote(op.action, op.params).then(function () {
       OUTBOX.shift(); LS.set(boxKey(), OUTBOX); syncing = false;
-      if (OUTBOX.length) return flush();
+      if (OUTBOX.length) return flushOne();
       syncState(); return pull().catch(function () {});
     }, function (e) {
       syncing = false;
       if (e.offline) { syncState(); clearTimeout(flush.t); flush.t = setTimeout(flush, 20000); return; }
       OUTBOX.shift(); LS.set(boxKey(), OUTBOX);
       toast('Couldn’t save a change: ' + e.message + ' Your screen has been refreshed.');
-      return pull().catch(function () {}).then(function () { if (OUTBOX.length) return flush(); });
+      return pull().catch(function () {}).then(function () { if (OUTBOX.length) return flushOne(); });
     });
   }
   function whenSynced() { // resolves once every waiting change has reached the server
@@ -2403,8 +2491,42 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   function pathDots(lessons, curId) {
     return '<div class="path" aria-hidden="true">' + lessons.map(function (l, i) {
       var st = l.State === 'Finished' ? 'done' : l.LessonID === curId ? 'cur' : l.State === 'Started' ? 'part' : '';
-      return (i ? '<i class="ln' + (lessons[i - 1].State === 'Finished' ? ' on' : '') + '"></i>' : '') + '<span class="dot ' + st + '" title="' + esc(l.Number + ' · ' + l.Title) + '">' + esc(shortNum(l, i)) + '</span>';
+      return (i ? '<i class="ln' + (lessons[i - 1].State === 'Finished' ? ' on' : '') + '"></i>' : '') + '<span class="dot ' + st + '" title="' + esc(l.Number + ' · ' + l.Title) + '">' + esc(l.Short || shortNum(l, i)) + '</span>';
     }).join('') + '</div>';
+  }
+  // Where someone is in the program. With several levels (books), progress is counted in levels.
+  function progressModel(d) {
+    var e = d.enrollment, pr = d.progress, levels = d.levels || [], open = !!(e && e.Status === 'In progress'), lvState = {};
+    levels.forEach(function (x) { lvState[String(x.Level)] = x.State; });
+    var src = d.logLessons && d.logLessons.length ? d.logLessons : pr.lessons;
+    var all = src.map(function (l) {
+      var st = 'Not started';
+      if (open && String(e.Level) === String(l.Level)) { var m = pr.lessons.filter(function (x) { return x.LessonID === l.LessonID; })[0]; if (m) st = m.State; }
+      else if (lvState[String(l.Level)] === 'done') st = 'Finished';
+      return Object.assign({}, l, { State: st });
+    });
+    var next = all.filter(function (x) { return x.State === 'Started'; })[0] ||
+      (open ? all.filter(function (x) { return String(x.Level) === String(e.Level) && x.State !== 'Finished'; })[0] : null) ||
+      all.filter(function (x) { return x.State !== 'Finished' && lvState[String(x.Level)] !== 'done'; })[0] ||
+      (open ? all.filter(function (x) { return String(x.Level) === String(e.Level); })[0] : null) || // everything finished, waiting to be marked complete
+      all.filter(function (x) { return lvState[String(x.Level)] !== 'done'; })[0] || null;
+    var multi = levels.length > 1, o = { all: all, levels: levels, multi: multi, next: next, lvState: lvState, open: open };
+    if (multi) {
+      o.path = levels.map(function (x) { return { LessonID: 'LV' + x.Level, Short: String(x.Level), Number: 'Level ' + x.Level, Title: x.LevelName, State: x.State === 'done' ? 'Finished' : x.State === 'current' ? 'Started' : 'Not started' }; });
+      o.curId = next ? 'LV' + next.Level : ''; o.done = levels.filter(function (x) { return x.State === 'done'; }).length; o.total = levels.length; o.unit = 'levels';
+    } else {
+      o.path = open || !d.canLog ? pr.lessons : all.filter(function (x) { return !next || String(x.Level) === String(next.Level); });
+      o.curId = next ? next.LessonID : ''; o.done = o.path.filter(function (x) { return x.State === 'Finished'; }).length; o.total = o.path.length; o.unit = 'lessons';
+    }
+    return o;
+  }
+  function levelsTimeline(levels, pr, e) {
+    return '<ol class="tl">' + levels.map(function (x) {
+      var st = x.State === 'done' ? 'done' : x.State === 'current' ? 'cur' : '';
+      var sub = st === 'done' ? 'Completed ' + fmtDay(x.CompletedDate) : st === 'cur' ? (pr.total > 1 ? pr.finished + ' of ' + pr.total + ' lessons finished' : 'In progress') : 'Not started';
+      return '<li class="' + st + '"><span class="tl-dot">' + (st === 'done' ? CHECK : '') + '</span><span class="tl-b"><span class="cl-num">Level ' + esc(x.Level) + '</span><span class="cl-title">' + esc(x.LevelName) + '</span><span class="cl-sub">' + sub + '</span>' +
+        (st === 'cur' && pr.nextMeeting ? '<span class="nextchip">' + icon('cal') + 'Next meeting ' + esc(fmtDayShort(pr.nextMeeting)) + '</span>' : '') + '</span></li>';
+    }).join('') + '</ol>';
   }
   // Lessons as a vertical timeline.
   function timeline(lessons, nextMeeting) {
@@ -2433,7 +2555,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       else if (e.Status === 'Expired') msg = '<b>Your completion expired ' + fmtDate(e.ExpiryDate) + '</b><span>Retake the lessons with your discipler to renew it.</span>';
       else if (!left && p.total) msg = '<b>All lessons finished</b><span>Your discipler will confirm that you’re ready to graduate.</span>';
       else msg = '<b>' + left + ' lesson' + (left === 1 ? '' : 's') + ' to graduation</b><span>' + (d.discipler ? 'with ' + esc(d.discipler) + ' · ' : '') + esc(e.LevelName) + '</span>';
-      band('<div class="hero-row">' + ring(p.finished, p.total || lvl1Count()) + '<div class="hero-t">' + msg + '</div></div>' +
+      var PMh = progressModel(d);
+      band('<div class="hero-row">' + (PMh.multi ? ring(PMh.done, PMh.total, '<b>' + PMh.done + '/' + PMh.total + '</b><small>levels</small>') : ring(p.finished, p.total || lvl1Count())) + '<div class="hero-t">' + msg + '</div></div>' +
         (e && e.Status === 'In progress' && p.nextMeeting ? '<span class="band-chip">' + icon('cal') + 'Next meeting ' + esc(fmtDayShort(p.nextMeeting)) + '</span>' : ''));
       var html = '<div class="cols"><div class="col">';
       if (e && e.Status === 'Completed') {
@@ -2441,7 +2564,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         html += c ? '<a class="card celebrate" href="#/cert/' + esc(c.CertNo) + '"><span class="ci">' + icon('award') + '</span><span><b>Your certificate is ready</b><span class="small muted">' + esc(c.CertNo) + ' · issued ' + fmtDate(c.IssuedDate) + '</span></span></a>'
           : '<div class="card"><p>Congratulations on finishing the lessons, ' + esc(first) + '. Your coordinator will issue your certificate.</p></div>';
       }
-      if (e) html += '<h3>Your lessons</h3>' + timeline(p.lessons, e.Status === 'In progress' ? p.nextMeeting : '');
+      if (PMh.multi) html += '<h3>Your levels</h3>' + levelsTimeline(PMh.levels, p, e);
+      else if (e) html += '<h3>Your lessons</h3>' + timeline(p.lessons, e.Status === 'In progress' ? p.nextMeeting : '');
       html += '</div><div class="col">';
       if (d.memoryVerses.length) {
         html += '<h3>Memory verses</h3><div class="list">' + d.memoryVerses.slice().reverse().map(function (v, i) {
@@ -2501,13 +2625,19 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     else if (p.Expiring) f += pill('Pending', 'Expires ' + fmtDate(p.ExpiryDate));
     return f + pill(p.LessonStatus);
   }
+  // Levels completed when the program has several levels; otherwise lessons in the current level.
+  function progBar(p) {
+    if (p.Tracked === false) return '';
+    if (p.LevelsTotal > 1) return '<div class="prog">' + segs(p.LevelsDone, p.LevelsTotal) + '<span>' + p.LevelsDone + '/' + p.LevelsTotal + ' levels</span></div>';
+    return p.TotalLessons && p.LessonStatus === 'In progress' ? '<div class="prog">' + segs(p.Finished, p.TotalLessons) + '<span>' + p.Finished + '/' + p.TotalLessons + '</span></div>' : '';
+  }
   function personItem(p, extra, href) {
     var sub = [];
     if (extra !== 'nodisc') sub.push(p.Congregation);
     if (p.LastSession) sub.push('last met ' + agoText(p.LastSession));
     if (p.NextMeeting) sub.push('next ' + fmtDayShort(p.NextMeeting));
     if (p.Discipler && extra !== 'nodisc' && p.Tracked !== false) sub.push('Discipler: ' + p.Discipler);
-    var bar = p.TotalLessons && p.LessonStatus === 'In progress' ? '<div class="prog">' + segs(p.Finished, p.TotalLessons) + '<span>' + p.Finished + '/' + p.TotalLessons + '</span></div>' : '';
+    var bar = progBar(p);
     return '<a class="item person-item' + (p.ReadyToGraduate ? ' is-ready' : p.Stale ? ' is-stale' : '') + '" href="' + (href || '#/person/' + esc(p.UserID)) + '">' + avatar(p.PhotoID, '', '') + '<div class="pi"><div class="t">' + esc(p.Name) + (p.Role !== 'Disciple' ? ' <span class="pill plain">' + esc(p.Role) + '</span>' : '') + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</div>' +
       '<div class="row">' + flags(p) + '</div>' + bar +
       (sub.length ? '<div class="s">' + esc(sub.filter(Boolean).join(' · ')) + '</div>' : '') + '</div></a>';
@@ -2534,6 +2664,22 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         : '<div class="card empty"><span class="ci">' + icon('users') + '</span><h2>No disciples yet</h2><p>Once a coordinator assigns disciples to you, you can record your sessions here.</p></div>');
     });
   }
+  // Lessons grouped by level. A level with a single lesson is one wide button.
+  function pickerHTML(all, PM) {
+    var groups = [], by = {};
+    all.forEach(function (l) { var k = String(l.Level); if (!by[k]) { by[k] = []; groups.push(k); } by[k].push(l); });
+    return groups.map(function (k) {
+      var ls = by[k], done = PM.lvState[k] === 'done', cur = PM.lvState[k] === 'current', name = ls[0].LevelName || 'Level ' + k;
+      var tag = done ? '<span class="lg-tag ok">Completed</span>' : cur ? '<span class="lg-tag">In progress</span>' : '';
+      if (ls.length === 1) {
+        var l = ls[0];
+        return '<button type="button" class="lt wide' + (done ? ' done' : '') + '" data-l="' + esc(l.LessonID) + '"' + (done ? ' disabled' : '') + '><span class="lt-b">' + (PM.multi ? esc(k) : '1') + '</span><span class="lt-t"><b>' + esc(PM.multi ? name : l.Title) + '</b><small>' + esc(PM.multi ? (l.Title !== name ? l.Title : 'Level ' + k) : l.Number) + '</small></span>' + tag + '</button>';
+      }
+      return '<div class="lgroup"><div class="lg-h"><b>' + (PM.multi ? 'Level ' + esc(k) + ' · ' : '') + esc(name) + '</b>' + tag + '</div><div class="ltiles">' + ls.map(function (l, i) {
+        return '<button type="button" class="lt' + (l.State === 'Finished' ? ' done' : '') + '" data-l="' + esc(l.LessonID) + '"' + (done ? ' disabled' : '') + ' aria-label="' + esc(l.Number + ' · ' + l.Title) + '">' + esc(shortNum(l, i)) + '<small>' + (l.State === 'Finished' ? 'done' : l.State === 'Started' ? 'started' : '') + '</small></button>';
+      }).join('') + '</div></div>';
+    }).join('');
+  }
   function viewPerson(uid, focusRecord) {
     frame({ title: 'Disciple', back: true, section: rank() >= 2 ? 'people' : 'disciples', wide: true });
     var reqs = [['person', { userId: uid }]];
@@ -2541,20 +2687,18 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     liveAll(reqs, function (res) {
       var d = res[0], p = d.person, e = d.enrollment, pr = d.progress, ppl = res[1], first = firstName(p.Name), tr = d.tracked !== false;
       var fresh = !e || e.Status !== 'In progress';
-      var path = (!fresh || !d.canLog) ? pr.lessons : d.logLessons.map(function (l) { return Object.assign({}, l, { State: 'Not started' }); });
-      var next = path.filter(function (l) { return l.State === 'Started'; })[0] || path.filter(function (l) { return l.State !== 'Finished'; })[0] || path[0];
-      var fin = path.filter(function (l) { return l.State === 'Finished'; }).length;
+      var PM = progressModel(d), path = PM.path, next = PM.next, all = PM.all;
       $('.top h1').textContent = p.Role;
       if (!tr) {
         var mineN = ppl ? ppl.people.filter(function (x) { return x.DisciplerID === uid && x.Status === 'Active'; }).length : 0;
         band('<div class="pb">' + avatar(p.PhotoID, 'lg ringed', p.Name) + '<div class="pb-t"><h2>' + esc(p.Name) + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</h2><p>' + esc(p.Role + ' · ' + p.Congregation + (p.Role === 'Discipler' || p.Disciples ? ' · ' + mineN + ' disciple' + (mineN === 1 ? '' : 's') : '')) + '</p></div></div>');
       }
-      var info = [fin + ' of ' + path.length + ' done'];
+      var info = [PM.done + ' of ' + PM.total + (PM.multi ? ' levels' : '') + ' done'];
       if (pr.lastSession && !fresh) info.push('last met ' + agoText(pr.lastSession));
       if (pr.nextMeeting && !fresh) info.push('next ' + fmtDayShort(pr.nextMeeting));
       if (tr) band('<div class="pb">' + avatar(p.PhotoID, 'lg ringed', p.Name) + '<div class="pb-t"><h2>' + esc(p.Name) + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</h2><p>' + esc(info.join(' · ')) + '</p></div>' +
         (pr.sessions.length || e ? '<button type="button" class="btn band-btn" id="sendupd">' + icon('send') + '<span>Send update</span></button>' : '') + '</div>' +
-        (path.length ? pathDots(path, d.canLog ? next.LessonID : '') : ''));
+        (path.length ? pathDots(path, d.canLog ? PM.curId : '') : ''));
       var html = '<div class="cols"><div class="col">';
       if (p.ReadyToGraduate) {
         html += '<div class="card celebrate"><span class="ci">' + icon('cap') + '</span><div class="stack"><b>All lessons finished.</b><p class="small">Confirm that ' + esc(first) + ' is fit to graduate. This completes ' + esc(e.LevelName) + ' for ' + esc(e.ProgramYear) + ' and lets the coordinator issue the certificate.</p><div><button class="btn flame" id="grad">Mark fit to graduate</button></div></div></div>';
@@ -2563,12 +2707,13 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         var newYear = fresh;
         var dchip = function (k, label) { return '<button type="button" class="dchip" data-day="' + k + '"' + (k === '0' ? ' aria-pressed="true"' : ' aria-pressed="false"') + '>' + label + '</button>'; };
         html += '<form class="card rec" id="logf" novalidate><div class="rec-h"><h2>Record a session</h2>' +
-            (newYear ? '<p class="small muted">' + (e && e.Status === 'Completed' ? 'This starts ' + esc(d.logLessons[0].LevelName || 'the next level') + '.' : 'This starts ' + esc(first) + '’s lessons for this year.') + '</p>' : '') + '</div>' +
+            (newYear ? '<p class="small muted">' + (e && next ? 'Next up: ' + (PM.multi ? 'Level ' + esc(next.Level) + ' · ' : '') + esc(next.LevelName || 'the next level') + '.' : 'This starts ' + esc(first) + '’s lessons for this year.') + '</p>' : '') + '</div>' +
           '<section class="step"><span class="sn">1</span><div class="sb"><span class="sl">Today’s lesson</span>' +
-            '<div class="lnow" id="lnow"></div><button type="button" class="linkbtn" id="chg">Change lesson</button>' +
-            '<div class="ltiles" id="ltiles" hidden>' + path.map(function (l, i) { return '<button type="button" class="lt' + (l.State === 'Finished' ? ' done' : '') + '" data-l="' + esc(l.LessonID) + '" aria-label="' + esc(l.Number + ' · ' + l.Title) + '">' + esc(shortNum(l, i)) + '<small>' + (l.State === 'Finished' ? 'done' : l.State === 'Started' ? 'started' : '') + '</small></button>'; }).join('') + '</div></div></section>' +
+            '<div class="lnow" id="lnow"></div><button type="button" class="linkbtn" id="chg">' + (PM.multi ? 'Change level or lesson' : 'Change lesson') + '</button>' +
+            '<div class="lpick" id="ltiles" hidden>' + pickerHTML(all, PM) + '</div></div></section>' +
           '<section class="step"><span class="sn">2</span><div class="sb"><span class="sl">How did it go?</span>' +
             '<div class="big2"><button type="button" class="bigopt fin" data-fin="1" aria-pressed="true">' + icon('check') + 'Finished the lesson</button><button type="button" class="bigopt cont" data-fin="0" aria-pressed="false">' + icon('arrow') + 'Continue next time</button></div>' +
+            '<label class="cmp" id="cmpw" hidden><input type="checkbox" id="cmp" checked><span><b id="cmpn"></b><span class="small muted">Marks ' + esc(first) + ' fit to graduate, so the coordinator can issue the certificate.</span></span></label>' +
             '<div class="dchips">' + dchip('0', 'Today · ' + esc(fmtDayShort(todayStr()).replace(/^\w+, /, ''))) + dchip('1', 'Yesterday') + dchip('pick', 'Pick date') + '</div>' +
             '<input class="i" type="date" id="ld" value="' + todayStr() + '" max="' + todayStr() + '" aria-label="Date you met" hidden></div></section>' +
           '<section class="step"><span class="sn">3</span><div class="sb"><span class="sl">Add details <span class="muted">(optional)</span></span>' +
@@ -2582,7 +2727,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       } else if (e && e.Status === 'Completed') {
         html += '<div class="card"><p class="small">' + esc(first) + ' has completed this year’s lessons. Sessions can be recorded again after the status expires on ' + fmtDate(e.ExpiryDate) + '.</p></div>';
       }
-      if (e && tr) html += '<h3>Lessons · ' + esc(e.LevelName) + '</h3>' + timeline(pr.lessons, e.Status === 'In progress' ? pr.nextMeeting : '');
+      if (tr && PM.multi) html += '<h3>Levels</h3>' + levelsTimeline(PM.levels, pr, e);
+      else if (e && tr) html += '<h3>Lessons · ' + esc(e.LevelName) + '</h3>' + timeline(pr.lessons, e.Status === 'In progress' ? pr.nextMeeting : '');
       if (!tr) html += '<div class="card stack"><p>' + esc(first) + ' isn’t being discipled this year, so there are no lessons to track.</p>' + (ppl && (p.Role === 'Discipler' || p.Role === 'Coordinator') ? '<p class="small muted">To track ' + esc(first) + '’s own lessons, switch on “Being discipled this year” under Manage.</p>' : '') + '</div>';
       html += '</div><div class="col">';
       html += '<div class="card pcard"><p class="small muted">' + esc(p.Congregation) + (p.Mobile ? ' · <span style="user-select:all">' + esc(p.Mobile) + '</span>' : '') + '</p>' +
@@ -2638,15 +2784,20 @@ if (typeof module !== 'undefined') module.exports = DEMO;
 
       /* record form */
       var lf = $('#logf', m), chosen = [], sel = next && next.LessonID, finished = true;
-      function lessonById(id) { return path.filter(function (l) { return l.LessonID === id; })[0]; }
+      function lessonById(id) { return all.filter(function (l) { return l.LessonID === id; })[0]; }
+      function lastOfLevel() { // would this session finish its whole level?
+        var l = lessonById(sel); if (!l || PM.lvState[String(l.Level)] === 'done') return false;
+        return !all.some(function (x) { return String(x.Level) === String(l.Level) && x.LessonID !== sel && x.State !== 'Finished'; });
+      }
       function drawSave() {
         var b = $('#lsave'); if (!b) return;
-        var others = path.filter(function (l) { return l.LessonID !== sel && l.State !== 'Finished'; }).length;
-        b.innerHTML = finished ? (others ? 'Save &amp; move ' + esc(first) + ' forward ' + icon('arrow') : 'Save · all lessons done ' + icon('check')) : 'Save session';
+        var l = lessonById(sel), canDone = finished && lastOfLevel(), cw = $('#cmpw');
+        cw.hidden = !canDone; $('#cmpn').textContent = 'Complete ' + (PM.multi ? 'Level ' + l.Level + ' · ' : '') + (l.LevelName || 'this level') + ' now';
+        b.innerHTML = !finished ? 'Save session' : canDone && $('#cmp').checked ? 'Save &amp; complete ' + (PM.multi ? 'Level ' + esc(l.Level) : 'the level') + ' ' + icon('check') : 'Save &amp; move ' + esc(first) + ' forward ' + icon('arrow');
       }
       function drawLesson() {
-        var l = lessonById(sel), i = path.indexOf(l);
-        $('#lnow').innerHTML = '<span class="ln-badge">' + esc(shortNum(l, i)) + '</span><span><span class="ln-num">' + esc(l.Number) + (l.State === 'Finished' ? ' · finished before' : l.State === 'Started' ? ' · started' : '') + '</span><span class="ln-title">' + esc(l.Title) + '</span></span>';
+        var l = lessonById(sel), sameLv = all.filter(function (x) { return String(x.Level) === String(l.Level); });
+        $('#lnow').innerHTML = '<span class="ln-badge">' + esc(PM.multi && sameLv.length === 1 ? 'L' + l.Level : shortNum(l, sameLv.indexOf(l))) + '</span><span><span class="ln-num">' + (PM.multi ? 'Level ' + esc(l.Level) + (sameLv.length > 1 ? ' · ' + esc(l.Number) : '') : esc(l.Number)) + (l.State === 'Finished' ? ' · finished before' : l.State === 'Started' ? ' · started' : '') + '</span><span class="ln-title">' + esc(sameLv.length === 1 && l.LevelName ? l.LevelName : l.Title) + '</span>' + (sameLv.length === 1 && l.LevelName && l.Title && l.Title !== l.LevelName ? '<span class="small muted">' + esc(l.Title) + '</span>' : '') + '</span>';
         $$('.lt', lf).forEach(function (t) { t.setAttribute('aria-pressed', String(t.dataset.l === sel)); });
         drawSave();
       }
@@ -2659,8 +2810,9 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       }
       if (lf) {
         drawLesson();
-        $('#chg').onclick = function () { var t = $('#ltiles'); t.hidden = !t.hidden; this.textContent = t.hidden ? 'Change lesson' : 'Done'; };
-        $$('.lt', lf).forEach(function (t) { t.onclick = function () { sel = t.dataset.l; drawLesson(); }; });
+        $('#chg').onclick = function () { var t = $('#ltiles'); t.hidden = !t.hidden; this.textContent = t.hidden ? (PM.multi ? 'Change level or lesson' : 'Change lesson') : 'Done'; };
+        $('#cmp').onchange = drawSave;
+        $$('.lt', lf).forEach(function (t) { t.onclick = function () { if (t.disabled) return; sel = t.dataset.l; drawLesson(); if (PM.multi) { $('#ltiles').hidden = true; $('#chg').textContent = 'Change level or lesson'; } }; });
         $$('[data-fin]', lf).forEach(function (b2) { b2.onclick = function () { finished = b2.dataset.fin === '1'; $$('[data-fin]', lf).forEach(function (x) { x.setAttribute('aria-pressed', String(x === b2)); }); drawSave(); }; });
         $$('[data-day]', lf).forEach(function (c) { c.onclick = function () {
           $$('[data-day]', lf).forEach(function (x) { x.setAttribute('aria-pressed', String(x === c)); });
@@ -2679,9 +2831,10 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         $('#laddpic').onclick = function () { pickImage(false, function (pic) { chosen.push(pic); drawChosen(); }); };
         lf.onsubmit = function (ev) {
           ev.preventDefault(); var err = $('#lerr'), b = $('#lsave'); err.hidden = true; busy(b, true);
-          api('logSession', { userId: uid, date: $('#ld').value, lessonId: sel, finished: finished, notes: $('#ln').value, nextMeeting: $('#lnm').value })
+          var complete = finished && lastOfLevel() && $('#cmp').checked;
+          api('logSession', { userId: uid, date: $('#ld').value, lessonId: sel, finished: finished, notes: $('#ln').value, nextMeeting: $('#lnm').value, complete: complete })
             .then(function (r) {
-              toast('Session saved.');
+              toast(r && r.completed ? 'Session saved. ' + first + ' completed ' + (lessonById(sel).LevelName || 'the level') + '.' : 'Session saved.');
               var pics = chosen.slice(), sid = r && r.session && r.session.SessionID;
               viewPerson(uid);
               setTimeout(function () { openUpdate(uid, 'session', { sessionId: sid, pic: pics[0] }); }, 250);
@@ -2781,7 +2934,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         circleImg(ctx, o.photo, cx, cy, r, { w: 0, c: 'transparent' });
       }
       if (paint) { ctx.font = '700 64px ' + SERIF; fitText(ctx, o.name, 600, 64, '700 {s}px ' + SERIF); ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText(o.name, 380, 350); }
-      T(o.total ? o.finished + ' of ' + o.total + ' lessons' : 'Starting the lessons', 380, 404, '800 32px ' + SANS, GOLD);
+      T(o.total ? o.finished + ' of ' + o.total + ' ' + (o.unit || 'lessons') + (o.unit === 'levels' ? ' completed' : '') : 'Starting the lessons', 380, 404, '800 32px ' + SANS, GOLD);
       T(o.discipler ? 'with ' + o.discipler : '', 380, 450, '600 26px ' + SANS, 'rgba(255,255,255,.75)');
       /* lesson path */
       var n = o.path.length;
@@ -2793,7 +2946,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
           var done = l.State === 'Finished', cur = l.LessonID === o.curId;
           ctx.beginPath(); ctx.arc(x, py, cur ? dr + 6 : dr, 0, Math.PI * 2); ctx.fillStyle = done ? GOLD : cur ? FL : 'rgba(255,255,255,.16)'; ctx.fill();
           if (cur) { ctx.lineWidth = 5; ctx.strokeStyle = '#fff'; ctx.stroke(); }
-          ctx.fillStyle = done ? NAVY : '#fff'; ctx.font = '800 ' + (shortNum(l, i).length > 1 ? 20 : 24) + 'px ' + SANS; ctx.textAlign = 'center'; ctx.fillText(shortNum(l, i), x, py + 8);
+          var lab = l.Short || shortNum(l, i); ctx.fillStyle = done ? NAVY : '#fff'; ctx.font = '800 ' + (lab.length > 1 ? 20 : 24) + 'px ' + SANS; ctx.textAlign = 'center'; ctx.fillText(lab, x, py + 8);
         });
       }
       /* white panel */
@@ -2803,7 +2956,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       if (o.kind === 'session') {
         if (o.sessionImg) { if (paint) coverImg(ctx, o.sessionImg, X, y, IW, 470, 28); y += 500; }
         T(spaced(o.sessionFinished ? 'Today we studied' : 'Today we started'), X, y + 24, '800 22px ' + SANS, MUTED); y += 46;
-        T(o.lesson.Number, X, y + 30, '800 30px ' + SANS, FL); y += 44;
+        T(o.unit === 'levels' ? 'Level ' + o.lesson.Level + (o.lesson.LevelName && o.lesson.LevelName !== o.lesson.Title ? ' · ' + o.lesson.LevelName : '') : o.lesson.Number, X, y + 30, '800 30px ' + SANS, FL); y += 44;
         para(o.lesson.Title, '700 52px ' + SERIF, INK, 64); y += 18;
         if (paint) { var lab = o.sessionFinished ? '✓  Finished' : 'To be continued next time'; ctx.font = '800 26px ' + SANS; var tw = ctx.measureText(lab).width; ctx.fillStyle = o.sessionFinished ? '#e6f3ec' : '#e8ebf4'; rrect(ctx, X, y, tw + 48, 52, 26); ctx.fill(); T(lab, X + 24, y + 35, '800 26px ' + SANS, o.sessionFinished ? '#2c7a4b' : '#2e4a9a'); }
         y += 86;
@@ -2829,7 +2982,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       } else {
         var big = o.completed ? 'Congratulations, ' + o.first + '!' : o.finished && o.finished >= o.total ? 'All lessons finished!' : 'Keep going, ' + o.first + '!';
         para(big, '700 64px ' + SERIF, FL, 76); y += 10;
-        para(o.completed ? 'You’ve completed ' + o.level + '.' : 'You’ve finished ' + o.finished + ' of ' + o.total + ' lessons' + (o.total - o.finished > 0 ? '. Only ' + (o.total - o.finished) + ' more to go.' : '.'), '600 36px ' + SANS, INK, 50); y += 30;
+        para(o.completed ? 'You’ve completed ' + o.level + (o.unit === 'levels' ? ' (' + o.finished + ' of ' + o.total + ' levels).' : '.') : 'You’ve finished ' + o.finished + ' of ' + o.total + ' ' + (o.unit || 'lessons') + (o.total - o.finished > 0 ? '. Only ' + (o.total - o.finished) + ' more to go.' : '.'), '600 36px ' + SANS, INK, 50); y += 30;
         if (o.cert) { para('Certificate No. ' + o.cert.CertNo + ' · valid until ' + fmtDate(o.cert.ValidUntil), '600 28px ' + SANS, MUTED, 40); y += 30; }
         o.path.filter(function (l) { return l.State === 'Finished'; }).slice(0, 8).forEach(function (l) {
           if (paint) { ctx.fillStyle = '#e6f3ec'; ctx.beginPath(); ctx.arc(X + 22, y + 26, 22, 0, Math.PI * 2); ctx.fill(); }
@@ -2885,8 +3038,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     var d = r.data, p = d.person, e = d.enrollment, pr = d.progress, first = firstName(p.Name), st = S.me.settings;
     var ses = pr.sessions.filter(function (x) { return x.SessionID === extra.sessionId; })[0] || pr.sessions[0];
     var fresh = !e || e.Status !== 'In progress';
-    var path = !fresh || !d.canLog ? pr.lessons : d.logLessons.map(function (l) { return Object.assign({}, l, { State: 'Not started' }); });
-    var nextL = path.filter(function (l) { return l.State === 'Started'; })[0] || path.filter(function (l) { return l.State !== 'Finished'; })[0];
+    var PM = progressModel(d), path = PM.path, nextL = PM.next;
     var nm = pr.nextMeeting || (ses && ses.NextMeeting >= todayStr() ? ses.NextMeeting : '');
     var kinds = [];
     if (ses) kinds.push(['session', 'Session update']);
@@ -2894,7 +3046,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     if (pr.finished || (e && e.Status === 'Completed')) kinds.push(['celebrate', e && e.Status === 'Completed' ? 'Congratulations' : 'Progress']);
     if (!kinds.length) { toast('Record a session first, then you can send ' + first + ' an update.'); return; }
     if (!kinds.some(function (k) { return k[0] === kind; })) kind = kinds[0][0];
-    var sesLesson = ses ? (pr.lessons.filter(function (l) { return l.LessonID === ses.LessonID; })[0] || { LessonID: ses.LessonID, Number: ses.Lesson, Title: ses.LessonTitle }) : null;
+    var sesLesson = ses ? (PM.all.filter(function (l) { return l.LessonID === ses.LessonID; })[0] || pr.lessons.filter(function (l) { return l.LessonID === ses.LessonID; })[0] || { LessonID: ses.LessonID, Number: ses.Lesson, Title: ses.LessonTitle }) : null;
     var q = { session: questionFor(sesLesson), celebrate: GENERIC_Q.replace('from our lesson', 'so far in our lessons') };
     var cert = e && e.Status === 'Completed' ? d.certificates.filter(function (c) { return c.EnrollmentID === e.EnrollmentID; })[0] : null;
     function message() {
@@ -2935,7 +3087,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         if (kind === 'session' && ses.Finished && sesLesson && sesLesson.MemoryText) verse = { text: sesLesson.MemoryText, ref: sesLesson.MemoryRef };
         cv = drawUpdate({ kind: kind, eyebrow: kind === 'session' ? 'Session update · ' + fmtDayShort(ses.Date) : kind === 'reminder' ? 'See you soon' : (e && e.Status === 'Completed' ? 'Congratulations' : 'Your progress'),
           churchName: st.ChurchName, program: st.ProgramName, name: p.Name, first: first, discipler: (ses && ses.Discipler) || p.Discipler || S.me.user.Name,
-          finished: e && e.Status === 'Completed' ? pr.total : (fresh ? 0 : pr.finished), total: path.length, path: path, curId: kind === 'celebrate' ? '' : (nextL && nextL.LessonID),
+          finished: PM.multi ? PM.done : (e && e.Status === 'Completed' ? pr.total : (fresh ? 0 : pr.finished)), total: PM.total, unit: PM.unit, path: path, curId: kind === 'celebrate' ? '' : PM.curId,
           photo: imgs.photo, church: imgs.church, sessionImg: kind === 'session' ? imgs.ses : null,
           lesson: kind === 'session' ? sesLesson : nextL, sessionFinished: ses && ses.Finished, verse: verse,
           question: $('#updq', sh).value.trim(), nextMeeting: nm, completed: !!(e && e.Status === 'Completed'), level: e ? e.LevelName : '', cert: cert });
@@ -2989,7 +3141,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       var noDisc = S0.filter(function (p) { return !p.DisciplerID; }).length;
       var stages = [
         ['Not started', S0, noDisc ? n(noDisc, 'has', 'have') + ' no discipler yet' : 'Waiting for their first session', noDisc ? 'warn' : '', 'Not started', 'none', function (p) { return p.DisciplerID ? 'Discipler: ' + esc(firstName(p.Discipler)) : '<span class="warn-t">No discipler</span>'; }],
-        ['Meeting', S1, c.stale ? c.stale + ' not met in ' + d.staleDays + '+ days' : 'Lessons in progress', c.stale ? 'miss' : '', 'In progress', 'info', function (p) { return p.Stale ? '<span class="miss-t">No meeting ' + (p.LastSession ? daysAgo(p.LastSession) + ' days' : 'yet') + '</span>' : segs(p.Finished, p.TotalLessons); }],
+        ['Meeting', S1, c.stale ? c.stale + ' not met in ' + d.staleDays + '+ days' : 'Lessons in progress', c.stale ? 'miss' : '', 'In progress', 'info', function (p) { return p.Stale ? '<span class="miss-t">No meeting ' + (p.LastSession ? daysAgo(p.LastSession) + ' days' : 'yet') + '</span>' : p.LevelsTotal > 1 ? esc(p.LevelName || '') : segs(p.Finished, p.TotalLessons); }],
         ['Ready to graduate', S2, 'Waiting for the discipler’s OK', '', 'Ready', 'flame', function (p) { return p.Finished + ' of ' + p.TotalLessons + ' · confirm'; }],
         ['Completed', S3, c.certs ? n(c.certs, 'certificate', 'certificates') + ' to issue' : pct(S3.length) + '% of members', c.certs ? 'warn' : '', 'Completed', 'ok', function (p) { return p.HasCert ? 'Certificate issued' : '<span class="warn-t">Certificate to issue</span>'; }],
         ['Expired', S4, c.expiring ? c.expiring + ' more expire within 60 days' : 'Need to retake the lessons', '', 'Expired', 'miss', function (p) { return 'Expired ' + esc(fmtDay(p.ExpiryDate)); }]
