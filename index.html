@@ -705,6 +705,13 @@ fieldset.fs legend { font-size: 12.5px; font-weight: 700; color: var(--muted) }
 .install { display: flex; gap: 14px; align-items: flex-start }
 .install .stack { gap: 6px }
 @media (max-width: 699px) { .filters { grid-template-columns: 1fr 1fr } .filters > :first-child { grid-column: 1 / -1 } }
+/* From / To period */
+.period { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px }
+.pdates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
+.period .chips { flex-wrap: wrap; overflow: visible }
+.page { grid-template-columns: minmax(0, 1fr) }
+.pdates input.i, .filters .i { min-width: 0; width: 100% }
+input[type="date"].i { min-width: 0; -webkit-appearance: none; appearance: none; display: block }
 
 </style>
 </head>
@@ -721,7 +728,7 @@ window.addEventListener('error', function (e) {
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* Self-update: GitHub Pages lets browsers keep a page for 10 minutes. On open, check for a newer copy and reload once if found. */
-window.APP_BUILD = '20261026184453';
+window.APP_BUILD = '20261026190708';
 (function () {
   if (!/^https?:/.test(location.protocol) || !window.fetch || window.APP_CONFIG_IS_ARTIFACT) return;
   try { if (sessionStorage.getItem('dt-upd') === window.APP_BUILD) return; } catch (e) {}
@@ -907,6 +914,13 @@ var CORE = (function () {
       out.lessons.push(m);
     });
     return out;
+  }
+  // The discipler who led an enrollment: whoever recorded most of its sessions (not who marked it complete).
+  function ledBy(e) {
+    if (!e) return '';
+    var n = {}, best = '', top = 0;
+    sessionsOf(e.EnrollmentID).forEach(function (s) { n[s.DisciplerID] = (n[s.DisciplerID] || 0) + 1; if (n[s.DisciplerID] > top) { top = n[s.DisciplerID]; best = s.DisciplerID; } });
+    return best;
   }
   function enrView(e) {
     if (!e) return null;
@@ -1280,13 +1294,26 @@ var CORE = (function () {
     var r = scopedUsers(u).filter(function (x) { return x.Status === 'Active' && RANK[x.Role] <= 1 && tracked(x); }).map(personRow);
     if (q.congregationId) r = r.filter(function (x) { return x.CongregationID === q.congregationId; });
     if (q.disciplerId) r = r.filter(function (x) { return x.DisciplerID === q.disciplerId; });
+    var F = isDate(q.from) ? str(q.from) : '', T = isDate(q.to) ? str(q.to) : '', per = !!(F || T), lo = F || '0000-01-01', hi = T || '9999-12-31';
+    if (per) { // people whose lessons ran during the period, with what happened in it
+      r = r.filter(function (x) {
+        var e = x.EnrollmentID ? find('Enrollments', 'EnrollmentID', x.EnrollmentID) : null;
+        var ss = e ? sessionsOf(e.EnrollmentID).filter(function (s2) { return s2.Date >= lo && s2.Date <= hi; }) : [];
+        var cd = e && e.CompletedDate ? str(e.CompletedDate).slice(0, 10) : '';
+        x.PeriodSessions = ss.length; x.PeriodFinished = ss.filter(function (s2) { return s2.Finished === 'TRUE'; }).length;
+        x.CompletedInPeriod = !!cd && cd >= lo && cd <= hi; x.CompletedOn = cd;
+        if (!e) return str(x.CreatedAt).slice(0, 10) <= hi;
+        return str(e.StartDate).slice(0, 10) <= hi && (!cd || cd >= lo);
+      });
+    }
     var f = str(q.status);
-    if (f === 'Stale') r = r.filter(function (x) { return x.Stale; });
+    if (f === 'Completed' && per) r = r.filter(function (x) { return x.CompletedInPeriod; });
+    else if (f === 'Stale') r = r.filter(function (x) { return x.Stale; });
     else if (f === 'Ready') r = r.filter(function (x) { return x.ReadyToGraduate; });
     else if (f === 'Expiring') r = r.filter(function (x) { return x.Expiring; });
     else if (f) r = r.filter(function (x) { return x.LessonStatus === f; });
     r.sort(function (a, b) { return (a.Congregation + a.Name).localeCompare(b.Congregation + b.Name); });
-    return { rows: r, generated: nowIso() };
+    return { rows: r, generated: nowIso(), from: F, to: T };
   };
   A.certQueue = function (q, u) {
     need(u, 'Coordinator');
@@ -1294,8 +1321,8 @@ var CORE = (function () {
     var issued = rows('Certificates').filter(function (c) { return ids[c.UserID]; });
     var have = {}; issued.forEach(function (c) { have[c.EnrollmentID] = 1; });
     var ready = rows('Enrollments').filter(function (e) { return ids[e.UserID] && status(e) === 'Completed' && !have[e.EnrollmentID]; })
-      .map(function (e) { var v = enrView(e); v.Name = ids[e.UserID].Name; v.Congregation = congName(ids[e.UserID].CongregationID); v.UserID = e.UserID; v.PhotoID = personPhoto(e.UserID); return v; });
-    return { ready: ready, issued: issued.map(function (c) { var o = {}; Object.keys(c).forEach(function (k) { o[k] = c[k]; }); var p = ids[c.UserID]; o.Name = p.Name; o.CongregationID = p.CongregationID; o.Congregation = congName(p.CongregationID); o.PhotoID = personPhoto(p.UserID); o.IsSample = isTrue(c.IsSample); var en = find('Enrollments', 'EnrollmentID', c.EnrollmentID); o.Discipler = userName(en && en.ApprovedBy) || userName(p.DisciplerID); return o; }).reverse() };
+      .map(function (e) { var v = enrView(e); v.Name = ids[e.UserID].Name; v.Congregation = congName(ids[e.UserID].CongregationID); v.UserID = e.UserID; v.PhotoID = personPhoto(e.UserID); v.CongregationID = ids[e.UserID].CongregationID; v.Discipler = userName(ledBy(e)) || userName(ids[e.UserID].DisciplerID); return v; });
+    return { ready: ready, issued: issued.map(function (c) { var o = {}; Object.keys(c).forEach(function (k) { o[k] = c[k]; }); var p = ids[c.UserID]; o.Name = p.Name; o.CongregationID = p.CongregationID; o.Congregation = congName(p.CongregationID); o.PhotoID = personPhoto(p.UserID); o.IsSample = isTrue(c.IsSample); var en = find('Enrollments', 'EnrollmentID', c.EnrollmentID); o.CompletedDate = en ? en.CompletedDate : ''; o.Discipler = userName(ledBy(en)) || userName(p.DisciplerID) || userName(en && en.ApprovedBy); return o; }).reverse() };
   };
   A.issueCertificate = function (q, u) {
     need(u, 'Coordinator');
@@ -3071,10 +3098,32 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     })(runLocal('people'));
   }
   var COLS = [['Name', 'Name'], ['LessonStatus', 'Status'], ['Finished', 'Finished'], ['TotalLessons', 'Lessons'], ['LastSession', 'Last meeting'], ['NextMeeting', 'Next meeting'], ['Discipler', 'Discipler'], ['Congregation', 'Congregation'], ['Role', 'Role'], ['Year', 'Year'], ['Level', 'Level'], ['ExpiryDate', 'Valid until'], ['HasCert', 'Certificate'], ['Mobile', 'Mobile']];
-  var NUMS = /^(Finished|TotalLessons)$/;
+  var NUMS = /^(Finished|TotalLessons|PeriodSessions|PeriodFinished)$/;
+  function repCols(per) { return per ? COLS.slice(0, 2).concat([['PeriodSessions', 'Sessions in period'], ['PeriodFinished', 'Lessons finished in period'], ['CompletedOn', 'Completed on']], COLS.slice(2)) : COLS; }
+  /* ---------- date period (From / To) ---------- */
+  function ymd(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function presetRange(k) {
+    var t = new Date(todayStr() + 'T12:00:00'), y = t.getFullYear(), mo = t.getMonth();
+    if (k === 'month') return [ymd(new Date(y, mo, 1)), todayStr()];
+    if (k === 'last') return [ymd(new Date(y, mo - 1, 1)), ymd(new Date(y, mo, 0))];
+    if (k === 'q') return [ymd(new Date(y, mo - 2, 1)), todayStr()];
+    if (k === 'year') return [y + '-01-01', todayStr()];
+    return ['', ''];
+  }
+  function periodBar(from, to) {
+    return '<div class="period"><div class="pdates"><label class="f">From<input class="i" type="date" id="pf" value="' + esc(from || '') + '"></label><label class="f">To<input class="i" type="date" id="pt" value="' + esc(to || '') + '"></label></div>' +
+      '<div class="chips" role="group" aria-label="Quick periods">' + [['month', 'This month'], ['last', 'Last month'], ['q', 'Last 3 months'], ['year', 'This year'], ['all', 'All time']].map(function (k) { return '<button type="button" class="chip" data-pr="' + k[0] + '">' + k[1] + '</button>'; }).join('') + '</div></div>';
+  }
+  function wirePeriod(root, onChange) {
+    var mark = function () { var f = $('#pf', root).value, t = $('#pt', root).value; $$('[data-pr]', root).forEach(function (b) { var r = presetRange(b.dataset.pr); b.setAttribute('aria-pressed', String(r[0] === f && r[1] === t)); }); };
+    $$('[data-pr]', root).forEach(function (b) { b.onclick = function () { var r = presetRange(b.dataset.pr); $('#pf', root).value = r[0]; $('#pt', root).value = r[1]; mark(); onChange(); }; });
+    ['#pf', '#pt'].forEach(function (sel) { $(sel, root).onchange = function () { mark(); onChange(); }; });
+    mark();
+  }
+  function periodText(f, t) { return f && t ? fmtDay(f) + ' – ' + fmtDay(t) : f ? 'From ' + fmtDay(f) : t ? 'Until ' + fmtDay(t) : 'All time'; }
   var FILTERS = [['', 'Any status'], ['Not started', 'Not started'], ['In progress', 'In progress'], ['Ready', 'Ready to graduate'], ['Stale', 'No recent meeting'], ['Completed', 'Completed'], ['Expiring', 'Expiring within 60 days'], ['Expired', 'Expired']];
-  function cell(r, k) { var v = r[k]; if (k === 'ExpiryDate') return fmtDate(v); if (k === 'LastSession' || k === 'NextMeeting') return fmtDay(v); if (k === 'HasCert') return v ? 'Yes' : ''; return v == null ? '' : v; }
-  function toCSV(rows) { return [COLS.map(function (c) { return c[1]; })].concat(rows.map(function (r) { return COLS.map(function (c) { return cell(r, c[0]); }); })).map(function (line) { return line.map(function (v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n'); }
+  function cell(r, k) { var v = r[k]; if (k === 'ExpiryDate') return fmtDate(v); if (k === 'LastSession' || k === 'NextMeeting' || k === 'CompletedOn') return fmtDay(v); if (k === 'HasCert') return v ? 'Yes' : ''; return v == null ? '' : v; }
+  function toCSV(rows, CC) { CC = CC || COLS; return [CC.map(function (c) { return c[1]; })].concat(rows.map(function (r) { return CC.map(function (c) { return cell(r, c[0]); }); })).map(function (line) { return line.map(function (v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n'); }
   function viewReports(status, discId) {
     frame({ title: 'Reports', wide: true });
     live('people', null, function (pd) {
@@ -3083,30 +3132,33 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         '<select class="i" id="fc" aria-label="Congregation"><option value="">All congregations</option>' + congs.map(function (c) { return '<option value="' + esc(c.CongregationID) + '">' + esc(c.Name) + '</option>'; }).join('') + '</select>' +
         '<select class="i" id="fs" aria-label="Status">' + FILTERS.map(function (f) { return '<option value="' + esc(f[0]) + '"' + (f[0] === (status || '') ? ' selected' : '') + '>' + f[1] + '</option>'; }).join('') + '</select>' +
         '<select class="i" id="fd" aria-label="Discipler"><option value="">Any discipler</option>' + pd.disciplers.map(function (x) { return '<option value="' + esc(x.UserID) + '"' + (x.UserID === discId ? ' selected' : '') + '>' + esc(x.Name) + '</option>'; }).join('') + '</select>' +
-        '</div><div id="rep" class="stack"></div>');
+        '</div>' + periodBar((LS.get('dt-rep-period') || [])[0], (LS.get('dt-rep-period') || [])[1]) + '<div id="rep" class="stack"></div>');
       var rows = [];
       function run() {
         $('#rep').innerHTML = loadingHTML();
-        api('report', { congregationId: $('#fc').value, status: $('#fs').value, disciplerId: $('#fd').value }).then(function (r) {
+        var pf = $('#pf').value, pt = $('#pt').value, per = !!(pf || pt), CC = repCols(per); LS.set('dt-rep-period', [pf, pt]);
+        api('report', { congregationId: $('#fc').value, status: $('#fs').value, disciplerId: $('#fd').value, from: pf, to: pt }).then(function (r) {
           rows = r.rows;
-          var done = rows.filter(function (x) { return x.LessonStatus === 'Completed'; }).length;
-          var cnt = function (f) { return rows.filter(f).length; };
-          var stat = [[rows.length, 'People', ''], [done, 'Completed', 'ok'], [cnt(function (x) { return x.LessonStatus === 'In progress'; }), 'In progress', 'info'], [cnt(function (x) { return x.ReadyToGraduate; }), 'Ready', 'flame'], [cnt(function (x) { return x.Stale; }), 'Not met lately', 'miss'], [cnt(function (x) { return x.LessonStatus === 'Not started'; }), 'Not started', '']];
+          var done = rows.filter(function (x) { return per ? x.CompletedInPeriod : x.LessonStatus === 'Completed'; }).length;
+          var cnt = function (f) { return rows.filter(f).length; }, sum = function (k) { return rows.reduce(function (a, x) { return a + (x[k] || 0); }, 0); };
+          var stat = per ? [[rows.length, 'People', ''], [done, 'Completed in period', 'ok'], [sum('PeriodSessions'), 'Sessions in period', 'info'], [sum('PeriodFinished'), 'Lessons finished', 'info'], [cnt(function (x) { return x.ReadyToGraduate; }), 'Ready', 'flame'], [cnt(function (x) { return x.Stale; }), 'Not met lately', 'miss']]
+            : [[rows.length, 'People', ''], [done, 'Completed', 'ok'], [cnt(function (x) { return x.LessonStatus === 'In progress'; }), 'In progress', 'info'], [cnt(function (x) { return x.ReadyToGraduate; }), 'Ready', 'flame'], [cnt(function (x) { return x.Stale; }), 'Not met lately', 'miss'], [cnt(function (x) { return x.LessonStatus === 'Not started'; }), 'Not started', '']];
           $('#rep').innerHTML = '<div class="rstats">' + stat.map(function (x) { return '<div class="rstat ' + x[2] + '"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('') + '</div>' +
-            '<div class="spread rbar"><p class="small muted">' + (rows.length ? Math.round(done / rows.length * 100) : 0) + '% completed · as of ' + fmtDate(r.generated) + '</p><div class="row ract">' +
+            '<div class="spread rbar"><p class="small muted">' + esc(periodText(pf, pt)) + ' · ' + (rows.length ? Math.round(done / rows.length * 100) : 0) + '% completed' + (per ? ' in this period' : '') + ' · as of ' + fmtDate(r.generated) + '</p><div class="row ract">' +
             '<button type="button" class="btn flame sm" id="pdf">' + icon('pdf') + 'Download PDF</button><button type="button" class="btn sm" id="copy">Copy as CSV</button>' + (IS_ARTIFACT ? '' : '<button type="button" class="btn sm" id="dl">Download CSV</button>') + '</div></div>' +
-            '<div class="tablewrap"><table><thead><tr>' + COLS.map(function (c) { return '<th' + (NUMS.test(c[0]) ? ' class="num"' : '') + '>' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
-            (rows.length ? rows.map(function (x) { return '<tr class="click" data-go="#/person/' + esc(x.UserID) + '">' + COLS.map(function (c) { var v = cell(x, c[0]); return c[0] === 'LessonStatus' ? '<td>' + pill(v) + '</td>' : '<td' + (NUMS.test(c[0]) ? ' class="num"' : '') + '>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="' + COLS.length + '" class="muted">No one matches these filters.</td></tr>') +
+            '<div class="tablewrap"><table><thead><tr>' + CC.map(function (c) { return '<th' + (NUMS.test(c[0]) ? ' class="num"' : '') + '>' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+            (rows.length ? rows.map(function (x) { return '<tr class="click" data-go="#/person/' + esc(x.UserID) + '">' + CC.map(function (c) { var v = cell(x, c[0]); return c[0] === 'LessonStatus' ? '<td>' + pill(v) + '</td>' : '<td' + (NUMS.test(c[0]) ? ' class="num"' : '') + '>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="' + CC.length + '" class="muted">No one matches these filters.</td></tr>') +
             '</tbody></table></div>' +
             '<div class="rcards">' + (rows.length ? rows.map(function (x) {
               var st = x.ReadyToGraduate ? pill('Pending', 'Ready to graduate') : x.Stale ? pill('Returned', 'Not met lately') : pill(x.LessonStatus);
               return '<a class="item rcard" href="#/person/' + esc(x.UserID) + '"><div class="t">' + esc(x.Name) + '</div>' + st +
                 '<div class="s">' + esc([x.Congregation, x.Discipler ? 'Discipler: ' + x.Discipler : 'No discipler'].join(' · ')) + '</div>' +
                 (x.TotalLessons && x.LessonStatus === 'In progress' ? '<div class="prog s">' + segs(x.Finished, x.TotalLessons) + '<span>' + x.Finished + '/' + x.TotalLessons + '</span></div>' : '') +
+                (per ? '<div class="s"><b>' + x.PeriodSessions + '</b> session' + (x.PeriodSessions === 1 ? '' : 's') + ' and <b>' + x.PeriodFinished + '</b> lesson' + (x.PeriodFinished === 1 ? '' : 's') + ' finished in this period' + (x.CompletedInPeriod ? ' · completed ' + esc(fmtDay(x.CompletedOn)) : '') + '</div>' : '') +
                 '<div class="s">' + esc([x.LastSession ? 'Last met ' + fmtDay(x.LastSession) : '', x.NextMeeting ? 'Next ' + fmtDayShort(x.NextMeeting) : '', x.ExpiryDate ? 'Valid until ' + fmtDate(x.ExpiryDate) : ''].filter(String).join(' · ') || 'No meetings yet') + '</div></a>';
             }).join('') : '<p class="muted">No one matches these filters.</p>') + '</div>';
           $('#copy').onclick = function () {
-            var csv = toCSV(rows);
+            var csv = toCSV(rows, CC);
             (navigator.clipboard ? navigator.clipboard.writeText(csv) : Promise.reject()).then(function () { toast('Copied. Paste it into Google Sheets or Excel.'); }).catch(function () {
               var t = document.createElement('textarea'); t.className = 'i code'; t.value = csv; $('#rep').appendChild(t); t.select(); toast('Select all and copy the text below.');
             });
@@ -3114,17 +3166,18 @@ if (typeof module !== 'undefined') module.exports = DEMO;
           $('#pdf').onclick = function () {
             var b = this, lab = function (sel) { var o = $(sel).selectedOptions[0]; return o ? o.textContent : ''; };
             busy(b, true);
-            reportPDF(rows, [lab('#fc'), lab('#fs'), lab('#fd')].join(' · '), r.generated).then(function () { busy(b, false); }).catch(function (x) { toast(x.message); busy(b, false); });
+            reportPDF(rows, [periodText(pf, pt), lab('#fc'), lab('#fs'), lab('#fd')].join(' · '), r.generated, per, pf, pt).then(function () { busy(b, false); }).catch(function (x) { toast(x.message); busy(b, false); });
           };
-          var dl = $('#dl'); if (dl) dl.onclick = function () { var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([toCSV(rows)], { type: 'text/csv' })); a.download = 'discipleship-report-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.appendChild(a); a.click(); a.remove(); };
+          var dl = $('#dl'); if (dl) dl.onclick = function () { var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([toCSV(rows, CC)], { type: 'text/csv' })); a.download = 'discipleship-report-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.appendChild(a); a.click(); a.remove(); };
         }).catch(function (e) { $('#rep').innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
       }
       ['#fc', '#fs', '#fd'].forEach(function (s) { $(s, m).onchange = run; });
+      wirePeriod(m, run);
       run();
     });
   }
   // A printable report: summary boxes, then a table of everyone matching the filters.
-  function reportPDF(rows, filterText, generated) {
+  function reportPDF(rows, filterText, generated, per, pf, pt) {
     return loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js').then(function () {
       var st = S.me.settings, doc = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
       var W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 36;
@@ -3132,8 +3185,10 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       var clean = function (t) { return String(t == null ? '' : t).replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-').replace(/…/g, '...').replace(/[^\x00-\xFF]/g, ''); };
       var fit = function (t, w) { t = clean(t); if (doc.getTextWidth(t) <= w) return t; while (t.length > 1 && doc.getTextWidth(t + '...') > w) t = t.slice(0, -1); return t + '...'; };
       var cnt = function (f) { return rows.filter(f).length; };
-      var done = cnt(function (x) { return x.LessonStatus === 'Completed'; });
-      var cols = [['Name', 150], ['Congregation', 105], ['Discipler', 115], ['Status', 92], ['Lessons', 52], ['Last meeting', 78], ['Next meeting', 78], ['Valid until', 78], ['Cert.', 22]];
+      var done = cnt(function (x) { return per ? x.CompletedInPeriod : x.LessonStatus === 'Completed'; });
+      var sum = function (k) { return rows.reduce(function (a, x) { return a + (x[k] || 0); }, 0); };
+      var cols = per ? [['Name', 145], ['Congregation', 100], ['Discipler', 110], ['Status', 90], ['Lessons', 46], ['Sessions', 50], ['Last meeting', 74], ['Completed on', 74], ['Valid until', 74], ['Cert.', 22]]
+        : [['Name', 150], ['Congregation', 105], ['Discipler', 115], ['Status', 92], ['Lessons', 52], ['Last meeting', 78], ['Next meeting', 78], ['Valid until', 78], ['Cert.', 22]];
       var scale = (W - M * 2) / cols.reduce(function (a, c) { return a + c[1]; }, 0); cols.forEach(function (c) { c[1] *= scale; });
       var DOT = { 'Completed': [44, 122, 75], 'In progress': [46, 74, 154], 'Not started': [140, 147, 165], 'Expired': [192, 57, 43] };
       var page = 0;
@@ -3155,7 +3210,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         return y + 20;
       }
       header(true);
-      var y = 112, boxes = [['People', rows.length, INK], ['Completed', done + ' (' + (rows.length ? Math.round(done / rows.length * 100) : 0) + '%)', [44, 122, 75]], ['In progress', cnt(function (x) { return x.LessonStatus === 'In progress'; }), [46, 74, 154]], ['Ready to graduate', cnt(function (x) { return x.ReadyToGraduate; }), FL], ['Not met recently', cnt(function (x) { return x.Stale; }), [192, 57, 43]], ['Not started', cnt(function (x) { return x.LessonStatus === 'Not started'; }), MUT], ['Expired', cnt(function (x) { return x.LessonStatus === 'Expired'; }), [192, 57, 43]]];
+      var y = 112, boxes = per ? [['People', rows.length, INK], ['Completed in period', done, [44, 122, 75]], ['Sessions in period', sum('PeriodSessions'), [46, 74, 154]], ['Lessons finished', sum('PeriodFinished'), [46, 74, 154]], ['Ready to graduate', cnt(function (x) { return x.ReadyToGraduate; }), FL], ['Not met recently', cnt(function (x) { return x.Stale; }), [192, 57, 43]], ['Not started', cnt(function (x) { return x.LessonStatus === 'Not started'; }), MUT]]
+        : [['People', rows.length, INK], ['Completed', done + ' (' + (rows.length ? Math.round(done / rows.length * 100) : 0) + '%)', [44, 122, 75]], ['In progress', cnt(function (x) { return x.LessonStatus === 'In progress'; }), [46, 74, 154]], ['Ready to graduate', cnt(function (x) { return x.ReadyToGraduate; }), FL], ['Not met recently', cnt(function (x) { return x.Stale; }), [192, 57, 43]], ['Not started', cnt(function (x) { return x.LessonStatus === 'Not started'; }), MUT], ['Expired', cnt(function (x) { return x.LessonStatus === 'Expired'; }), [192, 57, 43]]];
       var bw = (W - M * 2 - 8 * (boxes.length - 1)) / boxes.length;
       boxes.forEach(function (b, i) {
         var x = M + i * (bw + 8);
@@ -3170,7 +3226,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         if (y > H - 50) { header(false); y = tableHead(60); doc.setFontSize(8.5); }
         if (i % 2) { doc.setFillColor(250, 251, 253); doc.rect(M, y, W - M * 2, 18, 'F'); }
         var x = M + 6, label = r.ReadyToGraduate ? 'Ready to graduate' : r.Stale ? 'Not met recently' : r.LessonStatus;
-        var vals = [r.Name, r.Congregation, r.Discipler || '-', label, r.TotalLessons ? r.Finished + '/' + r.TotalLessons : '', fmtDay(r.LastSession), fmtDay(r.NextMeeting), fmtDate(r.ExpiryDate), r.HasCert ? 'Yes' : ''];
+        var vals = per ? [r.Name, r.Congregation, r.Discipler || '-', label, r.TotalLessons ? r.Finished + '/' + r.TotalLessons : '', String(r.PeriodSessions || 0), fmtDay(r.LastSession), fmtDay(r.CompletedOn), fmtDate(r.ExpiryDate), r.HasCert ? 'Yes' : '']
+          : [r.Name, r.Congregation, r.Discipler || '-', label, r.TotalLessons ? r.Finished + '/' + r.TotalLessons : '', fmtDay(r.LastSession), fmtDay(r.NextMeeting), fmtDate(r.ExpiryDate), r.HasCert ? 'Yes' : ''];
         vals.forEach(function (v, k) {
           doc.setFont('helvetica', k === 0 ? 'bold' : 'normal'); doc.setTextColor.apply(doc, k === 0 ? INK : [60, 66, 84]);
           if (k === 3) { var c = r.ReadyToGraduate ? FL : r.Stale ? [192, 57, 43] : (DOT[r.LessonStatus] || MUT); doc.setFillColor.apply(doc, c); doc.circle(x + 2.5, y + 9.5, 2.5, 'F'); doc.setTextColor.apply(doc, c); doc.text(fit(v, cols[k][1] - 16), x + 9, y + 12.5); }
@@ -3182,7 +3239,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       });
       var pages = doc.internal.getNumberOfPages();
       for (var pgi = 1; pgi <= pages; pgi++) { doc.setPage(pgi); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor.apply(doc, MUT); doc.text('MBBE Discipleship · ' + clean(st.ProgramName) + ' · page ' + pgi + ' of ' + pages, W / 2, H - 18, { align: 'center' }); }
-      var name = 'Discipleship report ' + todayStr() + '.pdf';
+      var name = 'Discipleship report ' + (per ? (pf || 'start') + ' to ' + (pt || todayStr()) : todayStr()) + '.pdf';
       if (IS_ARTIFACT) { toast('Made a ' + pages + '-page PDF. Downloading works in the live app.'); return; }
       doc.save(name); toast('Saved “' + name + '” to your downloads.');
     });
@@ -3382,13 +3439,15 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   function viewPresent() {
     frame({ title: 'Presentation', back: '#/certadmin', section: 'certadmin', wide: true });
     live('certQueue', null, function (d) {
-      var certs = d.issued.slice(), years = [];
-      certs.forEach(function (c) { if (years.indexOf(c.ProgramYear) < 0) years.push(c.ProgramYear); });
-      years.sort().reverse();
+      var certs = d.issued.slice();
+      var doneOn = function (c) { var v = c.CompletedDate || c.IssuedDate; return v ? ymd(new Date(v)) : ''; };
+      var per = LS.get('dt-pres-period') || presetRange('year');
+      var inRange = function (c) { var x = doneOn(c); return (!per[0] || x >= per[0]) && (!per[1] || x <= per[1]); };
       if (!certs.length) { fill('<div class="card"><h2>No certificates yet</h2><p>Issue certificates first. Then you can choose who to include in the presentation.</p><a class="btn" href="#/certadmin">Go to certificates</a></div>'); return; }
       var st = S.me.settings, saved = LS.get('dt-present') || {};
-      var year = years[0], picked = {};
-      certs.forEach(function (c) { if (c.ProgramYear === year) picked[c.CertNo] = 1; });
+      var picked = {};
+      var pickAll = function () { picked = {}; certs.forEach(function (c) { if (inRange(c)) picked[c.CertNo] = 1; }); };
+      pickAll();
       var dv = { title: saved.title || 'Discovery Discipleship Program', program: saved.program || 'Discovery Discipleship Program', venue: saved.venue || 'MBBE Sanctuary', date: todayStr(),
         v1ref: saved.v1ref || '2 Timothy 2:2', v1: saved.v1 || 'And the things that thou hast heard of me among many witnesses, the same commit thou to faithful men, who shall be able to teach others also.',
         v2ref: saved.v2ref || '2 Timothy 2:15', v2: saved.v2 || 'Study to shew thyself approved unto God, a workman that needeth not to be ashamed, rightly dividing the word of truth.' };
@@ -3403,18 +3462,18 @@ if (typeof module !== 'undefined') module.exports = DEMO;
           '<label class="row small"><input type="checkbox" id="pclose" checked> Closing slide (congratulations)</label>' +
           '<p class="small muted">The senior pastor’s photo and signatories come from <a href="#/setup/settings">Settings</a>; preachers and their photos from <a href="#/setup/congregations">Congregations</a>.</p></div>' +
         '</div><div class="col">' +
-        '<div class="filters"><select class="i" id="yr" aria-label="Program year">' + years.map(function (y) { return '<option>' + esc(y) + '</option>'; }).join('') + '</select></div>' +
+        '<p class="small muted" style="margin:0">Graduates who completed between these dates:</p>' + periodBar(per[0], per[1]) +
         '<div id="groups" class="stack"></div></div></div>' +
         '<div class="dock"><div class="spread"><span class="small" id="cnt"></span><button type="button" class="btn flame sm" id="mk">' + icon('screen') + 'Create PDF</button></div><div class="small muted" id="prog" hidden></div></div>' +
         '<div id="pv" class="previews"></div>');
       function draw() {
-        var list = certs.filter(function (c) { return c.ProgramYear === year; }), groups = {};
+        var list = certs.filter(inRange), groups = {};
         list.forEach(function (c) { (groups[c.Congregation || 'No congregation'] = groups[c.Congregation || 'No congregation'] || []).push(c); });
         $('#groups').innerHTML = Object.keys(groups).sort().map(function (g, gi) {
           var items = groups[g].sort(function (a, b) { return a.Name.localeCompare(b.Name); });
           return '<div class="card"><label class="row"><input type="checkbox" data-g="' + gi + '"' + (items.every(function (c) { return picked[c.CertNo]; }) ? ' checked' : '') + '> <b>' + esc(g) + '</b> <span class="small muted">' + items.length + '</span></label>' +
-            items.map(function (c) { return '<label class="row pick"><input type="checkbox" data-c="' + esc(c.CertNo) + '" data-gi="' + gi + '"' + (picked[c.CertNo] ? ' checked' : '') + '>' + avatar(c.PhotoID, 'sm', '') + '<span><b>' + esc(c.Name) + '</b><br><span class="small muted">' + esc(c.LevelName) + (c.Discipler ? ' · ' + esc(c.Discipler) : '') + '</span></span></label>'; }).join('') + '</div>';
-        }).join('');
+            items.map(function (c) { return '<label class="row pick"><input type="checkbox" data-c="' + esc(c.CertNo) + '" data-gi="' + gi + '"' + (picked[c.CertNo] ? ' checked' : '') + '>' + avatar(c.PhotoID, 'sm', '') + '<span><b>' + esc(c.Name) + '</b><br><span class="small muted">' + esc(c.LevelName) + ' · completed ' + esc(fmtDay(doneOn(c))) + (c.Discipler ? ' · discipler ' + esc(c.Discipler) : '') + '</span></span></label>'; }).join('') + '</div>';
+        }).join('') || '<div class="card"><p class="muted">No certificates for graduates who completed in this period. Choose other dates, or issue certificates first.</p></div>';
         hydrate($('#groups'));
         $$('[data-c]', m).forEach(function (x) { x.onchange = function () { if (x.checked) picked[x.dataset.c] = 1; else delete picked[x.dataset.c]; draw(); }; });
         $$('[data-g]', m).forEach(function (x) { x.onchange = function () { $$('[data-gi="' + x.dataset.g + '"]', m).forEach(function (y) { if (x.checked) picked[y.dataset.c] = 1; else delete picked[y.dataset.c]; }); draw(); }; });
@@ -3422,7 +3481,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         $('#cnt').innerHTML = '<b>' + sel.length + '</b> certificate' + (sel.length === 1 ? '' : 's') + ' · ' + Object.keys(gs).length + ' congregation' + (Object.keys(gs).length === 1 ? '' : 's');
         $('#mk').disabled = !sel.length;
       }
-      $('#yr').onchange = function () { year = this.value; picked = {}; certs.forEach(function (c) { if (c.ProgramYear === year) picked[c.CertNo] = 1; }); draw(); };
+      wirePeriod(m, function () { per = [$('#pf').value, $('#pt').value]; LS.set('dt-pres-period', per); pickAll(); draw(); });
       draw();
       $('#mk').onclick = function () {
         var btn = this, prog = $('#prog'), congs = {};
@@ -3430,7 +3489,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
           sig1: st.Signatory1, sig1Title: st.Signatory1Title, sig2: st.Signatory2, sig2Title: st.Signatory2Title };
         LS.set('dt-present', { program: o.program, venue: o.venue, v1ref: $('#v1ref').value, v1: $('#v1').value, v2ref: $('#v2ref').value, v2: $('#v2').value });
         S.me.congregations.forEach(function (c) { congs[c.CongregationID] = c; });
-        var sel = certs.filter(function (c) { return c.ProgramYear === year && picked[c.CertNo]; });
+        var sel = certs.filter(function (c) { return inRange(c) && picked[c.CertNo]; }), year = periodText(per[0], per[1]);
         var byG = {}; sel.forEach(function (c) { (byG[c.CongregationID] = byG[c.CongregationID] || []).push(c); });
         var order = Object.keys(byG).sort(function (a, b) { return String((congs[a] || {}).Name || byG[a][0].Congregation).localeCompare(String((congs[b] || {}).Name || byG[b][0].Congregation)); });
         var pp = runLocal('preacherPhotos'), PH = pp.ok ? pp.data.photos : {};
@@ -3482,7 +3541,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
             return steps;
           }).then(function () {
             $('#pv').innerHTML = '<h3>Preview</h3>' + slides.map(function (u) { return '<img src="' + u + '" alt="Slide preview">'; }).join('') + (page > slides.length ? '<p class="small muted">and ' + (page - slides.length) + ' more slides in the PDF.</p>' : '');
-            var name = 'Graduates ' + year + '.pdf';
+            var name = 'Graduates ' + (per[0] || 'start') + ' to ' + (per[1] || todayStr()) + '.pdf';
             if (IS_ARTIFACT) prog.textContent = 'Made ' + page + ' slides. Downloading works in the live app; here you can see the preview.';
             else { doc.save(name); prog.textContent = 'Done. “' + name + '” has ' + page + ' slides and was saved to your downloads.'; }
             busy(btn, false);
