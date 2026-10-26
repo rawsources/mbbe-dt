@@ -733,6 +733,36 @@ input[type="date"].i { min-width: 0; -webkit-appearance: none; appearance: none;
 .cmp b { font-size: 14px }
 @media (min-width: 640px) { .lpick { grid-template-columns: repeat(2, minmax(0, 1fr)) } .lgroup { grid-column: 1 / -1 } .lgroup .ltiles { grid-template-columns: repeat(8, minmax(0, 1fr)) } }
 
+/* sign-up form and QR sharing */
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden }
+.center-card { justify-items: center; text-align: center }
+.ci.big { width: 60px; height: 60px; border-radius: 50%; background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok) }
+.ci.big svg { width: 30px; height: 30px }
+.share-cta { display: flex; gap: 14px; align-items: center }
+.share-cta > span:last-child { display: grid; gap: 2px }
+.sharegrid { display: grid; gap: 16px }
+.sharecard { gap: 14px; justify-items: center; text-align: center }
+.sharecard h2 { font-size: 20px }
+.qrbox { width: min(300px, 100%); aspect-ratio: 760 / 930; display: grid; place-items: center; background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden }
+.qrbox img { width: 100%; height: auto; display: block }
+.urlrow { max-width: 100% }
+.url { display: inline-block; max-width: 100%; overflow-wrap: anywhere; font-weight: 800; font-size: 15px; color: var(--accent); background: var(--flame-soft); border: 1px solid color-mix(in srgb, var(--flame) 45%, transparent); border-radius: 999px; padding: 6px 14px; user-select: all }
+.shareacts { justify-content: center }
+@media (min-width: 760px) { .sharegrid { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+.jchoice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px }
+.jopt { display: grid; gap: 4px; justify-items: start; align-content: start; padding: 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none }
+.jopt svg { width: 24px; height: 24px; color: var(--accent) }
+.jopt b { font-size: 15px }
+.jopt span { font-size: 12.5px; color: var(--muted); line-height: 1.35 }
+.jopt[aria-pressed="true"] { border: 2px solid var(--flame); background: var(--flame-soft) }
+.jopt[aria-pressed="true"] svg { color: var(--flame) }
+.dcard { cursor: default }
+.dcard .dlink { color: var(--ink); text-decoration: none }
+.dcard .dlink:hover { color: var(--flame) }
+.dcard .row { margin-top: 4px }
+label.row { flex-wrap: nowrap; align-items: flex-start }
+label.row > input[type="checkbox"] { flex: none; margin: 3px 0 0; width: 18px; height: 18px; accent-color: var(--flame) }
+
 </style>
 </head>
 <body>
@@ -748,7 +778,7 @@ window.addEventListener('error', function (e) {
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* Self-update: GitHub Pages lets browsers keep a page for 10 minutes. On open, check for a newer copy and reload once if found. */
-window.APP_BUILD = '20261026205604';
+window.APP_BUILD = '20261026233230';
 (function () {
   if (!/^https?:/.test(location.protocol) || !window.fetch || window.APP_CONFIG_IS_ARTIFACT) return;
   try { if (sessionStorage.getItem('dt-upd') === window.APP_BUILD) return; } catch (e) {}
@@ -1002,7 +1032,7 @@ var CORE = (function () {
       ReadyToGraduate: st === 'In progress' && p.total > 0 && p.finished === p.total,
       Stale: !!stale, Expiring: !!expiring, ExpiryDate: e ? e.ExpiryDate : '',
       HasCert: e ? !!find('Certificates', 'EnrollmentID', e.EnrollmentID) : false,
-      CreatedAt: x.CreatedAt, PhotoID: personPhoto(x.UserID), Disciples: isTrue(x.Disciples), TakesLessons: isTrue(x.TakesLessons), Tracked: tracked(x), LevelsDone: Object.keys(doneLevels(x.UserID)).length, LevelsTotal: allLevels().length, LevelName: e ? levelName(e.Level) : '', IsSample: isTrue(x.IsSample)
+      CreatedAt: x.CreatedAt, PhotoID: personPhoto(x.UserID), Disciples: isTrue(x.Disciples), TakesLessons: isTrue(x.TakesLessons), Tracked: tracked(x), Joined: !str(x.PinHash), LevelsDone: Object.keys(doneLevels(x.UserID)).length, LevelsTotal: allLevels().length, LevelName: e ? levelName(e.Level) : '', IsSample: isTrue(x.IsSample)
     };
   }
   function target(u, id, mustScope) {
@@ -1019,16 +1049,34 @@ var CORE = (function () {
     var s = settings();
     return { churchName: s.ChurchName, programName: s.ProgramName, discipleLogin: isTrue(s.DiscipleLogin), congregations: rows('Congregations').filter(function (c) { return c.Status !== 'Inactive' && !isTrue(c.IsSample); }).map(function (c) { return { CongregationID: c.CongregationID, Name: c.Name, Location: c.Location }; }) };
   };
+  // The open sign-up form for new disciples (shared by QR code). No account or PIN: a coordinator approves them and assigns a discipler.
+  A.join = function (q) {
+    if (str(q.website)) return { pending: true }; // a field people can't see; only robots fill it in
+    if (db.rate && !db.rate('join', 30, 600)) fail('Many people are signing up right now. Please try again in a few minutes.');
+    var name = str(q.name).trim().replace(/\s+/g, ' '), mobile = normMobile(q.mobile);
+    if (name.length < 3 || name.length > 80) fail('Please enter your full name.');
+    if (!/^09\d{9}$/.test(mobile)) fail('Enter your mobile number like 0917 123 4567.');
+    var c = find('Congregations', 'CongregationID', q.congregationId);
+    if (!c || c.Status === 'Inactive' || isTrue(c.IsSample)) fail('Please choose your congregation.');
+    var ex = find('Users', 'Mobile', mobile);
+    if (ex) { if (ex.Status === 'Pending') return { pending: true, already: true }; fail('This mobile number is already registered with us. Please contact your coordinator.'); }
+    var u = { UserID: 'U-' + db.uid().slice(0, 8), Name: name, Mobile: mobile, PinHash: '', Role: 'Disciple', CongregationID: c.CongregationID, Status: 'Pending', DisciplerID: '', ModCongregations: '', AppointedBy: '', AppointedAt: '', FailCount: '0', LockUntil: '', CreatedAt: nowIso(), LastLogin: '' };
+    ins('Users', u);
+    audit(u, 'Signed up (form)', u.UserID, c.Name);
+    return { pending: true };
+  };
   A.register = function (q) {
-    var name = str(q.name).trim(), mobile = normMobile(q.mobile);
+    if (str(q.website)) return { pending: true }; // hidden field: robots only
+    if (db.rate && !db.rate('join', 30, 600)) fail('Many people are signing up right now. Please try again in a few minutes.');
+    var name = str(q.name).trim().replace(/\s+/g, ' '), mobile = normMobile(q.mobile), asDiscipler = q.role === 'Discipler';
     if (name.length < 3) fail('Please enter your full name.');
     if (!/^09\d{9}$/.test(mobile)) fail('Enter a mobile number like 0917 123 4567.');
     checkPin(q.pin);
     if (!find('Congregations', 'CongregationID', q.congregationId)) fail('Please choose your congregation.');
     if (find('Users', 'Mobile', mobile)) fail('This mobile number is already registered. Sign in instead, or ask your coordinator to reset your PIN.');
-    var u = { UserID: 'U-' + db.uid().slice(0, 8), Name: name, Mobile: mobile, PinHash: hashPin(q.pin), Role: 'Disciple', CongregationID: q.congregationId, Status: 'Pending', DisciplerID: '', ModCongregations: '', AppointedBy: '', AppointedAt: '', FailCount: '0', LockUntil: '', CreatedAt: nowIso(), LastLogin: '' };
+    var u = { UserID: 'U-' + db.uid().slice(0, 8), Name: name, Mobile: mobile, PinHash: hashPin(q.pin), Role: asDiscipler ? 'Discipler' : 'Disciple', CongregationID: q.congregationId, Status: 'Pending', DisciplerID: '', ModCongregations: '', AppointedBy: '', AppointedAt: '', FailCount: '0', LockUntil: '', CreatedAt: nowIso(), LastLogin: '', TakesLessons: asDiscipler ? tf(q.takesLessons) : '' };
     ins('Users', u);
-    audit(u, 'Registered', u.UserID, congName(u.CongregationID));
+    audit(u, asDiscipler ? 'Applied as discipler' : 'Registered', u.UserID, congName(u.CongregationID));
     return { pending: true };
   };
   function normName(s) { return str(s).toLowerCase().replace(/[^a-z0-9ñ ]/g, ' ').replace(/\s+/g, ' ').trim(); }
@@ -1675,7 +1723,7 @@ var CORE = (function () {
     return { log: r.map(function (a) { return { Timestamp: a.Timestamp, Who: userName(a.UserID), Action: a.Action, Target: userName(a.Target) || a.Target, Details: a.Details }; }) };
   };
 
-  var PUBLIC = { ping: 1, publicInfo: 1, register: 1, login: 1, lookup: 1 };
+  var PUBLIC = { ping: 1, publicInfo: 1, register: 1, join: 1, login: 1, lookup: 1 };
 
   function handle(adapter, req) {
     db = adapter; IDX = {};
@@ -1912,6 +1960,11 @@ var DEMO = (function () {
 })();
 if (typeof module !== 'undefined') module.exports = DEMO;
 
+</script>
+<script>
+// Copyright (c) 2009 Kazuhiko Arase
+// Licensed under the MIT license:
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,(function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1}))},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(t,r){var e=n("友");if(2!=e.length||38726!=(e[0]<<8|e[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}((function(){return qrcode}));
 </script>
 <script>
 (function () {
@@ -2264,6 +2317,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
     send: '<path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4z"/>',
     download: '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/>',
+    qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/>',
+    link: '<path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>',
     copy: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>'
   };
   function icon(n) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[n] + '</svg>'; }
@@ -2377,7 +2432,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
           '<button class="btn primary block" id="go">Sign in</button>' +
         '</form>';
     authShell(form +
-      '<p class="muted small">' + (S.info && S.info.discipleLogin ? 'New here? <a href="#/register">Create your account</a>. ' : 'For disciplers and coordinators. Disciples don’t need an account. New discipler? <a href="#/register">Create your account</a>. ') + 'Forgot your PIN? Ask your coordinator to reset it.</p>' +
+      '<p class="muted small">' + (S.info && S.info.discipleLogin ? 'New here? <a href="#/join">Sign up</a>. ' : 'For disciplers and coordinators. New here? <a href="#/join">Sign up to be discipled or to become a discipler</a>. ') + 'Forgot your PIN? Ask your coordinator to reset it.</p>' +
       (DEMO_MODE ? '<div class="demo"><div><b>Demo mode.</b> Sample people and data, saved only on this device. Every demo PIN is <b>1234</b>. Sign in as:</div><div class="row">' +
         [['Admin', '09170000001'], ['Coordinator', '09170000002'], ['Discipler', '09170000003']].concat(S.info && S.info.discipleLogin ? [['Disciple', '09170000005']] : []).map(function (d) { return '<button type="button" class="btn sm" data-demo="' + d[1] + '">' + d[0] + '</button>'; }).join('') +
         '</div></div>' : '') + installCard());
@@ -2693,7 +2748,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       $('.top h1').textContent = p.Role;
       if (!tr) {
         var mineN = ppl ? ppl.people.filter(function (x) { return x.DisciplerID === uid && x.Status === 'Active'; }).length : 0;
-        band('<div class="pb">' + avatar(p.PhotoID, 'lg ringed', p.Name) + '<div class="pb-t"><h2>' + esc(p.Name) + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</h2><p>' + esc(p.Role + ' · ' + p.Congregation + (p.Role === 'Discipler' || p.Disciples ? ' · ' + mineN + ' disciple' + (mineN === 1 ? '' : 's') : '')) + '</p></div></div>');
+        band('<div class="pb">' + avatar(p.PhotoID, 'lg ringed', p.Name) + '<div class="pb-t"><h2>' + esc(p.Name) + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</h2><p>' + esc(p.Role + ' · ' + p.Congregation + (p.Role === 'Discipler' || p.Disciples ? ' · ' + mineN + ' disciple' + (mineN === 1 ? '' : 's') : '')) + '</p></div>' +
+          (mineN ? '<button type="button" class="btn band-btn" id="dstat">' + icon('image') + '<span>Status poster</span></button>' : '') + '</div>');
       }
       var info = [PM.done + ' of ' + PM.total + (PM.multi ? ' levels' : '') + ' done'];
       if (pr.lastSession && !fresh) info.push('last met ' + agoText(pr.lastSession));
@@ -2849,6 +2905,9 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         };
         if (focusRecord) setTimeout(function () { lf.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 60);
       }
+      var dst = $('#dstat'); if (dst) dst.onclick = function () { openDisciplerStatus(uid); };
+      var hasMine = ppl && ppl.people.some(function (x) { return x.DisciplerID === uid && x.Status === 'Active'; });
+      if (tr && hasMine && !dst) { var pbx = $('.pb'); if (pbx) { pbx.insertAdjacentHTML('beforeend', '<button type="button" class="btn band-btn" id="dstat">' + icon('image') + '<span>Status poster</span></button>'); $('#dstat').onclick = function () { openDisciplerStatus(uid); }; } }
       var su = $('#sendupd'); if (su) su.onclick = function () { openUpdate(uid, pr.sessions.length ? 'session' : 'celebrate'); };
       $$('[data-upd]', m).forEach(function (b2) { b2.onclick = function () { openUpdate(uid, 'session', { sessionId: b2.dataset.upd }); }; });
       var pph = $('#pph', m); if (pph) pph.onclick = function () { pickImage(true, function (pic) { uploadPhoto('person', uid, pic).then(function () { viewPerson(uid); }).catch(function (x) { toast(x.message); }); }); };
@@ -3119,6 +3178,119 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     $('#updsave', sh).onclick = function () { if (!cv) return; cv.toBlob(function (bl) { saveBlob(bl, fname()); toast(IS_ARTIFACT ? 'Saving works in the live app.' : 'Picture saved to your downloads.'); }, 'image/jpeg', 0.9); };
     setKind(kind);
   }
+  /* ---------- status poster for a discipler (sent by a coordinator) ---------- */
+  function drawStatus(o) {
+    var W = 1080, NAVY = '#243049', FL = '#e05a1c', GOLD = '#f6b13a', INK = '#1b2236', MUTED = '#5a6278';
+    var rows = o.list.slice(0, 12), followH = o.follow.length ? 110 + Math.min(o.follow.length, 6) * 50 : 0;
+    var H = 520 + 190 + 70 + rows.length * 96 + (o.list.length > 12 ? 50 : 0) + (followH ? followH + 40 : 0) + 170;
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H; var ctx = cv.getContext('2d');
+    var T = function (t, x, y, font, color, align, maxW) { ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align || 'left'; if (maxW) fitText(ctx, t, maxW, +/(\d+)px/.exec(font)[1], font.replace(/\d+px/, '{s}px')); ctx.fillText(t, x, y); };
+    var spaced = function (t) { return t.toUpperCase().split('').join(String.fromCharCode(8202)); };
+    ctx.fillStyle = '#f3f4f8'; ctx.fillRect(0, 0, W, H); ctx.fillStyle = NAVY; ctx.fillRect(0, 0, W, 480);
+    var g = ctx.createLinearGradient(0, 0, W, 0); g.addColorStop(0, GOLD); g.addColorStop(1, '#e64a26'); ctx.fillStyle = g; ctx.fillRect(0, 474, W, 8);
+    if (o.church) { ctx.save(); ctx.beginPath(); ctx.arc(108, 96, 36, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(o.church, 72, 60, 72, 72); ctx.restore(); }
+    T(spaced(o.churchName), 164, 88, '700 21px ' + SANS, GOLD, 'left', 840);
+    T('Discipleship · ' + o.program, 164, 122, '600 26px ' + SANS, 'rgba(255,255,255,.8)');
+    T(spaced('Discipleship status · ' + o.dateText), 80, 214, '800 26px ' + SANS, GOLD);
+    circleImg(ctx, o.photo, 190, 350, 100, { w: 8, c: GOLD });
+    ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; fitText(ctx, o.name, 640, 60, '700 {s}px ' + SERIF); ctx.fillText(o.name, 340, 340);
+    T(o.role + ' · ' + o.congregation, 340, 392, '600 28px ' + SANS, 'rgba(255,255,255,.78)', 'left', 680);
+    // number tiles
+    var tiles = [[o.list.length, 'Disciples', INK], [o.meeting, 'Meeting', '#2e4a9a'], [o.ready, 'Ready to graduate', FL], [o.done, 'Completed', '#2c7a4b']];
+    var tw = (W - 160 - 3 * 20) / 4, ty = 520;
+    tiles.forEach(function (t, i) {
+      var x = 80 + i * (tw + 20); ctx.fillStyle = '#fff'; rrect(ctx, x, ty, tw, 150, 24); ctx.fill();
+      T(String(t[0]), x + 26, ty + 78, '800 58px ' + SANS, t[2]); T(t[1], x + 26, ty + 120, '700 22px ' + SANS, MUTED, 'left', tw - 40);
+    });
+    var y = ty + 190;
+    T(spaced('Your disciples'), 80, y + 26, '800 22px ' + SANS, MUTED); y += 50;
+    ctx.fillStyle = '#fff'; rrect(ctx, 60, y, W - 120, rows.length * 96 + (o.list.length > 12 ? 50 : 0) + 20, 28); ctx.fill(); y += 10;
+    rows.forEach(function (r, i) {
+      var cy = y + 48;
+      circleImg(ctx, r.img, 120, cy, 30, { w: 0, c: 'transparent' });
+      ctx.textAlign = 'left'; ctx.fillStyle = INK; fitText(ctx, r.name, 430, 30, '700 {s}px ' + SANS); ctx.fillText(r.name, 170, cy - 4);
+      T(r.sub, 170, cy + 30, '600 21px ' + SANS, r.warn ? '#c0392b' : MUTED, 'left', 430);
+      // progress blocks
+      var n = Math.min(r.total, 12), bx = 640, bw = n ? Math.min(28, (200 - (n - 1) * 5) / n) : 0;
+      for (var k = 0; k < n; k++) { ctx.fillStyle = k < r.done ? FL : '#eceef4'; rrect(ctx, bx + k * (bw + 5), cy - 20, bw, 12, 4); ctx.fill(); }
+      if (n) T(r.done + '/' + r.total + (r.unit ? ' ' + r.unit : ''), bx, cy + 22, '700 20px ' + SANS, MUTED);
+      // status pill
+      ctx.font = '800 20px ' + SANS; var pw = ctx.measureText(r.status).width + 36;
+      ctx.fillStyle = r.pillBg; rrect(ctx, W - 100 - pw, cy - 22, pw, 44, 22); ctx.fill(); T(r.status, W - 100 - pw / 2, cy + 7, '800 20px ' + SANS, r.pillFg, 'center');
+      if (i < rows.length - 1) { ctx.fillStyle = '#eceef4'; ctx.fillRect(100, y + 95, W - 200, 2); }
+      y += 96;
+    });
+    if (o.list.length > 12) { T('and ' + (o.list.length - 12) + ' more', 120, y + 34, '700 22px ' + SANS, MUTED); y += 50; }
+    y += 50;
+    if (o.follow.length) {
+      ctx.fillStyle = '#fdeee2'; rrect(ctx, 60, y, W - 120, followH, 28); ctx.fill();
+      T(spaced('Please follow up'), 100, y + 54, '800 22px ' + SANS, '#a3410f');
+      o.follow.slice(0, 6).forEach(function (f, i) { ctx.fillStyle = FL; diamond(ctx, 112, y + 96 + i * 50 - 9, 8); T(f, 136, y + 96 + i * 50, '600 27px ' + SANS, INK, 'left', W - 240); });
+      y += followH + 40;
+    }
+    wrapC(ctx, 'Thank you for faithfully discipling!', W / 2, y + 40, W - 160, 44, 'italic 600 36px ' + SERIF, NAVY);
+    T('From ' + o.from + ' · ' + o.churchName, W / 2, y + 100, '600 22px ' + SANS, MUTED, 'center', W - 160);
+    return cv;
+  }
+  function openDisciplerStatus(did) {
+    var r = runLocal('people'); if (!r.ok) { toast(r.error); return; }
+    var d = r.data.people.filter(function (x) { return x.UserID === did; })[0]; if (!d) { toast('Person not found.'); return; }
+    var stale = +S.me.settings.StaleDays || 30, first = firstName(d.Name), st = S.me.settings;
+    var list = r.data.people.filter(function (x) { return x.DisciplerID === did && x.Status === 'Active' && x.Tracked !== false; }).sort(bySort);
+    if (!list.length) { toast(first + ' has no disciples yet.'); return; }
+    var lv = list[0].LevelsTotal > 1;
+    var rowOf = function (x) {
+      var status = x.ReadyToGraduate ? ['Ready', '#fdeee2', '#a3410f'] : x.Stale ? ['Follow up', '#fbe9e7', '#c0392b'] : x.LessonStatus === 'In progress' ? ['Meeting', '#e8ebf4', '#2e4a9a'] : x.LessonStatus === 'Completed' ? ['Completed', '#e6f3ec', '#2c7a4b'] : x.LessonStatus === 'Expired' ? ['Expired', '#fbe9e7', '#c0392b'] : ['Not started', '#eceef4', '#5a6278'];
+      var sub = x.LastSession ? 'Last met ' + agoText(x.LastSession) : 'No meeting yet';
+      if (x.NextMeeting) sub += ' · next ' + fmtDayShort(x.NextMeeting);
+      return { id: x.PhotoID, name: x.Name, sub: sub, warn: x.Stale || (!x.LastSession && x.LessonStatus !== 'Completed'), status: status[0], pillBg: status[1], pillFg: status[2],
+        done: lv ? x.LevelsDone : x.Finished, total: lv ? x.LevelsTotal : (x.LessonStatus === 'Not started' ? 0 : x.TotalLessons), unit: lv ? 'levels' : '' };
+    };
+    var rows = list.map(rowOf), follow = [];
+    list.forEach(function (x) {
+      if (x.ReadyToGraduate) follow.push(firstName(x.Name) + ' finished all lessons: please mark fit to graduate');
+      else if (x.Stale) follow.push(firstName(x.Name) + ': no meeting in ' + (x.LastSession ? daysAgo(x.LastSession) + ' days' : stale + '+ days'));
+      else if (x.LessonStatus === 'Not started') follow.push(firstName(x.Name) + ': set your first meeting');
+      else if (x.LessonStatus === 'Expired') follow.push(firstName(x.Name) + ': completion expired, plan to retake');
+    });
+    var cnt = function (f) { return list.filter(f).length; };
+    var o = { churchName: st.ChurchName, program: st.ProgramName, dateText: fmtDate(new Date().toISOString()), name: d.Name, role: d.Role, congregation: d.Congregation, from: S.me.user.Name,
+      meeting: cnt(function (x) { return x.LessonStatus === 'In progress' && !x.ReadyToGraduate; }), ready: cnt(function (x) { return x.ReadyToGraduate; }), done: cnt(function (x) { return x.LessonStatus === 'Completed'; }),
+      list: rows, follow: follow };
+    var msg = 'Hi ' + first + '! Here’s the status of your disciples as of ' + o.dateText + ': ' + [o.meeting ? o.meeting + ' meeting' : '', o.ready ? o.ready + ' ready to graduate' : '', o.done ? o.done + ' completed' : ''].filter(String).join(', ') + '.' +
+      (follow.length ? ' Please follow up: ' + follow.join('; ') + '.' : '') + ' Thank you for faithfully discipling! – ' + firstName(S.me.user.Name);
+    var scrim = document.createElement('div'); scrim.className = 'scrim';
+    var sh = document.createElement('div'); sh.className = 'sheet upd'; sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-modal', 'true'); sh.setAttribute('aria-label', 'Status poster for ' + first);
+    sh.innerHTML = '<div class="grip"></div><header><h4>Status poster for ' + esc(first) + '</h4><button type="button" class="close" aria-label="Close">×</button></header>' +
+      '<div class="sheet-body upd-body"><div class="upd-grid"><div class="upd-prev"><div class="upd-img" id="stimg"><div class="loading"><span class="spin"></span></div></div></div><div class="upd-side stack">' +
+      '<p class="small muted">A summary of ' + esc(first) + '’s ' + list.length + ' disciple' + (list.length === 1 ? '' : 's') + ', with who needs follow-up. Private notes are never shown.</p>' +
+      '<label class="f">Message to send with it<textarea class="i" id="stm" style="min-height:140px">' + esc(msg) + '</textarea></label>' +
+      (d.Mobile ? '<p class="small muted">Send it to ' + esc(d.Mobile) + ' on Messenger, Viber or SMS.</p>' : '') +
+      '<div class="upd-acts"><button type="button" class="btn flame" id="stshare">' + icon('share') + 'Share picture</button><button type="button" class="btn" id="stcopy">' + icon('copy') + 'Copy message</button><button type="button" class="btn quiet" id="stsave">' + icon('image') + 'Save picture</button></div>' +
+      '</div></div></div>';
+    document.body.appendChild(scrim); document.body.appendChild(sh);
+    requestAnimationFrame(function () { scrim.classList.add('on'); sh.classList.add('on'); });
+    var close = function () { scrim.classList.remove('on'); sh.classList.remove('on'); setTimeout(function () { scrim.remove(); sh.remove(); }, 260); document.removeEventListener('keydown', key); window.removeEventListener('hashchange', close); };
+    var key = function (ev) { if (ev.key === 'Escape') close(); };
+    document.addEventListener('keydown', key); window.addEventListener('hashchange', close); scrim.onclick = close; $('.close', sh).onclick = close;
+    var cv = null, src = function (id) { return id && (FULL[id] || THUMBS[id]) ? 'data:image/jpeg;base64,' + (FULL[id] || THUMBS[id]) : null; };
+    var FONTS = ['700 40px "Source Serif 4"', 'italic 600 40px "Source Serif 4"', '800 20px Manrope', '700 20px Manrope', '600 20px Manrope'];
+    Promise.all([document.fonts && document.fonts.load ? Promise.all(FONTS.map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve(), fullPhotos([d.PhotoID].filter(String)).catch(function () {})])
+      .then(function () { return Promise.all([loadImg(CHURCH_URI), loadImg(src(d.PhotoID))].concat(rows.slice(0, 12).map(function (rw) { return loadImg(src(rw.id)); }))); })
+      .then(function (a) {
+        o.church = a[0]; o.photo = a[1]; rows.slice(0, 12).forEach(function (rw, i) { rw.img = a[i + 2]; });
+        cv = drawStatus(o); var box = $('#stimg', sh); box.innerHTML = ''; var im = new Image(); im.alt = 'Status poster for ' + d.Name; im.src = cv.toDataURL('image/jpeg', 0.85); box.appendChild(im);
+      });
+    var fname = first + ' discipleship status ' + todayStr() + '.jpg';
+    $('#stcopy', sh).onclick = function () { copyText($('#stm', sh).value); };
+    $('#stshare', sh).onclick = function () {
+      if (!cv) return; var txt = $('#stm', sh).value;
+      shareImage(cv, fname, txt).then(function (how) { if (how === 'saved') { copyText(txt); toast('Picture saved. Send it to ' + first + ' with the copied message.'); } if (how === 'shared') toast('Status poster sent.'); })
+        .catch(function (x) { toast(IS_ARTIFACT ? 'Sharing works in the live app. Here you can see the picture.' : 'Couldn’t share: ' + x.message); });
+    };
+    $('#stsave', sh).onclick = function () { if (!cv) return; cv.toBlob(function (bl) { saveBlob(bl, fname); toast(IS_ARTIFACT ? 'Saving works in the live app.' : 'Picture saved to your downloads.'); }, 'image/jpeg', 0.9); };
+  }
+
   /* ---------- coordinator ---------- */
   function viewDash() {
     frame({ eyebrow: greeting(), title: S.me.user.Name, wide: true });
@@ -3163,16 +3335,18 @@ if (typeof module !== 'undefined') module.exports = DEMO;
 
       html += '<div class="dash-2"><section class="sec"><h3>Disciplers</h3>' + (d.disciplers.length ? '<div class="list">' + d.disciplers.slice().sort(function (a, b) { return b.Stale - a.Stale || a.Name.localeCompare(b.Name); }).map(function (x) {
         var pc = x.Disciples ? Math.round(x.Completed / x.Disciples * 100) : 0;
-        return '<a class="item person-item" href="#/reports//' + esc(x.UserID) + '">' + avatar(x.PhotoID, '', '') + '<div class="pi"><div class="t">' + esc(x.Name) + '</div>' +
+        return '<div class="item person-item dcard">' + avatar(x.PhotoID, '', '') + '<div class="pi"><a class="t dlink" href="#/person/' + esc(x.UserID) + '">' + esc(x.Name) + '</a>' +
           (x.Stale ? '<div class="row">' + pill('Returned', x.Stale + ' not met recently') + '</div>' : '') +
           '<div class="prog"><span class="track"><span class="fill" style="width:' + pc + '%"></span></span><span>' + x.Completed + '/' + x.Disciples + '</span></div>' +
-          '<div class="s">' + esc(x.Congregation) + ' · ' + n(x.Disciples, 'disciple', 'disciples') + ' · ' + n(x.Sessions30, 'session', 'sessions') + ' in 30 days</div></div></a>';
+          '<div class="s">' + esc(x.Congregation) + ' · ' + n(x.Disciples, 'disciple', 'disciples') + ' · ' + n(x.Sessions30, 'session', 'sessions') + ' in 30 days</div>' +
+          '<div class="row">' + (x.Disciples ? '<button type="button" class="btn sm" data-dstat="' + esc(x.UserID) + '">' + icon('image') + 'Status poster</button>' : '') + '<a class="btn quiet sm" href="#/reports//' + esc(x.UserID) + '">Report</a></div></div></div>';
       }).join('') + '</div>' : '<p class="muted">No disciplers yet. Promote someone from the People tab.</p>') + '</section>';
       html += '<section class="sec"><h3>Completion by congregation</h3><div class="card stack">' + (d.congregations.length ? d.congregations.map(function (x) {
         var p = x.People ? Math.round(x.Completed / x.People * 100) : 0;
         return '<div class="cong"><div class="spread"><b>' + esc(x.Congregation) + '</b><span class="small muted">' + x.Completed + ' of ' + x.People + ' · ' + p + '%</span></div><div class="track"><div class="fill" style="width:' + p + '%"></div></div></div>';
       }).join('') : '<p class="muted small">No members yet.</p>') + '</div></section></div>';
-      fill(html);
+      var m = fill(html);
+      $$('[data-dstat]', m).forEach(function (b) { b.onclick = function () { openDisciplerStatus(b.dataset.dstat); }; });
     });
   }
   function viewPeople(filter) {
@@ -3189,7 +3363,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         inactive: function (p) { return p.Status === 'Inactive'; }
       };
       var labels = { pending: 'To approve', disciples: 'Disciples', unassigned: 'No discipler', disciplers: 'Disciplers', leaders: 'Coordinators', inactive: 'Inactive' };
-      var m = fill('<div class="spread"><p class="small muted">' + d.people.filter(function (p) { return p.Status === 'Active'; }).length + ' active people</p><a class="btn flame" href="#/people/add">' + icon('userplus') + 'Add a disciple</a></div>' +
+      var m = fill('<div class="spread"><p class="small muted">' + d.people.filter(function (p) { return p.Status === 'Active'; }).length + ' active people</p><span class="row"><a class="btn" href="#/share">' + icon('share') + 'Share sign-up form</a><a class="btn flame" href="#/people/add">' + icon('userplus') + 'Add a disciple</a></span></div>' +
         '<div class="chips" role="group" aria-label="Filter">' + Object.keys(groups).map(function (k) { return '<button type="button" class="chip" data-f="' + k + '" aria-pressed="' + (k === f) + '">' + labels[k] + '<span class="n">' + d.people.filter(groups[k]).length + '</span></button>'; }).join('') + '</div>' +
         '<input class="i" id="q" type="search" placeholder="Search by name or mobile" aria-label="Search people">' +
         '<div class="list grid" id="plist"></div>');
@@ -3202,10 +3376,10 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         var list = d.people.filter(groups[f]).filter(function (p) { return !q || (p.Name + ' ' + p.Mobile).toLowerCase().indexOf(q) >= 0; }).sort(function (a, b) { return a.Name.localeCompare(b.Name); });
         $('#plist').innerHTML = list.length ? list.map(function (p) {
           if (p.Status !== 'Pending') return personItem(p);
-          return '<div class="card" data-uid="' + esc(p.UserID) + '"><div class="spread"><span class="row">' + avatar(p.PhotoID, 'sm', '') + '<b>' + esc(p.Name) + '</b></span>' + pill('Pending') + '</div><p class="small muted">' + esc(p.Congregation) + ' · ' + esc(p.Mobile) + ' · registered ' + rel(p.CreatedAt || '') + '</p>' +
-            '<div class="row"><label class="f" style="flex:1 1 130px">Role<select class="i" data-role>' + roleOpts + '</select></label>' +
+          return '<div class="card" data-uid="' + esc(p.UserID) + '"><div class="spread"><span class="row">' + avatar(p.PhotoID, 'sm', '') + '<b>' + esc(p.Name) + '</b></span><span class="row">' + (p.Joined ? '<span class="pill plain sample">Wants to be discipled</span>' : p.Role === 'Discipler' ? '<span class="pill plain">Applying as discipler</span>' : '') + pill('Pending') + '</span></div><p class="small muted">' + esc(p.Congregation) + ' · ' + esc(p.Mobile) + ' · registered ' + rel(p.CreatedAt || '') + '</p>' +
+            '<div class="row"><label class="f" style="flex:1 1 130px">Role<select class="i" data-role>' + (p.Joined ? roleOpts.replace('<option>Disciple</option>', '<option selected>Disciple</option>') : p.Role === 'Discipler' ? roleOpts.replace('<option>Discipler</option>', '<option selected>Discipler</option>') : roleOpts) + '</select></label>' +
             '<label class="f" style="flex:2 1 170px" data-discw>Discipler<select class="i" data-disc>' + discOpts + '</select></label></div>' +
-            '<label class="row small" data-optlw><input type="checkbox" data-opt-l> Also being discipled this year (taking the lessons)</label>' +
+            '<label class="row small" data-optlw><input type="checkbox" data-opt-l' + (p.TakesLessons ? ' checked' : '') + '> Also being discipled this year (taking the lessons)</label>' +
             '<fieldset class="stack fs" data-congs hidden><legend>Coordinator of</legend>' + congChecks(p.CongregationID) +
             '<label class="row small"><input type="checkbox" data-opt-d> Also disciples people</label></fieldset>' +
             '<div class="row"><button type="button" class="btn primary sm" data-approve>Approve</button><button type="button" class="btn quiet sm" data-reject>Decline</button></div></div>';
@@ -3236,7 +3410,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     frame({ title: 'Add a disciple', back: '#/people', section: 'people' });
     (function (rr) { if (!rr.ok) return failView(new Error(rr.error)); var d = rr.data;
       var congs = S.me.congregations.filter(function (c) { return c.Status !== 'Inactive' && (!S.me.scope || S.me.scope.indexOf(c.CongregationID) >= 0); });
-      var m = fill('<form class="card stack" id="af" novalidate><div class="rec-h"><h2>Add a disciple</h2><p class="small muted">Disciples don’t need to sign in. Their discipler records each meeting and sends them a picture update.</p></div>' +
+      var m = fill('<form class="card stack" id="af" novalidate><div class="rec-h"><h2>Add a disciple</h2><p class="small muted">Disciples don’t need to sign in. Their discipler records each meeting and sends them a picture update. New members can also sign up themselves with the <a href="#/share">sign-up form QR code</a>.</p></div>' +
         '<label class="f">Full name<input class="i" id="an" autocomplete="off" autocapitalize="words" required placeholder="Juan Dela Cruz"></label>' +
         '<label class="f">Mobile number <span class="muted" style="font-weight:500">(optional, helps the discipler message them)</span><input class="i" id="am" inputmode="tel" placeholder="0917 123 4567"></label>' +
         '<label class="f">Congregation<select class="i" id="ac">' + (congs.length === 1 ? '' : '<option value="">Choose a congregation</option>') + congs.map(function (c) { return '<option value="' + esc(c.CongregationID) + '">' + esc(c.Name) + '</option>'; }).join('') + '</select></label>' +
@@ -3726,7 +3900,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     var my = mine(), items = [];
     if (my.disciples) items.push(['#/disciples', 'My disciples', 'Record sessions and send updates', 'users']);
     if (my.lessons) items.push(['#/home', 'My progress', 'Your own yearly lessons', 'book'], ['#/certs', 'My certificates', 'Certificates issued to you', 'award']);
-    items.push(['#/certadmin', 'Certificates', 'Issue certificates to graduates', 'award'], ['#/present', 'Presentation', 'PDF slides of certificates by congregation', 'screen'], ['#/reports', 'Report PDF', 'Filter and download a report', 'pdf'], ['#/people/add', 'Add a disciple', 'New member with a discipler', 'userplus'], ['#/audit', 'Activity log', 'Approvals, roles, PIN resets', 'list']);
+    items.push(['#/certadmin', 'Certificates', 'Issue certificates to graduates', 'award'], ['#/present', 'Presentation', 'PDF slides of certificates by congregation', 'screen'], ['#/reports', 'Report PDF', 'Filter and download a report', 'pdf'], ['#/people/add', 'Add a disciple', 'New member with a discipler', 'userplus'], ['#/share', 'Share QR codes', 'Sign-up form for disciples and disciplers', 'qr'], ['#/audit', 'Activity log', 'Approvals, roles, PIN resets', 'list']);
     if (rank() === 3) items = items.concat([['#/setup/congregations', 'Congregations', 'Preachers and their photos', 'church'], ['#/setup/lessons', 'Lessons', 'Checklist, memory verses, questions', 'book'], ['#/setup/settings', 'Settings', 'Church, certificates, sign-in', 'gear'], ['#/setup/sample', 'Sample data', 'Load or clear test people', 'flask']]);
     items.push(['#/profile', 'Profile', 'Photo, PIN, sign out', 'user']);
     fill(installCard() + '<div class="mtiles">' + items.map(function (i) { return '<a class="mtile" href="' + i[0] + '"><span class="ci">' + icon(i[3]) + '</span><b>' + i[1] + '</b><span>' + i[2] + '</span></a>'; }).join('') + '</div>'); wireInstall();
@@ -3848,6 +4022,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       '<form class="card" id="f"><h3>Change PIN</h3><label class="f">Current PIN<input class="i" id="op" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password"></label>' +
       '<label class="f">New PIN<input class="i" id="np" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><button class="btn">Change PIN</button></form>' +
       (!DEMO_MODE && SNAP ? '<p class="small muted">Data last updated ' + esc(rel(SNAP.at)) + (OUTBOX.length ? ' · ' + OUTBOX.length + ' change(s) waiting to be sent' : '') + '. <button type="button" class="btn quiet sm" id="refresh">Refresh now</button></p>' : '') +
+      '<a class="card share-cta" href="#/share"><span class="ci">' + icon('qr') + '</span><span><b>Share QR codes</b><span class="small muted">The sign-up form for new disciples and disciplers, and the app link</span></span></a>' +
       installCard() + '<button type="button" class="btn" id="out">Sign out</button>' +
       (DEMO_MODE ? '<div class="demo"><div><b>Demo mode.</b> Reset brings back the original sample people and progress.</div><div><button type="button" class="btn sm" id="reset">Reset demo data</button></div></div>' : ''));
     wireInstall();
@@ -3872,6 +4047,100 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     return false;
   }
 
+  /* ---------- open sign-up form for new disciples ---------- */
+  function viewJoin(kind) {
+    var asDisc = kind === 'discipler';
+    var draw = function (info) {
+      authShell('<form id="jf" class="card" novalidate><h2>Join the ' + esc(info.programName && /program/i.test(info.programName) ? info.programName : 'Discovery Discipleship Program') + '</h2>' +
+        '<div class="jchoice" role="group" aria-label="I want to">' +
+          '<a class="jopt" href="#/join" aria-pressed="' + !asDisc + '">' + icon('book') + '<b>Be discipled</b><span>Go through the lessons with a discipler</span></a>' +
+          '<a class="jopt" href="#/join/discipler" aria-pressed="' + asDisc + '">' + icon('users') + '<b>Become a discipler</b><span>Lead others through the lessons</span></a></div>' +
+        '<p class="small muted">' + (asDisc ? 'A coordinator will review your application. Once approved, sign in with your mobile number and the PIN you choose here.' : 'A coordinator will match you with a discipler, who will meet with you to go through the lessons. You don’t need an account or a password.') + '</p>' +
+        '<label class="f">Full name<input class="i" id="jn" autocomplete="name" autocapitalize="words" required placeholder="Juan Dela Cruz"></label>' +
+        '<label class="f">Mobile number<input class="i" id="jm" inputmode="tel" autocomplete="tel" required placeholder="0917 123 4567"></label>' +
+        '<label class="f">Congregation<select class="i" id="jc" required>' + (info.congregations.length === 1 ? '' : '<option value="">Choose your congregation</option>') +
+          info.congregations.map(function (c) { return '<option value="' + esc(c.CongregationID) + '">' + esc(c.Name) + (c.Location ? ' · ' + esc(c.Location) : '') + '</option>'; }).join('') + '</select></label>' +
+        (asDisc ? '<div class="row"><label class="f" style="flex:1 1 140px">Choose a PIN<input class="i" id="jp" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" placeholder="4 to 6 digits"></label>' +
+          '<label class="f" style="flex:1 1 140px">Type the PIN again<input class="i" id="jp2" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label></div>' +
+          '<label class="row small"><input type="checkbox" id="jl"> I’m also being discipled this year (taking the lessons)</label>' : '') +
+        '<label class="hp" aria-hidden="true">Website<input id="jw" tabindex="-1" autocomplete="off"></label>' +
+        '<p class="small muted">Your name and number are seen only by the church’s discipleship coordinators' + (asDisc ? '.' : ' and your discipler.') + '</p>' +
+        '<p class="err" id="jerr" hidden></p><button class="btn flame block" id="jgo">' + icon('userplus') + (asDisc ? 'Send my application' : 'Sign up') + '</button></form>' +
+        (S.token ? '<p class="small muted"><a href="#/">Back to the app</a></p>' : '<p class="small muted">Already a discipler or coordinator? <a href="#/login">Sign in here</a>.</p>'));
+      $('#jf').onsubmit = function (e) {
+        e.preventDefault(); var err = $('#jerr'), b = $('#jgo'), name = $('#jn').value.trim(); err.hidden = true;
+        var q = { name: name, mobile: $('#jm').value, congregationId: $('#jc').value, website: $('#jw').value };
+        if (asDisc) {
+          if ($('#jp').value !== $('#jp2').value) { err.textContent = 'The two PINs don’t match.'; err.hidden = false; return; }
+          q.pin = $('#jp').value; q.role = 'Discipler'; q.takesLessons = $('#jl').checked;
+        }
+        busy(b, true);
+        remote(asDisc ? 'register' : 'join', q).then(function (r) {
+          authShell('<div class="card stack center-card"><span class="ci big">' + icon('check') + '</span><h2>Thank you, ' + esc(firstName(name)) + '!</h2>' +
+            '<p>' + (asDisc ? 'Your application to become a discipler has been sent. Once a coordinator approves it, sign in with your mobile number and PIN.'
+              : (r && r.already ? 'You’re already on our list.' : 'You’re signed up.') + ' A coordinator will match you with a discipler, who will contact you to set your first meeting.') + '</p>' +
+            '<div class="row" style="justify-content:center"><button type="button" class="btn" id="again">Sign up someone else</button>' + (asDisc && !S.token ? '<a class="btn quiet" href="#/login">Go to sign in</a>' : '') + '</div></div>');
+          $('#again').onclick = function () { viewJoin(kind); };
+        }).catch(function (x) { err.textContent = x.message; err.hidden = false; busy(b, false); });
+      };
+    };
+    loadInfo().then(draw).catch(function (e) { authShell('<div class="card"><p class="err">' + esc(e.message) + '</p><button class="btn" onclick="location.reload()">Try again</button></div>'); });
+  }
+
+  /* ---------- QR codes to share ---------- */
+  function appBase() { return location.href.split('#')[0].split('?')[0]; }
+  function joinURL() { return appBase() + '#/join'; }
+  // Draws a QR code in the app's navy with the logo in the middle (error correction H, so the logo doesn't stop it scanning).
+  function qrImage(text, caption, sub) {
+    var q = window.qrcode(0, 'H'); q.addData(text); q.make();
+    var n = q.getModuleCount(), quiet = 4, cell = Math.max(8, Math.floor(760 / (n + quiet * 2))), dim = cell * (n + quiet * 2), foot = caption ? 170 : 0;
+    var cv = document.createElement('canvas'); cv.width = dim; cv.height = dim + foot; var ctx = cv.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.fillStyle = '#243049';
+    for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (q.isDark(r, c)) ctx.fillRect((c + quiet) * cell, (r + quiet) * cell, cell, cell);
+    return loadImg(LOGO_URI).then(function (logo) {
+      var side = Math.round(n * cell * 0.2), pad = Math.round(cell * 0.8), cx = dim / 2;
+      ctx.fillStyle = '#ffffff'; rrect(ctx, cx - side / 2 - pad, cx - side / 2 - pad, side + pad * 2, side + pad * 2, pad * 1.6); ctx.fill();
+      if (logo) { ctx.save(); rrect(ctx, cx - side / 2, cx - side / 2, side, side, side * 0.22); ctx.clip(); ctx.drawImage(logo, cx - side / 2, cx - side / 2, side, side); ctx.restore(); }
+      if (caption) {
+        ctx.textAlign = 'center'; ctx.fillStyle = '#e05a1c'; ctx.fillRect(dim / 2 - 60, dim - 6, 120, 5);
+        ctx.fillStyle = '#243049'; ctx.font = '700 46px ' + SERIF; fitText(ctx, caption, dim - 80, 46, '700 {s}px ' + SERIF); ctx.fillText(caption, dim / 2, dim + 62);
+        ctx.fillStyle = '#5a6278'; ctx.font = '700 28px ' + SANS; fitText(ctx, sub, dim - 80, 28, '700 {s}px ' + SANS); ctx.fillText(sub, dim / 2, dim + 118);
+      }
+      return cv;
+    });
+  }
+  function viewShare() {
+    frame({ title: 'Share QR codes', back: true, section: rank() >= 2 ? 'more' : 'profile', wide: true });
+    var items = [
+      { id: 'join', title: 'Sign-up form', text: 'Anyone with this code can sign up to be discipled or apply to become a discipler. A coordinator approves each one; new disciples don’t need an account.', url: joinURL(), cap: 'Join the Discipleship Program' },
+      { id: 'app', title: 'The tracker app', text: 'For disciplers and coordinators to sign in. Disciples don’t need it.', url: appBase(), cap: 'MBBE Discipleship Tracker' }
+    ];
+    var m = fill('<div class="sharegrid">' + items.map(function (it) {
+      return '<section class="card sharecard" data-id="' + it.id + '"><div class="stack" style="gap:4px"><h2>' + esc(it.title) + '</h2><p class="small muted">' + esc(it.text) + '</p></div>' +
+        '<div class="qrbox" data-qr><div class="loading"><span class="spin"></span></div></div>' +
+        '<div class="urlrow"><span class="url" title="' + esc(it.url) + '">' + esc(it.url.replace(/^https?:\/\//, '')) + '</span></div>' +
+        '<div class="row shareacts"><button type="button" class="btn flame sm" data-share>' + icon('share') + 'Share link</button><button type="button" class="btn sm" data-copy>' + icon('copy') + 'Copy link</button><button type="button" class="btn sm" data-dl>' + icon('download') + 'Save QR image</button>' +
+        (it.id === 'join' ? '<a class="btn quiet sm" href="#/join">' + icon('link') + 'Open the form</a>' : '') + '</div></section>';
+    }).join('') + '</div>');
+    items.forEach(function (it) {
+      var card = $('[data-id="' + it.id + '"]', m), canvas = null;
+      if (!window.qrcode) { $('[data-qr]', card).innerHTML = '<p class="err">Couldn’t draw the QR code.</p>'; return; }
+      qrImage(it.url, it.cap, it.url.replace(/^https?:\/\//, '')).then(function (cv) {
+        canvas = cv; var im = new Image(); im.alt = 'QR code for ' + it.url; im.src = cv.toDataURL('image/png'); var box = $('[data-qr]', card); box.innerHTML = ''; box.appendChild(im);
+      });
+      $('[data-copy]', card).onclick = function () { (navigator.clipboard ? navigator.clipboard.writeText(it.url) : Promise.reject()).then(function () { toast('Link copied.'); }).catch(function () { toast('Select the link and copy it.'); }); };
+      $('[data-share]', card).onclick = function () {
+        if (navigator.share) navigator.share({ title: it.cap, text: it.id === 'join' ? 'Sign up for the Discovery Discipleship Program:' : 'MBBE Discipleship Tracker:', url: it.url }).catch(function () {});
+        else $('[data-copy]', card).click();
+      };
+      $('[data-dl]', card).onclick = function () {
+        if (!canvas) return;
+        if (IS_ARTIFACT) { toast('Saving works in the live app. You can screenshot the code here.'); return; }
+        canvas.toBlob(function (bl) { saveBlob(bl, (it.id === 'join' ? 'Discipleship sign-up QR' : 'Discipleship tracker QR') + '.png'); toast('QR image saved to your downloads.'); }, 'image/png');
+      };
+    });
+  }
+
   /* ---------- add to home screen ---------- */
   var INSTALL = null;
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); INSTALL = e; var c = $('.install'); if (c) { c.outerHTML = installCard(); wireInstall(); } });
@@ -3892,7 +4161,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   /* ---------- router ---------- */
   function route() {
     var parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent), v = parts[0];
-    if (!S.token) { return v === 'register' ? viewRegister() : viewLogin(); }
+    if (v === 'join') return viewJoin(parts[1]); // the open sign-up form works signed in or not
+    if (!S.token) { if (v === 'register') { location.replace('#/join/discipler'); return; } return viewLogin(); }
     if (!S.me) {
       if (DEMO_MODE) { var dm = runLocal('me'); if (dm.ok) { S.me = dm.data; return route(); } return signOut(); }
       if (loadStored()) { lastPull = 0; flush(); pull().catch(function () {}); return route(); }
@@ -3905,7 +4175,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       '': function () { location.replace('#/' + homeRoute()); },
       login: function () { location.replace('#/' + homeRoute()); },
       register: function () { location.replace('#/' + homeRoute()); },
-      home: viewHome, certs: viewMyCerts, cert: function () { viewCert(parts[1]); }, profile: viewProfile,
+      home: viewHome, certs: viewMyCerts, cert: function () { viewCert(parts[1]); }, profile: viewProfile, share: viewShare,
       disciples: R >= 1 && mine().disciples && viewDisciples, person: R >= 1 && function () { viewPerson(parts[1], parts[2] === 'record'); }, record: R >= 1 && mine().disciples && viewRecordPick,
       dash: R >= 2 && viewDash, people: R >= 2 && function () { viewPeople(parts[1]); }, reports: R >= 2 && function () { viewReports(parts[1], parts[2]); },
       certadmin: R >= 2 && viewCertAdmin, present: R >= 2 && viewPresent, more: R >= 2 && viewMore, audit: R >= 2 && viewAudit,
