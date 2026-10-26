@@ -748,7 +748,7 @@ window.addEventListener('error', function (e) {
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* Self-update: GitHub Pages lets browsers keep a page for 10 minutes. On open, check for a newer copy and reload once if found. */
-window.APP_BUILD = '20261026201119';
+window.APP_BUILD = '20261026205604';
 (function () {
   if (!/^https?:/.test(location.protocol) || !window.fetch || window.APP_CONFIG_IS_ARTIFACT) return;
   try { if (sessionStorage.getItem('dt-upd') === window.APP_BUILD) return; } catch (e) {}
@@ -1390,8 +1390,8 @@ var CORE = (function () {
     var issued = rows('Certificates').filter(function (c) { return ids[c.UserID]; });
     var have = {}; issued.forEach(function (c) { have[c.EnrollmentID] = 1; });
     var ready = rows('Enrollments').filter(function (e) { return ids[e.UserID] && status(e) === 'Completed' && !have[e.EnrollmentID]; })
-      .map(function (e) { var v = enrView(e); v.Name = ids[e.UserID].Name; v.Congregation = congName(ids[e.UserID].CongregationID); v.UserID = e.UserID; v.PhotoID = personPhoto(e.UserID); v.CongregationID = ids[e.UserID].CongregationID; v.Discipler = userName(ledBy(e)) || userName(ids[e.UserID].DisciplerID); return v; });
-    return { ready: ready, issued: issued.map(function (c) { var o = {}; Object.keys(c).forEach(function (k) { o[k] = c[k]; }); var p = ids[c.UserID]; o.Name = p.Name; o.CongregationID = p.CongregationID; o.Congregation = congName(p.CongregationID); o.PhotoID = personPhoto(p.UserID); o.IsSample = isTrue(c.IsSample); var en = find('Enrollments', 'EnrollmentID', c.EnrollmentID); o.CompletedDate = en ? en.CompletedDate : ''; o.Discipler = userName(ledBy(en)) || userName(p.DisciplerID) || userName(en && en.ApprovedBy); o.LevelTitle = levelTitle(c.Level); return o; }).reverse() };
+      .map(function (e) { var v = enrView(e); v.Name = ids[e.UserID].Name; v.Congregation = congName(ids[e.UserID].CongregationID); v.UserID = e.UserID; v.PhotoID = personPhoto(e.UserID); v.CongregationID = ids[e.UserID].CongregationID; v.Discipler = userName(ids[e.UserID].DisciplerID) || userName(ledBy(e)); return v; });
+    return { ready: ready, issued: issued.map(function (c) { var o = {}; Object.keys(c).forEach(function (k) { o[k] = c[k]; }); var p = ids[c.UserID]; o.Name = p.Name; o.CongregationID = p.CongregationID; o.Congregation = congName(p.CongregationID); o.PhotoID = personPhoto(p.UserID); o.IsSample = isTrue(c.IsSample); var en = find('Enrollments', 'EnrollmentID', c.EnrollmentID); o.CompletedDate = en ? en.CompletedDate : ''; o.Discipler = userName(p.DisciplerID) || userName(ledBy(en)) || userName(en && en.ApprovedBy); /* the assigned discipler first */ o.LevelTitle = levelTitle(c.Level); return o; }).reverse() };
   };
   A.issueCertificate = function (q, u) {
     need(u, 'Coordinator');
@@ -3124,7 +3124,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     frame({ eyebrow: greeting(), title: S.me.user.Name, wide: true });
     liveAll([['dashboard', null], ['people', null]], function (res) {
       var d = res[0], c = d.counts, wk = d.week || { sessions: 0, finished: 0, signups: 0 }, n = function (x, one, many) { return x + ' ' + (x === 1 ? one : many); };
-      var ppl = res[1].people.filter(function (p) { return p.Status === 'Active' && (p.Role === 'Disciple' || p.Role === 'Discipler'); });
+      var ppl = res[1].people.filter(function (p) { return p.Status === 'Active' && (p.Role === 'Disciple' || p.Role === 'Discipler') && p.Tracked !== false; }); // disciplers count only when being discipled
       var tiles = [[c.ready, 'Ready to graduate', 'cap', '#/reports/Ready', 'flame'], [c.pending, c.pending === 1 ? 'Sign-up to approve' : 'Sign-ups to approve', 'userplus', '#/people/pending', 'info'],
         [c.stale, 'Not met in ' + d.staleDays + '+ days', 'clock', '#/reports/Stale', 'miss'], [c.certs, c.certs === 1 ? 'Certificate to issue' : 'Certificates to issue', 'award', '#/certadmin', 'warn']];
       var hot = false;
