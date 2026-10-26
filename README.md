@@ -7,14 +7,15 @@ A phone-friendly tracking app for the discipleship ministry. Lessons are taught 
 | File | Where it goes |
 | --- | --- |
 | `Code.gs` | Google Apps Script, attached to your Google Sheet |
-| `index.html` | Your GitHub repository (the whole app, icons included) |
+| `index.html` | Your GitHub repository (the whole app) |
+| `manifest.webmanifest`, `sw.js`, `icon-180.png`, `icon-192.png`, `icon-512.png` | The same GitHub folder as `index.html`. These let people add the app to their home screen and open it full screen. |
 
 ## Updating from the previous version (you already have it running)
 
 1. **Server:** in Apps Script, delete all the code and paste the new `Code.gs`. Save.
 2. **Run `setup` once.** Choose `setup` in the function menu and click **Run**. Google asks for one new permission: **Google Drive**, so the app can keep photos in a private folder. Allow it. Setup is safe to run again; it only adds what's missing. Your people and sessions stay.
 3. **Deploy a new version:** **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy**. The link stays the same.
-4. **App:** replace `index.html` in your GitHub repository with the new one.
+4. **App:** in your GitHub repository, **Add file → Upload files**, drag in `index.html` and the five home-screen files, then **Commit changes**.
 
 The Sheet upgrades itself: new columns (such as **Question** in the Lessons tab) and tabs appear the first time they're needed.
 
@@ -26,6 +27,26 @@ The Sheet upgrades itself: new columns (such as **Question** in the Lessons tab)
 2. Save, choose `setup`, click **Run**, and allow the permissions (Sheets, Drive).
 3. **Deploy → New deployment → Web app**, Execute as **Me**, Who has access **Anyone**. Copy the `/exec` link into `var API_URL = "";` near the bottom of `index.html`.
 4. Upload `index.html` to a public GitHub repository and turn on **Settings → Pages** (branch **main**, folder **/ (root)**).
+
+## Add to home screen (full screen)
+
+On a phone, the app can sit on the home screen like a regular app and open full screen, without the browser bar. **More** and **Profile** show how:
+
+- **Android (Chrome):** tap **Install app** when it appears, or the menu **⋮ → Add to Home screen / Install app**.
+- **iPhone (Safari):** tap the Share button, then **Add to Home Screen**.
+
+It still updates itself, and opens even with no signal (showing the copy saved on the phone).
+
+## Signing in by name
+
+Disciplers and coordinators can type their mobile number, first name, last name or full name. Suggestions appear after 3 letters; picking one is the surest way in. If a first name matches more than one person, the app asks for the full name or mobile number.
+
+## Disciplers who are also being discipled
+
+A discipler's page has a **Being discipled this year** switch (coordinators set it under **Manage**; disciplers can set it in their own **Profile**).
+
+- **Off** (default): the page shows only the photo, name and details, role and PIN. No discipler, lessons or sessions, and they don't count in the dashboard or reports.
+- **On:** a discipler can be assigned, their lessons are tracked, and they appear on the dashboard and reports like any disciple. When approving a new discipler, tick **Also being discipled this year** to set it right away.
 
 ## Adding disciples
 
@@ -105,11 +126,18 @@ When someone signs in or opens the app, it downloads everything that person is a
 
 ## Certificate presentation (PDF)
 
-**Certificates → Certificate presentation** (or **More → Certificate presentation**):
+**More → Presentation** (or the Certificates screen). It follows the graduation deck you already use:
 
-1. Choose the program year and tick the certificates to include. Each congregation has a tick box to select all of its people.
-2. Tap **Create PDF**. The file has a cover slide for each congregation, showing its preachers in charge side by side, then one certificate slide per person with their photo.
-3. The PDF downloads to the phone or computer, ready for a projector.
+1. **Opening:** program name, “Recognition of Graduates”, the date and venue, the senior pastor’s photo, and two verses (2 Timothy 2:2 and 2:15 unless you change them).
+2. **Tally:** graduates per congregation and the total.
+3. For each congregation: a **cover** with its preacher(s) in charge (photo, name and title), a **divider** for each level with its memory verse, then each **certificate** (name, level, date, venue, two signatories) with the graduate’s photo, congregation and discipler, and the congregation’s **tally** by level.
+4. **Closing:** “Congratulations, graduates! To God be the glory”.
+
+Set it up once:
+- **Settings:** signatory 1 (senior pastor) and 2 (for example the program director), with titles, and **Signatory 1 photo**.
+- **Congregations:** type preachers with their titles in brackets, for example `Ptr. Jay Caparas (Chief Acts Preacher), Ptr. Robert Malit (Resident Pastor)`, then add each photo.
+
+On the presentation screen choose the date, venue and program name (remembered for next time), tick who to include, and tap **Create PDF**.
 
 ## The yearly cycle
 
