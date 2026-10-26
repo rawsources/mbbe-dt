@@ -48,6 +48,17 @@ A discipler's page has a **Being discipled this year** switch (coordinators set 
 - **Off** (default): the page shows only the photo, name and details, role and PIN. No discipler, lessons or sessions, and they don't count in the dashboard or reports.
 - **On:** a discipler can be assigned, their lessons are tracked, and they appear on the dashboard and reports like any disciple. When approving a new discipler, tick **Also being discipled this year** to set it right away.
 
+## Sign-up form and QR codes
+
+**More → Share QR codes** (also on People and in Profile) shows two QR codes with their links, ready to share, copy or save as images:
+
+- **Sign-up form** (`…/#/join`): open to anyone with the code. People choose **Be discipled** (name, mobile number, congregation; no account or PIN) or **Become a discipler** (the same plus a PIN, and whether they're also being discipled this year). Each sign-up appears under **People → To approve**, labelled *Wants to be discipled* or *Applying as discipler*, with the role already chosen; approve it and assign a discipler. Approved disciplers sign in with their mobile number and the PIN they chose.
+- **The tracker app**: for disciplers and coordinators to sign in.
+
+## Status poster for a discipler
+
+On the dashboard's **Disciplers** list (or a discipler's page) tap **Status poster**. The app draws a picture of that discipler's disciples: how many are meeting, ready to graduate and completed; each disciple's progress and last meeting; and a **Please follow up** box (not met recently, ready to be marked fit to graduate, not started, expired). Edit the message and share it on Messenger or Viber, or save the picture. Private notes are never shown.
+
 ## Adding disciples
 
 Disciples don't create accounts. A coordinator adds them: **People → Add a disciple** (or **More → Add a disciple**). Enter the full name, congregation and discipler. The mobile number is optional; it's shown to the discipler so they can message the disciple.
