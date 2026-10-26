@@ -392,7 +392,7 @@ window.addEventListener('error', function (e) {
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* Self-update: GitHub Pages lets browsers keep a page for 10 minutes. On open, check for a newer copy and reload once if found. */
-window.APP_BUILD = '20261026115910';
+window.APP_BUILD = '20261026142420';
 (function () {
   if (!/^https?:/.test(location.protocol) || !window.fetch || window.APP_CONFIG_IS_ARTIFACT) return;
   try { if (sessionStorage.getItem('dt-upd') === window.APP_BUILD) return; } catch (e) {}
@@ -501,7 +501,12 @@ var CORE = (function () {
     if (RANK[u.Role] === 2) return str(u.ModCongregations).split(',').map(function (s) { return s.trim(); }).filter(String);
     return [u.CongregationID];
   }
-  function inScope(u, target) { var s = scope(u); return s === null || s.indexOf(target.CongregationID) >= 0; }
+  function inScope(u, target) {
+    if (!target) return false;
+    var s = scope(u);
+    if (s === null || s.indexOf(target.CongregationID) >= 0) return true;
+    return RANK[u.Role] === 2 && isTrue(u.Disciples) && target.DisciplerID === u.UserID; // a coordinator's own disciples count as theirs
+  }
   function canGuide(u, target) {
     if (!target || target.UserID === u.UserID) return false;
     if (RANK[u.Role] >= 2 && inScope(u, target)) return true;
@@ -598,10 +603,7 @@ var CORE = (function () {
   }
 
   /* ---------- people ---------- */
-  function scopedUsers(u) {
-    var s = scope(u);
-    return rows('Users').filter(function (x) { return s === null || s.indexOf(x.CongregationID) >= 0; });
-  }
+  function scopedUsers(u) { return rows('Users').filter(function (x) { return inScope(u, x); }); }
   function personRow(x) {
     var e = current(x.UserID), p = progress(e), st = status(e), staleDays = +(find('Settings', 'Key', 'StaleDays') || { Value: 30 }).Value || 30;
     var since = p.lastSession ? dayMs(p.lastSession) : (e ? dayMs(str(e.StartDate).slice(0, 10)) : 0);
