@@ -371,11 +371,309 @@ body::before { background: var(--nav) }
 .previews img { width: 100%; border-radius: 8px; border: 1px solid var(--line) }
 .present-cta { gap: 4px; border-color: var(--flame); background: var(--flame-soft) }
 .cert .c-photo { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 4px auto 0; border: 4px solid #243049 }
-.top { position: sticky }
-.top .sync { position: absolute; top: calc(100% + 6px); right: max(16px, env(safe-area-inset-right, 0px)); box-shadow: 0 2px 8px rgba(0, 0, 0, .15); background: var(--nav) }
-.top .sync.off { background: var(--warn) }
 label.pick { flex-wrap: nowrap; align-items: center }
 label.pick > span { min-width: 0 }
+
+/* =================================================================
+   v3 design layer: navy header with greeting, sync status and refresh;
+   icon tiles; the journey (people moving through stages); floating
+   menu with a big record button; wide layouts for tablet and computer.
+   ================================================================= */
+:root { --maxw: 760px; --wide: 1220px; --r: 18px; --gold: #f6b13a }
+body { font-size: 15px }
+.page.wide { max-width: var(--maxw) }
+
+/* header */
+.top { padding-block: 12px }
+.top-in { max-width: var(--maxw); flex-wrap: wrap; gap: 10px 12px }
+.top.main { padding-block: 16px 14px }
+.ttl { flex: 1; min-width: 0; display: grid; gap: 1px }
+.ttl .eyebrow { font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--gold) }
+.top.main h1 { font-size: 23px }
+.top .back { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center }
+.top .back svg { width: 20px; height: 20px }
+.mark { width: 34px; height: 34px; border-radius: 10px }
+.iconbtn { width: 40px; height: 40px; border-radius: 12px; border: 0; background: rgba(255, 255, 255, .14); color: var(--nav-ink); display: grid; place-items: center; cursor: pointer; flex: none }
+.iconbtn svg { width: 19px; height: 19px }
+.iconbtn:hover { background: rgba(255, 255, 255, .22) }
+.iconbtn.spinning svg { animation: spin 1s linear infinite }
+.who { max-width: none }
+.who .av { width: 40px; height: 40px }
+.sync-row { order: 9; flex-basis: 100%; display: flex }
+.top .sync { position: static; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 99px; background: rgba(255, 255, 255, .1); color: var(--nav-ink); box-shadow: none }
+.sync i { width: 8px; height: 8px; border-radius: 50%; background: #7fcb98; flex: none }
+.sync.busy i { background: var(--gold); animation: pulse 1s ease-in-out infinite }
+.sync.off { background: var(--warn) !important; color: #fff }
+.sync.off i { background: #fff }
+@keyframes pulse { 50% { opacity: .35 } }
+.top.sub .sync-row[data-st="ok"] { display: none }
+.topnav, .recbtn { display: none }
+
+/* navy band under the header */
+.band { background: var(--nav); color: var(--nav-ink); padding: 4px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px)); position: relative }
+.band::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 24px; background: var(--bg); border-radius: 24px 24px 0 0 }
+.band-in { max-width: var(--maxw); margin: 0 auto; display: grid; gap: 16px }
+.band h2 { color: var(--nav-ink); font-size: 22px }
+.band p { color: var(--nav-muted); font-size: 13px }
+.band + .page { padding-top: 4px }
+.hero-row { display: flex; align-items: center; gap: 16px }
+.hero-t { display: grid; gap: 3px }
+.hero-t b { font-size: 16px }
+.hero-t span { color: var(--nav-muted); font-size: 13px }
+.band-chip { display: inline-flex; align-items: center; gap: 8px; justify-self: start; background: rgba(255, 255, 255, .1); border-radius: 12px; padding: 8px 12px; font-weight: 700; font-size: 13.5px }
+.band-chip svg, .nextchip svg { width: 16px; height: 16px; color: var(--gold) }
+.ring { --p: 0; width: 92px; height: 92px; border-radius: 50%; flex: none; display: grid; place-items: center; background: conic-gradient(var(--gold) calc(var(--p) * 1%), rgba(255, 255, 255, .16) 0) }
+.ring-in { width: 72px; height: 72px; border-radius: 50%; background: var(--nav); display: grid; place-items: center; align-content: center; line-height: 1.1 }
+.ring-in b { font-size: 20px }
+.ring-in small { font-size: 10.5px; color: var(--nav-muted); font-weight: 700 }
+.pb { display: flex; align-items: center; gap: 14px }
+.pb-t { flex: 1; min-width: 0; display: grid; gap: 3px }
+.av.ringed { border: 3px solid var(--gold); width: 60px; height: 60px }
+.btn.band-btn { background: rgba(255, 255, 255, .14); border-color: transparent; color: var(--nav-ink); flex: none }
+.btn.band-btn svg { width: 17px; height: 17px }
+.path { display: flex; align-items: center }
+.path .dot { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 800; background: rgba(255, 255, 255, .16); color: var(--nav-ink); flex: none }
+.path .dot.done { background: var(--gold); color: #243049 }
+.path .dot.part { box-shadow: inset 0 0 0 2px var(--gold) }
+.path .dot.cur { width: 36px; height: 36px; background: var(--flame); color: #fff; box-shadow: 0 0 0 3px #fff }
+.path .ln { flex: 1; height: 3px; background: rgba(255, 255, 255, .22); min-width: 4px }
+.path .ln.on { background: var(--gold) }
+
+/* buttons */
+.btn svg { width: 17px; height: 17px; flex: none }
+.btn.flame { background: var(--flame); border-color: var(--flame); color: #fff }
+.btn.flame:hover { filter: brightness(1.05) }
+.btn.block.bigsave { min-height: 54px; border-radius: 16px; font-size: 16px; font-weight: 800 }
+.btn.primary.flame { background: var(--flame); border-color: var(--flame); color: #fff }
+.linkbtn { border: 0; background: none; padding: 0; font: 700 13px var(--sans); color: var(--accent); cursor: pointer; justify-self: start; text-decoration: underline; text-underline-offset: 3px }
+
+/* sections */
+.sec { display: grid; gap: 10px; min-width: 0 }
+.sec-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap }
+.sec-h h2 { font-size: 21px }
+.lead { font-family: var(--serif); font-size: 19px; font-weight: 700 }
+.warn-t { color: var(--warn); font-weight: 700 } .miss-t { color: var(--miss); font-weight: 700 }
+
+/* "needs you today" tiles */
+.ntiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px }
+.ntile { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-decoration: none; min-width: 0 }
+a.ntile:hover { border-color: var(--accent) }
+.ntile > svg { width: 28px; height: 28px; flex: none }
+.ntile > span { display: grid; min-width: 0 }
+.ntile b { font-size: 26px; line-height: 1.05; font-variant-numeric: tabular-nums }
+.ntile > span > span { font-size: 12.5px; font-weight: 700; line-height: 1.25 }
+.tone-flame > svg { color: var(--flame) } .tone-info > svg { color: var(--info) } .tone-miss > svg { color: var(--miss) } .tone-warn > svg { color: var(--warn) } .tone-ok > svg { color: var(--ok) }
+.ntile.hot { background: var(--flame); border-color: var(--flame); color: #fff }
+.ntile.hot > svg { color: #fff }
+.ntile.zero { opacity: .62 }
+.ntile.zero b { color: var(--muted) }
+
+/* the journey */
+.journey { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 4px 12px; display: grid }
+.stage { position: relative; border-top: 1px solid var(--line) }
+.stage:first-child { border-top: 0 }
+.stage-h { display: grid; grid-template-columns: 34px 1fr auto 14px; gap: 12px; align-items: center; padding: 11px 4px; color: inherit; text-decoration: none }
+.stage .cnt { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13.5px; background: var(--blank); color: var(--muted) }
+.tone-info .cnt { background: var(--accent-soft); color: var(--info) }
+.tone-flame .cnt { background: var(--flame); color: #fff }
+.tone-ok .cnt { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok) }
+.tone-miss .cnt { background: color-mix(in srgb, var(--miss) 14%, transparent); color: var(--miss) }
+.stage-t { display: grid; gap: 1px; min-width: 0 }
+.stage-t b { font-size: 15px }
+.stage-t > span { font-size: 12.5px; color: var(--muted) }
+.stage .go { color: var(--muted); font-size: 20px }
+.stage.hot .stage-h { background: var(--flame-soft); border-radius: 14px; margin: 4px -8px; padding-inline: 12px }
+.stage.hot .stage-t > span { color: color-mix(in srgb, var(--flame) 80%, var(--ink)); font-weight: 700 }
+.faces .av { border-color: var(--surface) }
+.stage-p { display: none }
+.mini { display: flex; align-items: center; gap: 10px; padding: 9px; border-radius: 12px; border: 1px solid var(--line); color: inherit; text-decoration: none; background: var(--surface); min-width: 0 }
+.mini:hover { border-color: var(--accent) }
+.mini-t { display: grid; gap: 3px; min-width: 0 }
+.mini-t b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.mini-t > span { font-size: 11.5px; color: var(--muted); font-weight: 600 }
+.more-l { font-size: 12.5px; font-weight: 700; color: var(--muted); text-decoration: none; padding-left: 4px }
+
+/* this week */
+.week { background: var(--nav); color: var(--nav-ink); border-radius: var(--r); padding: 14px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px }
+.wk-l { flex-basis: 100%; font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--gold) }
+.wk { display: grid; font-size: 12px; color: var(--nav-muted); font-weight: 600 }
+.wk b { font-size: 26px; color: var(--nav-ink); line-height: 1.1 }
+.btn.wk-btn { margin-left: auto; background: rgba(255, 255, 255, .12); border-color: transparent; color: var(--nav-ink) }
+.btn.wk-btn svg { color: var(--gold) }
+.dash-2 { display: grid; gap: 16px }
+.cong { display: grid; gap: 6px }
+
+/* people */
+.segs { display: flex; gap: 3px; flex: 1; min-width: 60px; max-width: 180px }
+.segs i { flex: 1; height: 6px; border-radius: 3px; background: var(--blank) }
+.segs i.on { background: var(--flame) }
+.prog { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--muted) }
+.prog .track { flex: 1; max-width: 180px; height: 6px }
+.person-item { border-radius: 16px; padding: 12px 14px }
+.person-item.is-ready { border-color: var(--flame); background: color-mix(in srgb, var(--flame-soft) 60%, var(--surface)) }
+.person-item.is-stale { box-shadow: inset 4px 0 0 var(--miss) }
+.empty { justify-items: center; text-align: center; padding: 28px 18px }
+.ci { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--flame-soft); color: var(--flame); flex: none }
+.ci svg { width: 22px; height: 22px }
+.celebrate { display: flex; gap: 14px; align-items: flex-start; border-color: var(--flame); background: var(--flame-soft) }
+a.celebrate { align-items: center }
+.celebrate > span:last-child { display: grid; gap: 2px }
+details.edit summary { cursor: pointer; font-weight: 700; font-size: 13.5px; color: var(--accent); padding: 4px 0 }
+details.edit[open] summary { margin-bottom: 10px }
+fieldset.fs { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px }
+fieldset.fs legend { font-size: 12.5px; font-weight: 700; color: var(--muted) }
+.cols { display: grid; gap: 16px; min-width: 0 }
+.col { display: grid; gap: 14px; align-content: start; min-width: 0 }
+
+/* record a session */
+.rec { gap: 0; padding: 0; overflow: hidden }
+.rec-h { padding: 16px 16px 6px; display: grid; gap: 4px }
+.rec-h h2 { font-size: 20px }
+.rec .err { padding: 0 16px }
+.rec .bigsave { margin: 10px 16px 16px; width: calc(100% - 32px) }
+.step { display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 14px 16px; border-top: 1px solid var(--line) }
+.rec-h + .step { border-top: 0 }
+.sn { width: 26px; height: 26px; border-radius: 50%; background: var(--nav); color: #fff; display: grid; place-items: center; font-size: 12.5px; font-weight: 800; margin-top: 1px }
+.sb { display: grid; gap: 10px; min-width: 0 }
+.sl { font-weight: 800; font-size: 14px }
+.sl .muted { font-weight: 600 }
+.lnow { display: flex; align-items: center; gap: 12px; background: var(--raise); border-radius: 14px; padding: 12px; border-left: 4px solid var(--flame) }
+.lnow > span:last-child { display: grid; gap: 2px; min-width: 0 }
+.ln-badge { width: 42px; height: 42px; border-radius: 12px; background: var(--flame); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 15px; flex: none }
+.ln-num { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+.ln-title { font-family: var(--serif); font-size: 17px; font-weight: 700; line-height: 1.3 }
+.ltiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px }
+.lt { height: 54px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); font: 800 17px var(--sans); color: var(--ink); cursor: pointer; display: grid; place-items: center; align-content: center; line-height: 1.1 }
+.lt small { font-size: 10px; font-weight: 700; color: var(--muted) }
+.lt.done { background: var(--flame-soft); color: var(--flame); border-color: transparent }
+.lt.done small { color: var(--flame) }
+.lt[aria-pressed="true"] { background: var(--flame); color: #fff; border-color: var(--flame); box-shadow: 0 0 0 3px color-mix(in srgb, var(--flame) 30%, transparent) }
+.lt[aria-pressed="true"] small { color: #fff }
+.big2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px }
+.bigopt { min-height: 78px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 700 13.5px var(--sans); display: grid; place-items: center; align-content: center; gap: 6px; cursor: pointer; padding: 8px }
+.bigopt svg { width: 24px; height: 24px }
+.bigopt.fin svg { color: var(--ok) } .bigopt.cont svg { color: var(--info) }
+.bigopt.fin[aria-pressed="true"] { border: 2px solid var(--ok); background: color-mix(in srgb, var(--ok) 12%, var(--surface)) }
+.bigopt.cont[aria-pressed="true"] { border: 2px solid var(--info); background: color-mix(in srgb, var(--info) 12%, var(--surface)) }
+.dchips { display: flex; gap: 8px; flex-wrap: wrap }
+.dchip { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 9px 14px; font: 700 13px var(--sans); color: var(--ink); cursor: pointer }
+.dchip[aria-pressed="true"] { background: var(--nav); border-color: var(--nav); color: #fff }
+.xtiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px }
+.xt { min-height: 74px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 700 12.5px var(--sans); cursor: pointer; display: grid; place-items: center; align-content: center; gap: 3px; padding: 8px 4px; text-align: center }
+.xt svg { width: 21px; height: 21px; color: var(--accent) }
+.xt small { font-size: 10.5px; color: var(--muted); font-weight: 600; line-height: 1.2 }
+.xt#laddpic { border: 2px dashed var(--line) }
+.xt.set { border: 2px solid var(--flame); background: var(--flame-soft) }
+.xt.set svg, .xt.set small { color: var(--flame) }
+.xt[aria-expanded="true"] { border-color: var(--accent) }
+
+/* lesson timeline */
+.tl { list-style: none; margin: 0; padding: 14px 16px; display: grid; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r) }
+.tl li { display: grid; grid-template-columns: 26px 1fr; gap: 12px; position: relative; padding-bottom: 14px }
+.tl li:last-child { padding-bottom: 0 }
+.tl li::before { content: ""; position: absolute; left: 12px; top: 28px; bottom: 0; width: 3px; background: var(--line); border-radius: 2px }
+.tl li:last-child::before { display: none }
+.tl li.done::before { background: var(--flame) }
+.tl-dot { width: 26px; height: 26px; border-radius: 50%; background: var(--blank); display: grid; place-items: center; color: #fff; position: relative; z-index: 1 }
+.tl li.done .tl-dot { background: var(--flame) }
+.tl li.cur .tl-dot { background: var(--surface); box-shadow: inset 0 0 0 3px var(--flame) }
+.tl-b { display: grid; gap: 2px; min-width: 0 }
+.tl li:not(.done):not(.cur) .cl-title { color: var(--muted) }
+.tl li.done .cl-sub { color: var(--flame); font-weight: 600 }
+.nextchip { display: inline-flex; align-items: center; gap: 6px; justify-self: start; margin-top: 4px; background: var(--flame-soft); color: color-mix(in srgb, var(--flame) 80%, var(--ink)); border-radius: 10px; padding: 5px 10px; font-size: 12.5px; font-weight: 800 }
+.nextchip svg { color: var(--flame) }
+.verse.latest { border-left: 5px solid var(--flame) }
+.item.meet, .item.sess { cursor: default }
+.item.sess .row { margin-top: 4px }
+.item.sess .btn svg { width: 15px; height: 15px }
+
+/* more menu */
+.mtiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px }
+.mtile { display: grid; gap: 4px; align-content: start; padding: 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-decoration: none }
+.mtile:hover { border-color: var(--accent) }
+.mtile .ci { width: 42px; height: 42px; background: var(--accent-soft); color: var(--accent); margin-bottom: 6px }
+.mtile b { font-size: 14.5px }
+.mtile > span:last-child { font-size: 12px; color: var(--muted); line-height: 1.35 }
+
+/* floating menu with the record button */
+.nav { left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--nav); border: 0; border-radius: 22px; padding: 4px 6px; box-shadow: 0 8px 26px rgba(20, 26, 40, .28); max-width: 560px; margin: 0 auto }
+.nav-in { height: 58px }
+.nav a { color: var(--nav-muted); font-size: 10.5px }
+.nav a[aria-current="page"] { color: var(--gold) }
+.nav a[aria-current="page"]::after { display: none }
+.nav a.nav-rec span { width: 54px; height: 54px; margin-top: -26px; border-radius: 50%; background: var(--flame); color: #fff; display: grid; place-items: center; border: 4px solid var(--bg); box-shadow: 0 6px 16px rgba(224, 90, 28, .4) }
+.nav a.nav-rec svg { width: 24px; height: 24px; stroke-width: 2.6 }
+.page { padding-block-end: calc(var(--nav-h) + 56px + env(safe-area-inset-bottom, 0px)) }
+.toast { bottom: calc(var(--nav-h) + 30px + env(safe-area-inset-bottom, 0px)) }
+.dock { bottom: calc(var(--nav-h) + 24px + env(safe-area-inset-bottom, 0px)) }
+
+/* update sheet */
+.sheet.upd { width: min(1000px, 100%); max-height: 94vh }
+.upd-body { font-family: var(--sans); font-size: 15px; display: grid; gap: 12px; padding-bottom: 4px }
+.upd-grid { display: grid; gap: 14px }
+.upd-img img { width: 100%; display: block; border-radius: 14px; border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0, 0, 0, .1) }
+.upd-img .loading { padding: 80px 0 }
+.upd-acts { display: flex; flex-wrap: wrap; gap: 8px }
+.upd-acts .btn.flame { flex: 1 1 100% }
+
+/* tablet */
+@media (min-width: 640px) {
+  .ntiles { grid-template-columns: repeat(4, minmax(0, 1fr)) }
+  .mtiles { grid-template-columns: repeat(3, minmax(0, 1fr)) }
+  .list.grid { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .ltiles { grid-template-columns: repeat(8, minmax(0, 1fr)) }
+  .wk-l { flex-basis: auto; margin-right: 6px }
+  .upd-grid { grid-template-columns: minmax(0, 380px) 1fr; align-items: start }
+  .upd-acts .btn.flame { flex: 0 1 auto }
+}
+/* computer */
+@media (min-width: 960px) {
+  :root { --maxw: 1220px }
+  .page { max-width: 820px; padding-block-end: 48px }
+  .page.wide { max-width: var(--wide) }
+  .top-in, .band-in { max-width: var(--wide) }
+  .top-in { flex-wrap: nowrap }
+  .ttl { flex: 0 1 auto; margin-right: 8px; max-width: 30% }
+  .topnav { display: flex; gap: 2px; flex: 1; min-width: 0 }
+  .topnav a { color: rgba(255, 255, 255, .78); text-decoration: none; font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: 99px; white-space: nowrap }
+  .topnav a:hover { background: rgba(255, 255, 255, .1); color: #fff }
+  .topnav a[aria-current="page"] { background: var(--gold); color: #243049 }
+  .sync-row { order: 0; flex-basis: auto }
+  .top.sub .sync-row[data-st="ok"] { display: flex }
+  .recbtn { display: inline-flex; flex: none }
+  .nav { display: none }
+  .toast { bottom: 24px }
+  .dock { bottom: 12px }
+  .mtiles { grid-template-columns: repeat(4, minmax(0, 1fr)) }
+  .list.grid { grid-template-columns: repeat(3, minmax(0, 1fr)) }
+  .cols { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 22px; align-items: start }
+  .dash-2 { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: start; gap: 22px }
+  .dash-2 .list { grid-template-columns: repeat(2, minmax(0, 1fr)); display: grid }
+  .journey { background: none; border: 0; padding: 0; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px }
+  .stage { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 12px; display: grid; gap: 10px; align-content: start }
+  .stage:first-child { border-top: 1px solid var(--line) }
+  .stage-h { grid-template-columns: 1fr auto; padding: 0; gap: 8px; align-items: start }
+  .stage-h .cnt { order: 2; width: auto; min-width: 30px; height: 26px; padding: 0 9px; border-radius: 99px; font-size: 13px }
+  .stage-h .faces, .stage-h .go { display: none }
+  .stage.hot { border: 2px solid var(--flame); background: var(--flame-soft) }
+  .stage.hot .stage-h { background: none; margin: 0; padding: 0 }
+  .stage-p { display: grid; gap: 8px }
+  .stage-p .none { padding: 8px 4px }
+  .week { flex-wrap: nowrap; padding: 16px 22px; gap: 32px }
+  .wk { grid-auto-flow: column; align-items: baseline; gap: 8px; font-size: 13px }
+  .band { padding-bottom: 44px }
+}
+@media (min-width: 1300px) { .list.grid.wide3 { grid-template-columns: repeat(3, minmax(0, 1fr)) } }
+@media (prefers-reduced-motion: reduce) { .iconbtn.spinning svg, .sync.busy i { animation: none } }
+.prog .fill { display: block }
+.celebrate .ci { background: var(--surface) }
+@media (max-width: 520px) { .btn.band-btn { width: 44px; height: 44px; padding: 0; border-radius: 50% } .btn.band-btn span { display: none } .pb h2 { font-size: 20px } }
+.addshot { display: grid; place-items: center }
+.upd-body { align-content: start; grid-auto-rows: max-content }
+.upd-body .chips { flex-wrap: wrap; overflow: visible }
+.sn { background: var(--accent); color: var(--accent-ink) }
+.dchip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
+.week { border: 1px solid color-mix(in srgb, var(--nav-ink) 10%, transparent) }
 
 </style>
 </head>
@@ -392,7 +690,7 @@ window.addEventListener('error', function (e) {
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* Self-update: GitHub Pages lets browsers keep a page for 10 minutes. On open, check for a newer copy and reload once if found. */
-window.APP_BUILD = '20261026142420';
+window.APP_BUILD = '20261026163213';
 (function () {
   if (!/^https?:/.test(location.protocol) || !window.fetch || window.APP_CONFIG_IS_ARTIFACT) return;
   try { if (sessionStorage.getItem('dt-upd') === window.APP_BUILD) return; } catch (e) {}
@@ -425,7 +723,7 @@ var CORE = (function () {
   var SCHEMA = {
     Users: ['UserID', 'Name', 'Mobile', 'PinHash', 'Role', 'CongregationID', 'Status', 'DisciplerID', 'ModCongregations', 'AppointedBy', 'AppointedAt', 'FailCount', 'LockUntil', 'CreatedAt', 'LastLogin', 'Disciples', 'TakesLessons', 'IsSample'],
     Congregations: ['CongregationID', 'Name', 'Location', 'Preachers', 'Status', 'IsSample'],
-    Lessons: ['LessonID', 'Level', 'LevelName', 'Order', 'Number', 'Title', 'MemoryRef', 'MemoryText', 'Published', 'UpdatedAt'],
+    Lessons: ['LessonID', 'Level', 'LevelName', 'Order', 'Number', 'Title', 'MemoryRef', 'MemoryText', 'Published', 'UpdatedAt', 'Question'],
     Enrollments: ['EnrollmentID', 'UserID', 'ProgramYear', 'Level', 'Status', 'StartDate', 'CompletedDate', 'ExpiryDate', 'ApprovedBy', 'IsSample'],
     Sessions: ['SessionID', 'EnrollmentID', 'UserID', 'DisciplerID', 'LessonID', 'Date', 'Finished', 'Notes', 'NextMeeting', 'Confirmed', 'ConfirmedAt', 'CreatedAt', 'IsSample'],
     Certificates: ['CertNo', 'UserID', 'EnrollmentID', 'ProgramYear', 'Level', 'LevelName', 'IssuedDate', 'IssuedBy', 'ValidUntil', 'IsSample'],
@@ -439,7 +737,8 @@ var CORE = (function () {
     ValidityDays: '365',
     StaleDays: '30',
     Signatory1: '', Signatory1Title: 'Senior Pastor',
-    Signatory2: '', Signatory2Title: 'Coordinator'
+    Signatory2: '', Signatory2Title: 'Coordinator',
+    DiscipleLogin: 'FALSE' // disciples get picture updates from their discipler instead of signing in
   };
   var ROLES = ['Disciple', 'Discipler', 'Coordinator', 'Admin'];
   var RANK = { Disciple: 0, Discipler: 1, Coordinator: 2, Moderator: 2, Admin: 3 }; // 'Moderator' kept for older rows
@@ -534,7 +833,8 @@ var CORE = (function () {
       .sort(function (a, b) { return (+a.Order) - (+b.Order); });
   }
   function levelName(level) { var l = lessonsFor(level, true)[0]; return l && l.LevelName ? l.LevelName : 'Level ' + level; }
-  function lessonMeta(l) { return { LessonID: l.LessonID, Level: l.Level, LevelName: l.LevelName, Order: l.Order, Number: l.Number, Title: l.Title, MemoryRef: l.MemoryRef, MemoryText: l.MemoryText, Published: isPub(l) }; }
+  function lessonMeta(l) { return { LessonID: l.LessonID, Level: l.Level, LevelName: l.LevelName, Order: l.Order, Number: l.Number, Title: l.Title, MemoryRef: l.MemoryRef, MemoryText: l.MemoryText, Question: l.Question || '', Published: isPub(l) }; }
+  function discipleLogin() { return isTrue(settings().DiscipleLogin); }
 
   /* ---------- enrollments & sessions ---------- */
   function status(e) {
@@ -634,7 +934,7 @@ var CORE = (function () {
   A.ping = function () { return { ok: true, time: nowIso() }; };
   A.publicInfo = function () {
     var s = settings();
-    return { churchName: s.ChurchName, programName: s.ProgramName, congregations: rows('Congregations').filter(function (c) { return c.Status !== 'Inactive' && !isTrue(c.IsSample); }).map(function (c) { return { CongregationID: c.CongregationID, Name: c.Name, Location: c.Location }; }) };
+    return { churchName: s.ChurchName, programName: s.ProgramName, discipleLogin: isTrue(s.DiscipleLogin), congregations: rows('Congregations').filter(function (c) { return c.Status !== 'Inactive' && !isTrue(c.IsSample); }).map(function (c) { return { CongregationID: c.CongregationID, Name: c.Name, Location: c.Location }; }) };
   };
   A.register = function (q) {
     var name = str(q.name).trim(), mobile = normMobile(q.mobile);
@@ -662,6 +962,7 @@ var CORE = (function () {
       if (!hits.length) fail('No account has that name. Check the spelling, or use your mobile number.');
       return hits[0];
     }
+    if (!normMobile(raw)) fail('Enter your mobile number or full name.');
     var u = find('Users', 'Mobile', normMobile(raw));
     if (!u) fail('No account uses that mobile number.');
     return u;
@@ -672,7 +973,7 @@ var CORE = (function () {
     if (normName(q.q).replace(/ /g, '').length < 3) return { matches: [] };
     if (db.rate && !db.rate('lookup', 120, 60)) fail('Too many searches right now. Please type your mobile number instead.');
     var hits = rows('Users').filter(function (x) {
-      if (x.Status !== 'Active') return false;
+      if (x.Status !== 'Active' || (roleName(x.Role) === 'Disciple' && !discipleLogin())) return false;
       var parts = normName(x.Name).split(' ');
       return words.every(function (w) { return parts.some(function (p) { return p.indexOf(w) === 0; }); });
     }).slice(0, 5);
@@ -685,6 +986,7 @@ var CORE = (function () {
   };
   A.login = function (q) {
     var u = findForLogin(q);
+    if (roleName(u.Role) === 'Disciple' && !discipleLogin()) fail('Disciples don’t need to sign in. Your discipler sends you an update after each meeting.');
     if (u.LockUntil && new Date(u.LockUntil) > db.now()) fail('Too many wrong PINs. Try again in 15 minutes, or ask your coordinator to reset it.');
     if (!pinOk(str(q.pin), u.PinHash)) {
       var n = (+u.FailCount || 0) + 1;
@@ -825,7 +1127,11 @@ var CORE = (function () {
     });
     var byCong = {};
     people.forEach(function (p) { var c = byCong[p.Congregation] = byCong[p.Congregation] || { Congregation: p.Congregation, People: 0, Completed: 0 }; c.People++; if (p.LessonStatus === 'Completed') c.Completed++; });
-    return { counts: counts, disciplers: disciplers, congregations: Object.keys(byCong).map(function (k) { return byCong[k]; }), staleDays: +settings().StaleDays || 30 };
+    var weekAgo = new Date(dayMs(today()) - 6 * DAY).toISOString().slice(0, 10), mineIds = {};
+    people.forEach(function (p) { mineIds[p.UserID] = 1; });
+    var wk = rows('Sessions').filter(function (s) { return mineIds[s.UserID] && s.Date >= weekAgo; });
+    var week = { sessions: wk.length, finished: wk.filter(function (s) { return s.Finished === 'TRUE'; }).length, signups: all.filter(function (x) { return str(x.CreatedAt).slice(0, 10) >= weekAgo; }).length };
+    return { counts: counts, week: week, disciplers: disciplers, congregations: Object.keys(byCong).map(function (k) { return byCong[k]; }), staleDays: +settings().StaleDays || 30 };
   };
   A.people = function (q, u) {
     need(u, 'Coordinator');
@@ -893,6 +1199,26 @@ var CORE = (function () {
     upd('Users', 'UserID', t.UserID, { PinHash: hashPin(pin), FailCount: '0', LockUntil: '' });
     audit(u, 'Reset PIN', t.UserID);
     return { tempPin: pin };
+  };
+  A.addPerson = function (q, u) {
+    need(u, 'Coordinator');
+    var name = str(q.name).trim().replace(/\s+/g, ' ');
+    if (name.length < 3) fail('Please enter the full name.');
+    var cid = /^U-[a-z0-9]{6,24}$/.test(str(q.userId)) ? str(q.userId) : '';
+    if (cid && find('Users', 'UserID', cid)) return { ok: true, userId: cid }; // already added (sent twice)
+    var mobile = q.mobile ? normMobile(q.mobile) : '';
+    if (mobile && !/^09\d{9}$/.test(mobile)) fail('Enter a mobile number like 0917 123 4567, or leave it blank.');
+    if (mobile && find('Users', 'Mobile', mobile)) fail('Another member already uses this mobile number.');
+    var cong = find('Congregations', 'CongregationID', q.congregationId);
+    if (!cong) fail('Choose a congregation.');
+    var sc = scope(u);
+    if (sc !== null && sc.indexOf(cong.CongregationID) < 0) fail('You can only add people to your own congregations.');
+    var disc = q.disciplerId ? find('Users', 'UserID', q.disciplerId) : null;
+    if (q.disciplerId && (!disc || !disciplesOthers(disc) || disc.Status !== 'Active')) fail('Choose a discipler from the list.');
+    var nu = { UserID: cid || 'U-' + db.uid().slice(0, 8), Name: name, Mobile: mobile, PinHash: '', Role: 'Disciple', CongregationID: cong.CongregationID, Status: 'Active', DisciplerID: disc ? disc.UserID : '', ModCongregations: '', AppointedBy: u.UserID, AppointedAt: nowIso(), FailCount: '0', LockUntil: '', CreatedAt: nowIso(), LastLogin: '' };
+    ins('Users', nu);
+    audit(u, 'Added person', nu.UserID, cong.Name + (disc ? ' · discipler ' + disc.Name : ''));
+    return { ok: true, userId: nu.UserID };
   };
   A.updatePerson = function (q, u) {
     need(u, 'Coordinator');
@@ -1171,7 +1497,7 @@ var CORE = (function () {
     var id = str(q.LessonID).trim();
     if (!/^[A-Za-z0-9-]{2,20}$/.test(id)) fail('Lesson code must be 2–20 letters, numbers or dashes, like L1-02.');
     if (!str(q.Title).trim()) fail('Lesson title is required.');
-    var rec = { Level: str(+q.Level || 1), LevelName: str(q.LevelName).trim(), Order: str(+q.Order || 1), Number: str(q.Number).trim(), Title: str(q.Title).trim(), MemoryRef: str(q.MemoryRef).trim(), MemoryText: str(q.MemoryText).trim(), UpdatedAt: nowIso() };
+    var rec = { Level: str(+q.Level || 1), LevelName: str(q.LevelName).trim(), Order: str(+q.Order || 1), Number: str(q.Number).trim(), Title: str(q.Title).trim(), MemoryRef: str(q.MemoryRef).trim(), MemoryText: str(q.MemoryText).trim(), Question: str(q.Question).trim().slice(0, 300), UpdatedAt: nowIso() };
     var ex = find('Lessons', 'LessonID', id);
     if (ex && q.isNew === true) fail('A lesson with the code ' + id + ' already exists.');
     if (ex) upd('Lessons', 'LessonID', id, rec);
@@ -1519,7 +1845,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
      so they open instantly. Changes are applied to the copy at once and sent to the server in the background. */
   var LOCAL = null, SNAP = null, OUTBOX = [], syncing = false, lastPull = 0, pulling = null;
   var LOCAL_READS = { me: 1, home: 1, myDisciples: 1, person: 1, people: 1, dashboard: 1, report: 1, certQueue: 1, lessonList: 1, certificate: 1, preacherPhotos: 1 };
-  var QUEUED = { logSession: 1, deleteSession: 1, confirmSession: 1, graduate: 1, approveUser: 1, assign: 1, setRole: 1, setStatus: 1, updatePerson: 1, setOptions: 1, setPublished: 1, saveLesson: 1, saveSettings: 1 };
+  var QUEUED = { addPerson: 1, logSession: 1, deleteSession: 1, confirmSession: 1, graduate: 1, approveUser: 1, assign: 1, setRole: 1, setStatus: 1, updatePerson: 1, setOptions: 1, setPublished: 1, saveLesson: 1, saveSettings: 1 };
   function uid() { return S.token ? String(S.token).split('.')[0] : ''; }
   function snapKey() { return 'dt-snap:' + uid(); }
   function boxKey() { return 'dt-outbox:' + uid(); }
@@ -1576,6 +1902,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       return r.ok ? Promise.resolve(r.data) : Promise.reject(new Error(r.error));
     }
     if (LOCAL && QUEUED[action]) {
+      if (action === 'addPerson') params.userId = params.userId || newId('U');
       if (action === 'logSession') { params.sessionId = params.sessionId || newId('S'); params.enrollmentId = params.enrollmentId || newId('E'); }
       var w = runLocal(action, params);
       if (!w.ok) return Promise.reject(new Error(w.error));
@@ -1620,12 +1947,17 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   }
   function syncState() {
     var el = $('#sync'); if (!el) return;
-    var n = OUTBOX.length;
-    if (!navigator.onLine && n) { el.textContent = 'Offline · ' + n + ' waiting'; el.className = 'sync off'; el.hidden = false; }
-    else if (!navigator.onLine) { el.textContent = 'Offline'; el.className = 'sync off'; el.hidden = false; }
-    else if (n || syncing) { el.textContent = 'Saving…'; el.className = 'sync'; el.hidden = false; }
-    else el.hidden = true;
+    var n = OUTBOX.length, st, txt, ch = n === 1 ? ' change' : ' changes';
+    if (DEMO_MODE) { st = 'ok'; txt = 'Demo · saved on this device'; }
+    else if (!navigator.onLine) { st = 'off'; txt = n ? 'Offline · ' + n + ch + ' waiting' : 'Offline · showing saved copy'; }
+    else if (n || syncing) { st = 'busy'; txt = 'Saving' + (n ? ' ' + n + ch : '') + '…'; }
+    else if (pulling) { st = 'busy'; txt = 'Updating…'; }
+    else { st = 'ok'; txt = 'All changes saved' + (SNAP && SNAP.at ? ' · updated ' + rel(SNAP.at) : ''); }
+    el.className = 'sync ' + st; el.innerHTML = '<i aria-hidden="true"></i>' + esc(txt);
+    el.parentNode.setAttribute('data-st', st);
+    var rb = $('#refresh'); if (rb) rb.classList.toggle('spinning', !!pulling || syncing);
   }
+  setInterval(syncState, 30000);
   window.addEventListener('online', function () { syncState(); flush(); pull().catch(function () {}); });
   window.addEventListener('offline', syncState);
   document.addEventListener('visibilitychange', function () { if (!document.hidden && S.token && !DEMO_MODE && Date.now() - lastPull > 60000) { flush(); pull().catch(function () {}); } });
@@ -1634,23 +1966,23 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   /* ---------- screens read from the copy; they redraw when fresh data arrives ---------- */
   var VIEW = null;
   function editing() { var a = document.activeElement, m = $('#main'); return !!(a && m && m.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); }
-  function rerender() { if (VIEW && S.hash === location.hash && !editing()) VIEW(); }
+  function rerender(force) { if (VIEW && S.hash === location.hash && (force || !editing())) VIEW(force); }
   function live(action, params, render) {
     var last = null;
-    VIEW = function () {
+    VIEW = function (force) {
       var r = runLocal(action, params);
       if (!r.ok) { if (last === null) failView(new Error(r.error)); return; }
-      var j = JSON.stringify(r.data); if (j === last) return; last = j;
+      var j = JSON.stringify(r.data); if (j === last && !force) return; last = j;
       render(r.data);
     };
     VIEW();
   }
   function liveAll(list, render) {
     var last = null;
-    VIEW = function () {
+    VIEW = function (force) {
       var out = [];
       for (var i = 0; i < list.length; i++) { var r = runLocal(list[i][0], list[i][1]); if (!r.ok) { if (last === null) failView(new Error(r.error)); return; } out.push(r.data); }
-      var j = JSON.stringify(out); if (j === last) return; last = j;
+      var j = JSON.stringify(out); if (j === last && !force) return; last = j;
       render(out);
     };
     VIEW();
@@ -1737,48 +2069,92 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     home: '<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/>',
     users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.8a3.3 3.3 0 0 1 0 6.4M18 14.6c2 .8 3.2 2.6 3.6 5.4"/>',
     chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
-    table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/>',
+    table: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
     award: '<circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 22l5-3 5 3-1.5-8"/>',
     book: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M19 19v2H6"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"/>',
-    more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
+    more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    back: '<path d="M15 18l-6-6 6-6"/>',
+    refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
+    cap: '<path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/>',
+    userplus: '<circle cx="9" cy="8" r="4"/><path d="M2 21c1-4 4-6 7-6s6 2 7 6"/><path d="M19 8v6M16 11h6"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    camera: '<rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/>',
+    note: '<path d="M4 20h4L20 8l-4-4L4 16z"/>',
+    cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    pdf: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M12 12v6M9 15l3 3 3-3"/>',
+    screen: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21h8M12 16v5"/>',
+    list: '<path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+    church: '<path d="M12 2v4M10 4h4"/><path d="M5 21V11l7-5 7 5v10"/><path d="M10 21v-5h4v5"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+    flask: '<path d="M9 3h6M10 3v6L4.5 18.5A1.6 1.6 0 0 0 5.9 21h12.2a1.6 1.6 0 0 0 1.4-2.5L14 9V3"/><path d="M7.5 15h9"/>',
+    share: '<path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v12M7 8l5-5 5 5"/>',
+    image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
+    send: '<path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4z"/>',
+    copy: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>'
   };
-  function icon(n) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[n] + '</svg>'; }
+  function icon(n) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[n] + '</svg>'; }
 
   /* ---------- layout ---------- */
   function role() { return S.me ? S.me.user.Role : ''; }
   function rank() { return { Disciple: 0, Discipler: 1, Coordinator: 2, Moderator: 2, Admin: 3 }[role()] || 0; }
-  function navItems() {
-    var r = role();
-    if (r === 'Disciple') return [['home', 'My progress', 'home'], ['certs', 'Certificates', 'award'], ['profile', 'Profile', 'user']];
-    if (r === 'Discipler') return [['disciples', 'Disciples', 'users'], ['home', 'My progress', 'home'], ['certs', 'Certificates', 'award'], ['profile', 'Profile', 'user']];
-    return [['dash', 'Dashboard', 'chart'], ['people', 'People', 'users'], ['reports', 'Reports', 'table'], ['certadmin', 'Certificates', 'award'], ['more', 'More', 'more']];
-  }
-  function mine() { var u = S.me ? S.me.user : {}; return { disciples: u.Role === 'Discipler' || (u.Role === 'Coordinator' && u.Disciples), lessons: u.Role === 'Disciple' || u.Role === 'Discipler' || (u.Role === 'Coordinator' && u.TakesLessons) };
-  }
+  function mine() { var u = S.me ? S.me.user : {}; return { disciples: u.Role === 'Discipler' || (u.Role === 'Coordinator' && u.Disciples), lessons: u.Role === 'Disciple' || u.Role === 'Discipler' || (u.Role === 'Coordinator' && u.TakesLessons) }; }
   function homeRoute() { return { Disciple: 'home', Discipler: 'disciples' }[role()] || 'dash'; }
+  function greeting() { var h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; }
+  function firstName(n) { return String(n || '').split(' ')[0]; }
+  // Phone menu. A 4th field marks the big "record a session" button in the middle.
+  function navItems() {
+    var r = role(), rec = ['record', 'Record a session', 'plus', 1];
+    if (r === 'Disciple') return [['home', 'Home', 'home'], ['certs', 'Certificate', 'award'], ['profile', 'Profile', 'user']];
+    if (r === 'Discipler') return [['disciples', 'Disciples', 'users'], ['home', 'My progress', 'book'], rec, ['certs', 'Certificates', 'award'], ['profile', 'Profile', 'user']];
+    return mine().disciples ? [['dash', 'Home', 'home'], ['people', 'People', 'users'], rec, ['reports', 'Reports', 'table'], ['more', 'More', 'more']]
+      : [['dash', 'Home', 'home'], ['people', 'People', 'users'], ['reports', 'Reports', 'table'], ['certadmin', 'Certificates', 'award'], ['more', 'More', 'more']];
+  }
+  // Wide-screen menu: everything in one row across the header.
+  function topItems() {
+    if (rank() < 2) return navItems().filter(function (n) { return !n[3]; });
+    return [['dash', 'Home'], ['people', 'People'], ['reports', 'Reports'], ['certadmin', 'Certificates']].concat(mine().disciples ? [['disciples', 'My disciples']] : []).concat([['more', 'More']]);
+  }
   function frame(o) {
-    var cur = (location.hash.replace('#/', '').split('/')[0]) || homeRoute();
-    var u = S.me.user;
+    var cur = (location.hash.replace('#/', '').split('/')[0]) || homeRoute(), u = S.me.user, nav = o.nav !== false;
+    var on = function (k) { return k === cur || (o.section && o.section === k); };
     app.innerHTML =
-      '<header class="top"><div class="top-in">' +
-        (o.back ? '<button type="button" class="back" id="back" aria-label="Back">‹</button>' : '<img class="mark" src="' + LOGO_URI + '" alt="">') +
-        '<h1>' + esc(o.title) + '</h1>' +
-        '<span class="sync" id="sync" role="status" hidden></span>' +
-        '<a class="who" href="#/profile" aria-label="Your profile"><span><b>' + esc(u.Name) + '</b>' + esc(u.Role) + (DEMO_MODE ? ' · demo' : '') + '</span>' + avatar(u.PhotoID, 'sm', '') + '</a>' +
+      '<header class="top ' + (o.back ? 'sub' : 'main') + '"><div class="top-in">' +
+        (o.back ? '<button type="button" class="back" id="back" aria-label="Back">' + icon('back') + '</button>' : '<img class="mark" src="' + LOGO_URI + '" alt="">') +
+        '<div class="ttl">' + (o.eyebrow ? '<span class="eyebrow">' + esc(o.eyebrow) + '</span>' : '') + '<h1>' + esc(o.title) + '</h1></div>' +
+        '<nav class="topnav" aria-label="Main">' + topItems().map(function (n) { return '<a href="#/' + n[0] + '"' + (on(n[0]) ? ' aria-current="page"' : '') + '>' + n[1] + '</a>'; }).join('') + '</nav>' +
+        '<span class="sync-row"><span class="sync" id="sync" role="status"></span></span>' +
+        '<button type="button" class="iconbtn" id="refresh" aria-label="Refresh" title="Refresh">' + icon('refresh') + '</button>' +
+        (mine().disciples ? '<a class="btn flame recbtn" href="#/record">' + icon('plus') + 'Record session</a>' : '') +
+        '<a class="who" href="#/profile" aria-label="Your profile" title="' + esc(u.Name) + '">' + avatar(u.PhotoID, 'sm', '') + '</a>' +
       '</div></header>' +
-      '<main class="page' + (o.nav === false ? ' nonav' : '') + '" id="main">' + (o.body || loadingHTML()) + '</main>' +
-      (o.nav === false ? '' : '<nav class="nav" aria-label="Main"><div class="nav-in">' + navItems().map(function (n) {
-        var on = n[0] === cur || (o.section && o.section === n[0]);
-        return '<a href="#/' + n[0] + '"' + (on ? ' aria-current="page"' : '') + '>' + icon(n[2]) + '<span>' + n[1] + '</span></a>';
-      }).join('') + '</div></nav>');
-    app.classList.toggle('nonav-page', o.nav === false);
+      '<div class="band" id="band" hidden></div>' +
+      '<main class="page' + (nav ? '' : ' nonav') + (o.wide ? ' wide' : '') + '" id="main">' + (o.body || loadingHTML()) + '</main>' +
+      (nav ? '<nav class="nav" aria-label="Main"><div class="nav-in">' + navItems().map(function (n) {
+        if (n[3]) return '<a class="nav-rec" href="#/record" aria-label="Record a session"' + (on('record') ? ' aria-current="page"' : '') + '><span>' + icon('plus') + '</span></a>';
+        return '<a href="#/' + n[0] + '"' + (on(n[0]) ? ' aria-current="page"' : '') + '>' + icon(n[2]) + '<span>' + n[1] + '</span></a>';
+      }).join('') + '</div></nav>' : '');
+    app.classList.toggle('nonav-page', !nav);
     S.hash = location.hash;
-    if (o.tools) $('.top-in').insertAdjacentHTML('beforeend', o.tools);
     if (o.back) $('#back').onclick = function () { if (typeof o.back === 'string') location.hash = o.back; else history.back(); };
+    $('#refresh').onclick = refreshNow;
     syncState(); hydrate($('.top'));
     window.scrollTo(0, 0);
     return $('#main');
+  }
+  // The navy band under the header (photo, progress ring, lesson path).
+  function band(html) {
+    var b = $('#band'); if (!b || S.hash !== location.hash) return;
+    b.innerHTML = html ? '<div class="band-in">' + html + '</div>' : ''; b.hidden = !html; hydrate(b);
+  }
+  function refreshNow() {
+    var b = $('#refresh');
+    if (DEMO_MODE) { if (b) { b.classList.add('spinning'); setTimeout(function () { b.classList.remove('spinning'); }, 500); } rerender(true); toast('Up to date.'); return; }
+    if (!navigator.onLine) { toast('You’re offline. Showing the copy saved on this phone.'); return; }
+    flush(); pull().then(function () { toast('Up to date.'); }).catch(function (x) { toast(x.message); });
   }
   function fill(html) {
     var m = $('#main');
@@ -1829,9 +2205,9 @@ if (typeof module !== 'undefined') module.exports = DEMO;
           '<button class="btn primary block" id="go">Sign in</button>' +
         '</form>';
     authShell(form +
-      '<p class="muted small">New here? <a href="#/register">Create your account</a>. Forgot your PIN? Ask your discipler or coordinator to reset it.</p>' +
+      '<p class="muted small">' + (S.info && S.info.discipleLogin ? 'New here? <a href="#/register">Create your account</a>. ' : 'For disciplers and coordinators. Disciples don’t need an account. New discipler? <a href="#/register">Create your account</a>. ') + 'Forgot your PIN? Ask your coordinator to reset it.</p>' +
       (DEMO_MODE ? '<div class="demo"><div><b>Demo mode.</b> Sample people and data, saved only on this device. Every demo PIN is <b>1234</b>. Sign in as:</div><div class="row">' +
-        [['Admin', '09170000001'], ['Coordinator', '09170000002'], ['Discipler', '09170000003'], ['Disciple', '09170000005']].map(function (d) { return '<button type="button" class="btn sm" data-demo="' + d[1] + '">' + d[0] + '</button>'; }).join('') +
+        [['Admin', '09170000001'], ['Coordinator', '09170000002'], ['Discipler', '09170000003']].concat(S.info && S.info.discipleLogin ? [['Disciple', '09170000005']] : []).map(function (d) { return '<button type="button" class="btn sm" data-demo="' + d[1] + '">' + d[0] + '</button>'; }).join('') +
         '</div></div>' : ''));
     var f = $('#f'), who = $('#who'), sugg = $('#sugg'), timer = null, seq = 0;
     function showErr(m) { $('#err').textContent = m; $('#err').hidden = false; }
@@ -1884,7 +2260,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   function viewRegister() {
     loadInfo().then(function (info) {
       authShell(
-        '<form id="f" class="card" novalidate><h2>Create your account</h2><p class="small muted">Your coordinator will approve your account and set your role.</p>' +
+        '<form id="f" class="card" novalidate><h2>Create your account</h2><p class="small muted">' + (info.discipleLogin ? 'Your coordinator will approve your account and set your role.' : 'For disciplers and coordinators. Disciples don’t need an account; your coordinator adds them.') + '</p>' +
           '<label class="f">Full name<input class="i" id="name" autocomplete="name" required></label>' +
           '<label class="f">Mobile number<input class="i" id="mobile" inputmode="tel" autocomplete="tel" placeholder="0917 123 4567" required></label>' +
           '<label class="f">Congregation<select class="i" id="cong" required><option value="">Choose your congregation</option>' +
@@ -1924,65 +2300,81 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     var pct = p.total ? Math.round(p.finished / p.total * 100) : 0;
     return '<div class="track" role="progressbar" aria-label="Lessons finished" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100"><div class="fill" style="width:' + pct + '%"></div></div>';
   }
+  // One small block per lesson, filled when finished.
+  function segs(f, t) {
+    if (!t) return '';
+    var h = '<span class="segs" role="img" aria-label="' + f + ' of ' + t + ' lessons finished">';
+    for (var i = 0; i < t; i++) h += '<i' + (i < f ? ' class="on"' : '') + '></i>';
+    return h + '</span>';
+  }
+  function ring(f, t, inner) {
+    var pct = t ? Math.round(f / t * 100) : 0;
+    return '<span class="ring" style="--p:' + pct + '" role="img" aria-label="' + f + ' of ' + t + ' lessons finished"><span class="ring-in">' + (inner || '<b>' + f + '/' + t + '</b><small>lessons</small>') + '</span></span>';
+  }
+  var NUMW = { one: '1', two: '2', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9', ten: '10', eleven: '11', twelve: '12' };
+  function shortNum(l, i) { // "Lesson Four-A" → "4A"
+    var m = /lesson\s+([a-z]+|\d+)(?:[\s-]+([a-z]))?\b/i.exec(String(l.Number || ''));
+    if (m) { var n = NUMW[m[1].toLowerCase()] || (/^\d+$/.test(m[1]) ? m[1] : ''); if (n) return n + (m[2] ? m[2].toUpperCase() : ''); }
+    return String(i + 1);
+  }
+  function pathDots(lessons, curId) {
+    return '<div class="path" aria-hidden="true">' + lessons.map(function (l, i) {
+      var st = l.State === 'Finished' ? 'done' : l.LessonID === curId ? 'cur' : l.State === 'Started' ? 'part' : '';
+      return (i ? '<i class="ln' + (lessons[i - 1].State === 'Finished' ? ' on' : '') + '"></i>' : '') + '<span class="dot ' + st + '" title="' + esc(l.Number + ' · ' + l.Title) + '">' + esc(shortNum(l, i)) + '</span>';
+    }).join('') + '</div>';
+  }
+  // Lessons as a vertical timeline.
+  function timeline(lessons, nextMeeting) {
+    if (!lessons.length) return '<p class="muted">No lessons are set up for this level yet.</p>';
+    var curDone = false;
+    return '<ol class="tl">' + lessons.map(function (l) {
+      var st = l.State === 'Finished' ? 'done' : '';
+      if (!st && !curDone) { st = 'cur'; curDone = true; }
+      var sub = l.State === 'Finished' ? 'Finished ' + fmtDay(l.FinishedOn) : l.State === 'Started' ? 'Started · continue next time' : st === 'cur' ? 'Up next' : '';
+      return '<li class="' + st + '"><span class="tl-dot">' + (st === 'done' ? CHECK : '') + '</span><span class="tl-b"><span class="cl-num">' + esc(l.Number) + '</span><span class="cl-title">' + esc(l.Title) + '</span>' +
+        (sub ? '<span class="cl-sub">' + sub + '</span>' : '') + (st === 'cur' && nextMeeting ? '<span class="nextchip">' + icon('cal') + 'Next meeting ' + esc(fmtDayShort(nextMeeting)) + '</span>' : '') + '</span></li>';
+    }).join('') + '</ol>';
+  }
+
+  function lvl1Count() { var r = runLocal('lessonList'); return r.ok ? r.data.lessons.filter(function (l) { return String(l.Level) === '1' && l.Published; }).length : 0; }
 
   /* ---------- disciple: my progress ---------- */
   function viewHome() {
-    var r = role();
-    frame({ title: r === 'Disciple' ? 'My discipleship' : 'My progress', section: r === 'Disciple' ? 'home' : (r === 'Discipler' ? 'home' : 'more'), back: rank() >= 2 ? '#/more' : null });
+    var r = role(), own = r === 'Disciple';
+    frame({ eyebrow: own ? greeting() : '', title: own ? S.me.user.Name : 'My progress', section: own ? 'home' : (r === 'Discipler' ? 'home' : 'more'), back: rank() >= 2 ? '#/more' : null, wide: true });
     live('home', null, function (d) {
-      var e = d.enrollment, p = d.progress, yr = new Date().getFullYear(), first = S.me.user.Name.split(' ')[0];
-      var html = '<div class="card hero">';
-      if (!e) {
-        html += '<h3>' + yr + ' discipleship</h3><h2>Welcome, ' + esc(first) + '</h2>' +
-          '<p>You’ll go through the Discovery Lessons with ' + (d.discipler ? '<b>' + esc(d.discipler) + '</b>' : 'your discipler') + ' using the printed booklet. Each time you meet, your discipler records the lesson here so you can follow your progress.</p>' +
-          (d.discipler ? '' : '<p class="small">Your coordinator will assign your discipler soon.</p>');
-      } else {
-        html += '<div class="spread"><h3>Program year ' + esc(e.ProgramYear) + '</h3>' + pill(e.Status) + '</div>' +
-          '<h2>' + esc(e.LevelName) + '</h2>' + progressBar(p) +
-          '<p class="small"><b>' + p.finished + ' of ' + p.total + '</b> lessons finished' + (d.discipler ? ' · Discipler: <b>' + esc(d.discipler) + '</b>' : '') + '</p>';
-        if (e.Status === 'In progress' && p.nextMeeting) html += '<div class="next"><span class="next-l">Next meeting</span><b>' + esc(fmtDayShort(p.nextMeeting)) + '</b></div>';
-        if (e.Status === 'In progress' && p.total && p.finished === p.total) html += '<p class="small">All lessons finished. Your discipler will confirm that you’re ready to graduate.</p>';
-        if (e.Status === 'Completed') {
-          html += '<p>Completed on ' + fmtDate(e.CompletedDate) + '. Your discipleship status is valid until <b>' + fmtDate(e.ExpiryDate) + '</b>.</p>';
-          var left = Math.ceil((new Date(e.ExpiryDate) - new Date()) / 864e5);
-          if (left <= 60) html += '<p class="small"><b>Renew soon.</b> Your status expires in ' + left + ' day' + (left === 1 ? '' : 's') + '. Plan this year’s lessons with your discipler.</p>';
-        }
-        if (e.Status === 'Expired') html += '<p>Your completion expired on ' + fmtDate(e.ExpiryDate) + '. Retake the lessons with your discipler to renew your status for ' + yr + '.</p>';
-      }
-      html += '</div>';
-
-      var pending = p.sessions.filter(function (s) { return !s.Confirmed; });
-      if (pending.length) {
-        html += '<h3>Please confirm</h3><div class="list">' + pending.map(function (s) {
-          return '<div class="card confirm" data-sid="' + esc(s.SessionID) + '"><p>Did you meet with <b>' + esc(s.Discipler) + '</b> on <b>' + esc(fmtDayShort(s.Date)) + '</b> for <b>' + esc(s.Lesson) + '</b>?</p><div class="row"><button type="button" class="btn primary sm" data-confirm>Yes, we met</button><span class="small muted">If not, tell your discipler.</span></div></div>';
-        }).join('') + '</div>';
-      }
+      var e = d.enrollment, p = d.progress, yr = new Date().getFullYear(), first = firstName(S.me.user.Name);
+      var left = p.total - p.finished, msg;
+      if (!e) msg = '<b>Your ' + yr + ' lessons haven’t started yet</b><span>' + (d.discipler ? 'You’ll go through them with ' + esc(d.discipler) + '.' : 'Your coordinator will assign your discipler soon.') + '</span>';
+      else if (e.Status === 'Completed') msg = '<b>Completed ' + esc(e.LevelName) + '</b><span>Valid until ' + fmtDate(e.ExpiryDate) + '</span>';
+      else if (e.Status === 'Expired') msg = '<b>Your completion expired ' + fmtDate(e.ExpiryDate) + '</b><span>Retake the lessons with your discipler to renew it.</span>';
+      else if (!left && p.total) msg = '<b>All lessons finished</b><span>Your discipler will confirm that you’re ready to graduate.</span>';
+      else msg = '<b>' + left + ' lesson' + (left === 1 ? '' : 's') + ' to graduation</b><span>' + (d.discipler ? 'with ' + esc(d.discipler) + ' · ' : '') + esc(e.LevelName) + '</span>';
+      band('<div class="hero-row">' + ring(p.finished, p.total || lvl1Count()) + '<div class="hero-t">' + msg + '</div></div>' +
+        (e && e.Status === 'In progress' && p.nextMeeting ? '<span class="band-chip">' + icon('cal') + 'Next meeting ' + esc(fmtDayShort(p.nextMeeting)) + '</span>' : ''));
+      var html = '<div class="cols"><div class="col">';
       if (e && e.Status === 'Completed') {
         var c = d.certificates.filter(function (x) { return x.EnrollmentID === e.EnrollmentID; })[0];
-        html += c ? '<a class="card" href="#/cert/' + esc(c.CertNo) + '"><div class="spread"><b>Your certificate is ready</b>' + pill('Completed', 'View') + '</div><p class="small muted">' + esc(c.CertNo) + ' · issued ' + fmtDate(c.IssuedDate) + '</p></a>'
-          : '<div class="card"><p>Congratulations on finishing the lessons. Your coordinator will issue your certificate.</p></div>';
+        html += c ? '<a class="card celebrate" href="#/cert/' + esc(c.CertNo) + '"><span class="ci">' + icon('award') + '</span><span><b>Your certificate is ready</b><span class="small muted">' + esc(c.CertNo) + ' · issued ' + fmtDate(c.IssuedDate) + '</span></span></a>'
+          : '<div class="card"><p>Congratulations on finishing the lessons, ' + esc(first) + '. Your coordinator will issue your certificate.</p></div>';
       }
-      if (e) html += '<h3>Lessons</h3>' + checklist(p.lessons);
+      if (e) html += '<h3>Your lessons</h3>' + timeline(p.lessons, e.Status === 'In progress' ? p.nextMeeting : '');
+      html += '</div><div class="col">';
       if (d.memoryVerses.length) {
-        html += '<h3>Memory verses</h3><div class="list">' + d.memoryVerses.map(function (v) {
-          return '<figure class="verse"><blockquote>“' + esc(v.Text) + '”</blockquote><figcaption><b>' + esc(v.Ref) + '</b> · KJV<span class="muted"> · ' + esc(v.Lesson) + '</span></figcaption></figure>';
+        html += '<h3>Memory verses</h3><div class="list">' + d.memoryVerses.slice().reverse().map(function (v, i) {
+          return '<figure class="verse' + (i ? '' : ' latest') + '"><blockquote>“' + esc(v.Text) + '”</blockquote><figcaption><b>' + esc(v.Ref) + '</b> · KJV<span class="muted"> · ' + esc(v.Lesson) + '</span></figcaption></figure>';
         }).join('') + '</div>';
       }
       if (p.sessions.length) {
         html += '<h3>Meetings</h3><div class="list">' + p.sessions.map(function (s) {
-          return '<div class="item" style="cursor:default"><div class="t">' + esc(fmtDay(s.Date)) + '</div>' + (s.Confirmed ? '<span class="small muted">Confirmed</span>' : pill('Pending', 'To confirm')) +
-            '<div class="s">' + esc(s.Lesson) + ' · ' + esc(s.LessonTitle) + (s.Finished ? '' : ' (continued next time)') + ' · with ' + esc(s.Discipler) +
+          return '<div class="item meet"><div class="t">' + esc(fmtDay(s.Date)) + '</div><span class="small muted">' + esc(s.Lesson) + '</span>' +
+            '<div class="s">' + esc(s.LessonTitle) + (s.Finished ? '' : ' (continued next time)') + ' · with ' + esc(s.Discipler) +
             ((s.Photos || []).length ? '<div class="shots">' + s.Photos.map(function (id) { return '<span class="shot">' + avatar(id, 'shot-img', 'Session photo').replace('<img ', '<img data-open="' + esc(id) + '" ') + '</span>'; }).join('') + '</div>' : '') + '</div></div>';
         }).join('') + '</div>';
       }
+      html += '</div></div>';
       var m = fill(html);
       $$('[data-open]', m).forEach(function (im) { im.onclick = function () { lightbox(im.dataset.open); }; });
-      $$('[data-confirm]', m).forEach(function (b) {
-        b.onclick = function () {
-          var c = b.closest('[data-sid]'); busy(b, true);
-          api('confirmSession', { sessionId: c.dataset.sid }).then(function () { toast('Thank you. Meeting confirmed.'); viewHome(); }).catch(function (x) { toast(x.message); busy(b, false); });
-        };
-      });
     });
   }
   /* ---------- certificates ---------- */
@@ -2025,126 +2417,194 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     else if (p.Expiring) f += pill('Pending', 'Expires ' + fmtDate(p.ExpiryDate));
     return f + pill(p.LessonStatus);
   }
-  function personItem(p, extra) {
+  function personItem(p, extra, href) {
     var sub = [];
     if (extra !== 'nodisc') sub.push(p.Congregation);
-    if (p.TotalLessons && p.LessonStatus !== 'Not started') sub.push(p.Finished + '/' + p.TotalLessons + ' lessons');
     if (p.LastSession) sub.push('last met ' + agoText(p.LastSession));
     if (p.NextMeeting) sub.push('next ' + fmtDayShort(p.NextMeeting));
     if (p.Discipler && extra !== 'nodisc') sub.push('Discipler: ' + p.Discipler);
-    return '<a class="item person-item" href="#/person/' + esc(p.UserID) + '">' + avatar(p.PhotoID, '', '') + '<div class="pi"><div class="t">' + esc(p.Name) + (p.Role !== 'Disciple' ? ' <span class="pill plain">' + esc(p.Role) + '</span>' : '') + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</div>' +
-      '<div class="row">' + flags(p) + '</div>' +
-      '<div class="s">' + esc(sub.filter(Boolean).join(' · ')) + '</div></div></a>';
+    var bar = p.TotalLessons && p.LessonStatus === 'In progress' ? '<div class="prog">' + segs(p.Finished, p.TotalLessons) + '<span>' + p.Finished + '/' + p.TotalLessons + '</span></div>' : '';
+    return '<a class="item person-item' + (p.ReadyToGraduate ? ' is-ready' : p.Stale ? ' is-stale' : '') + '" href="' + (href || '#/person/' + esc(p.UserID)) + '">' + avatar(p.PhotoID, '', '') + '<div class="pi"><div class="t">' + esc(p.Name) + (p.Role !== 'Disciple' ? ' <span class="pill plain">' + esc(p.Role) + '</span>' : '') + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</div>' +
+      '<div class="row">' + flags(p) + '</div>' + bar +
+      (sub.length ? '<div class="s">' + esc(sub.filter(Boolean).join(' · ')) + '</div>' : '') + '</div></a>';
   }
   function priority(p) { return p.ReadyToGraduate ? 0 : p.Stale ? 1 : p.LessonStatus === 'In progress' ? 2 : p.LessonStatus === 'Not started' || p.LessonStatus === 'Expired' ? 3 : 4; }
+  function bySort(a, b) { return priority(a) - priority(b) || a.Name.localeCompare(b.Name); }
   function viewDisciples() {
-    frame({ title: 'My disciples' });
+    var own = role() === 'Discipler';
+    frame({ eyebrow: own ? greeting() + ', ' + firstName(S.me.user.Name) : '', title: 'My disciples', back: own ? null : '#/more', section: own ? 'disciples' : 'more', wide: true });
     live('myDisciples', null, function (d) {
-      var ready = d.people.filter(function (p) { return p.ReadyToGraduate; }).length, stale = d.people.filter(function (p) { return p.Stale; }).length;
-      var note = [];
-      if (ready) note.push(ready + ' ready to graduate');
-      if (stale) note.push(stale + ' with no meeting in ' + (S.me.settings.StaleDays || 30) + '+ days');
-      fill((note.length ? '<div class="card hero"><b>' + esc(note.join(' · ')) + '</b></div>' : '') +
-        '<p class="muted small">Teach from the printed booklet, then open a disciple to record the session.</p>' +
-        (d.people.length ? '<div class="list">' + d.people.sort(function (a, b) { return priority(a) - priority(b) || a.Name.localeCompare(b.Name); }).map(function (p) { return personItem(p, 'nodisc'); }).join('') + '</div>'
-          : '<div class="card"><h2>No disciples yet</h2><p>Your coordinator assigns disciples to you. They will appear here with their progress.</p></div>'));
+      var P = d.people, cnt = function (f) { return P.filter(f).length; };
+      var stats = [[cnt(function (p) { return p.ReadyToGraduate; }), 'Ready to graduate', 'cap', 'flame'], [cnt(function (p) { return p.Stale; }), 'Not met in ' + (S.me.settings.StaleDays || 30) + '+ days', 'clock', 'miss'], [cnt(function (p) { return p.LessonStatus === 'In progress' && !p.ReadyToGraduate; }), 'Meeting now', 'users', 'info'], [cnt(function (p) { return p.LessonStatus === 'Completed'; }), 'Completed', 'award', 'ok']];
+      var hot = false;
+      fill(P.length ? '<div class="ntiles">' + stats.map(function (t) { var cls = !t[0] ? ' zero' : (!hot && t[3] === 'flame') ? (hot = true, ' hot') : ''; return '<div class="ntile tone-' + t[3] + cls + '">' + icon(t[2]) + '<span><b>' + t[0] + '</b><span>' + esc(t[1]) + '</span></span></div>'; }).join('') + '</div>' +
+        '<p class="muted small">Teach from the printed booklet. Tap a disciple to record the session and send them an update.</p>' +
+        '<div class="list grid">' + P.sort(bySort).map(function (p) { return personItem(p, 'nodisc'); }).join('') + '</div>'
+        : '<div class="card empty"><span class="ci">' + icon('users') + '</span><h2>No disciples yet</h2><p>Your coordinator assigns disciples to you. They will appear here with their progress.</p></div>');
     });
   }
-  function viewPerson(uid) {
-    frame({ title: 'Person', back: true, section: rank() >= 2 ? 'people' : 'disciples' });
+  function viewRecordPick() {
+    frame({ title: 'Record a session', back: true, section: 'record', wide: true });
+    live('myDisciples', null, function (d) {
+      fill(d.people.length ? '<p class="lead">Who did you meet with?</p><div class="list grid">' + d.people.sort(bySort).map(function (p) { return personItem(p, 'nodisc', '#/person/' + esc(p.UserID) + '/record'); }).join('') + '</div>'
+        : '<div class="card empty"><span class="ci">' + icon('users') + '</span><h2>No disciples yet</h2><p>Once a coordinator assigns disciples to you, you can record your sessions here.</p></div>');
+    });
+  }
+  function viewPerson(uid, focusRecord) {
+    frame({ title: 'Disciple', back: true, section: rank() >= 2 ? 'people' : 'disciples', wide: true });
     var reqs = [['person', { userId: uid }]];
     if (rank() >= 2) reqs.push(['people', null]);
     liveAll(reqs, function (res) {
-      var d = res[0], p = d.person, e = d.enrollment, pr = d.progress, ppl = res[1], first = p.Name.split(' ')[0];
-      $('.top h1').textContent = p.Name;
-      var html = '<div class="card"><div class="person-head">' + avatar(p.PhotoID, 'lg', p.Name) + '<div><h2>' + esc(p.Name) + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</h2><div class="row">' + flags(p) + '</div>' +
-          '<div class="row" style="margin-top:6px"><button type="button" class="btn quiet sm" id="pph" style="padding-left:0">' + (p.PhotoID ? 'Change photo' : 'Add a photo') + '</button>' + (p.PhotoID ? '<button type="button" class="btn quiet sm" id="pphx">Remove photo</button>' : '') + '</div></div></div>' +
-        '<p class="small muted">' + esc(p.Role) + ' · ' + esc(p.Congregation) + ' · <span style="user-select:all">' + esc(p.Mobile) + '</span></p>' +
-        '<p class="small">' + (p.Discipler ? 'Discipler: <b>' + esc(p.Discipler) + '</b>' : 'No discipler assigned') + '</p>' +
-        (e ? progressBar(pr) + '<p class="small"><b>' + pr.finished + ' of ' + pr.total + '</b> lessons finished · ' + esc(e.LevelName) + ' · ' + esc(e.ProgramYear) +
-          (pr.lastSession ? ' · last met ' + agoText(pr.lastSession) : '') + (pr.nextMeeting ? ' · next ' + esc(fmtDayShort(pr.nextMeeting)) : '') +
-          (e.ExpiryDate ? ' · valid until ' + fmtDate(e.ExpiryDate) : '') + '</p>' : '<p class="small muted">No lessons recorded yet. Logging the first session starts this year’s lessons.</p>') +
-        '</div>';
+      var d = res[0], p = d.person, e = d.enrollment, pr = d.progress, ppl = res[1], first = firstName(p.Name);
+      var fresh = !e || e.Status !== 'In progress';
+      var path = (!fresh || !d.canLog) ? pr.lessons : d.logLessons.map(function (l) { return Object.assign({}, l, { State: 'Not started' }); });
+      var next = path.filter(function (l) { return l.State === 'Started'; })[0] || path.filter(function (l) { return l.State !== 'Finished'; })[0] || path[0];
+      var fin = path.filter(function (l) { return l.State === 'Finished'; }).length;
+      $('.top h1').textContent = p.Role === 'Disciple' ? 'Disciple' : p.Role;
+      var info = [fin + ' of ' + path.length + ' done'];
+      if (pr.lastSession && !fresh) info.push('last met ' + agoText(pr.lastSession));
+      if (pr.nextMeeting && !fresh) info.push('next ' + fmtDayShort(pr.nextMeeting));
+      band('<div class="pb">' + avatar(p.PhotoID, 'lg ringed', p.Name) + '<div class="pb-t"><h2>' + esc(p.Name) + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</h2><p>' + esc(info.join(' · ')) + '</p></div>' +
+        (pr.sessions.length || e ? '<button type="button" class="btn band-btn" id="sendupd">' + icon('send') + '<span>Send update</span></button>' : '') + '</div>' +
+        (path.length ? pathDots(path, d.canLog ? next.LessonID : '') : ''));
+      var html = '<div class="cols"><div class="col">';
       if (p.ReadyToGraduate) {
-        html += '<div class="card hero"><b>All lessons finished.</b><p class="small">Mark ' + esc(first) + ' as fit to graduate. This completes ' + esc(e.LevelName) + ' for ' + esc(e.ProgramYear) + ' and lets the coordinator issue the certificate.</p><button class="btn primary" id="grad">Mark fit to graduate</button></div>';
+        html += '<div class="card celebrate"><span class="ci">' + icon('cap') + '</span><div class="stack"><b>All lessons finished.</b><p class="small">Confirm that ' + esc(first) + ' is fit to graduate. This completes ' + esc(e.LevelName) + ' for ' + esc(e.ProgramYear) + ' and lets the coordinator issue the certificate.</p><div><button class="btn flame" id="grad">Mark fit to graduate</button></div></div></div>';
       }
       if (d.canLog) {
-        var next = d.logLessons.filter(function (l) {
-          var mine = (e && String(e.Level) === String(d.logLevel)) ? pr.lessons.filter(function (x) { return x.LessonID === l.LessonID; })[0] : null;
-          return !mine || mine.State !== 'Finished';
-        })[0] || d.logLessons[0];
-        var newYear = !e || e.Status !== 'In progress';
-        html += '<form class="card" id="logf"><h3 style="margin:0">Record a session</h3>' +
-          (newYear ? '<p class="small muted">' + (e && e.Status === 'Completed' ? 'This starts ' + esc(d.logLessons[0].LevelName || 'the next level') + '.' : 'This starts ' + esc(first) + '’s lessons for this year.') + '</p>' : '') +
-          '<div class="row"><label class="f" style="flex:1 1 140px">Date you met<input class="i" type="date" id="ld" value="' + todayStr() + '" max="' + todayStr() + '" required></label>' +
-          '<label class="f" style="flex:2 1 200px">Lesson covered<select class="i" id="ll">' + d.logLessons.map(function (l) { return '<option value="' + esc(l.LessonID) + '"' + (l.LessonID === next.LessonID ? ' selected' : '') + '>' + esc(l.Number) + ' · ' + esc(l.Title) + '</option>'; }).join('') + '</select></label></div>' +
-          '<label class="row small" style="font-weight:700"><input type="checkbox" id="lf" checked> Finished this lesson</label>' +
-          '<label class="f">Notes for yourself and the coordinator <span style="font-weight:500">(optional, not shown to ' + esc(first) + ')</span><textarea class="i" id="ln" style="min-height:70px" placeholder="Prayer points, questions, follow-up"></textarea></label>' +
-          '<label class="f">Next meeting <span style="font-weight:500">(optional)</span><input class="i" type="date" id="lnm" min="' + todayStr() + '"></label>' +
-          '<div class="f">Photos of the session <span style="font-weight:500">(optional, up to 3)</span><div class="shots" id="lpics"></div><div><button type="button" class="btn sm" id="laddpic">Add photo</button></div></div>' +
-          '<p class="err" id="lerr" hidden></p><button class="btn primary">Save session</button></form>';
+        var newYear = fresh;
+        var dchip = function (k, label) { return '<button type="button" class="dchip" data-day="' + k + '"' + (k === '0' ? ' aria-pressed="true"' : ' aria-pressed="false"') + '>' + label + '</button>'; };
+        html += '<form class="card rec" id="logf" novalidate><div class="rec-h"><h2>Record a session</h2>' +
+            (newYear ? '<p class="small muted">' + (e && e.Status === 'Completed' ? 'This starts ' + esc(d.logLessons[0].LevelName || 'the next level') + '.' : 'This starts ' + esc(first) + '’s lessons for this year.') + '</p>' : '') + '</div>' +
+          '<section class="step"><span class="sn">1</span><div class="sb"><span class="sl">Today’s lesson</span>' +
+            '<div class="lnow" id="lnow"></div><button type="button" class="linkbtn" id="chg">Change lesson</button>' +
+            '<div class="ltiles" id="ltiles" hidden>' + path.map(function (l, i) { return '<button type="button" class="lt' + (l.State === 'Finished' ? ' done' : '') + '" data-l="' + esc(l.LessonID) + '" aria-label="' + esc(l.Number + ' · ' + l.Title) + '">' + esc(shortNum(l, i)) + '<small>' + (l.State === 'Finished' ? 'done' : l.State === 'Started' ? 'started' : '') + '</small></button>'; }).join('') + '</div></div></section>' +
+          '<section class="step"><span class="sn">2</span><div class="sb"><span class="sl">How did it go?</span>' +
+            '<div class="big2"><button type="button" class="bigopt fin" data-fin="1" aria-pressed="true">' + icon('check') + 'Finished the lesson</button><button type="button" class="bigopt cont" data-fin="0" aria-pressed="false">' + icon('arrow') + 'Continue next time</button></div>' +
+            '<div class="dchips">' + dchip('0', 'Today · ' + esc(fmtDayShort(todayStr()).replace(/^\w+, /, ''))) + dchip('1', 'Yesterday') + dchip('pick', 'Pick date') + '</div>' +
+            '<input class="i" type="date" id="ld" value="' + todayStr() + '" max="' + todayStr() + '" aria-label="Date you met" hidden></div></section>' +
+          '<section class="step"><span class="sn">3</span><div class="sb"><span class="sl">Add details <span class="muted">(optional)</span></span>' +
+            '<div class="xtiles"><button type="button" class="xt" id="laddpic">' + icon('camera') + '<span>Photos</span><small id="picn">up to 3</small></button>' +
+            '<button type="button" class="xt" data-x="note" aria-expanded="false">' + icon('note') + '<span>Private note</span><small id="noten">only you and coordinators</small></button>' +
+            '<button type="button" class="xt" data-x="next" aria-expanded="false">' + icon('cal') + '<span>Next meeting</span><small id="nextn">not set</small></button></div>' +
+            '<div class="shots" id="lpics"></div>' +
+            '<label class="f" data-xp="note" hidden>Private note <span class="muted" style="font-weight:500">(not shown to ' + esc(first) + ')</span><textarea class="i" id="ln" style="min-height:80px" placeholder="Prayer points, questions, follow-up"></textarea></label>' +
+            '<label class="f" data-xp="next" hidden>Next meeting<input class="i" type="date" id="lnm" min="' + todayStr() + '"></label></div></section>' +
+          '<p class="err" id="lerr" hidden></p><button type="submit" class="btn flame block bigsave primary" id="lsave"></button></form>';
       } else if (e && e.Status === 'Completed') {
         html += '<div class="card"><p class="small">' + esc(first) + ' has completed this year’s lessons. Sessions can be recorded again after the status expires on ' + fmtDate(e.ExpiryDate) + '.</p></div>';
       }
-      if (e) html += '<h3>Lessons · ' + esc(e.LevelName) + '</h3>' + checklist(pr.lessons);
+      if (e) html += '<h3>Lessons · ' + esc(e.LevelName) + '</h3>' + timeline(pr.lessons, e.Status === 'In progress' ? pr.nextMeeting : '');
+      html += '</div><div class="col">';
+      html += '<div class="card pcard"><p class="small muted">' + esc(p.Congregation) + (p.Mobile ? ' · <span style="user-select:all">' + esc(p.Mobile) + '</span>' : '') + '</p>' +
+        '<p class="small">' + (p.Discipler ? 'Discipler: <b>' + esc(p.Discipler) + '</b>' : 'No discipler assigned') + '</p>' +
+        (e ? '<p class="small">' + esc(e.LevelName) + ' · ' + esc(e.ProgramYear) + ' · ' + pill(e.Status) + (e.ExpiryDate ? ' · valid until ' + fmtDate(e.ExpiryDate) : '') + '</p>' : '') +
+        '<div class="row"><button type="button" class="btn sm" id="pph">' + icon('camera') + (p.PhotoID ? 'Change photo' : 'Add a photo') + '</button>' + (p.PhotoID ? '<button type="button" class="btn quiet sm" id="pphx">Remove photo</button>' : '') + '</div></div>';
       if (pr.sessions.length) {
-        html += '<h3>Sessions</h3><div class="list">' + pr.sessions.map(function (s) {
+        html += '<h3>Sessions</h3><div class="list">' + pr.sessions.map(function (s, si) {
           var canDel = e && e.Status === 'In progress' && (s.DisciplerID === S.me.user.UserID || rank() >= 2);
           var canPic = s.DisciplerID === S.me.user.UserID || rank() >= 2;
           var pics = (s.Photos || []).map(function (id) { return '<span class="shot">' + avatar(id, 'shot-img', 'Session photo').replace('<img ', '<img data-open="' + esc(id) + '" ') + (canPic ? '<button type="button" class="x" data-rmpic="' + esc(id) + '" aria-label="Remove photo">×</button>' : '') + '</span>'; }).join('');
-          var picRow = (pics || canPic) ? '<div class="shots">' + pics + (canPic && (s.Photos || []).length < 3 ? '<button type="button" class="addshot" data-addpic="' + esc(s.SessionID) + '" aria-label="Add a photo">+</button>' : '') + '</div>' : '';
-          return '<div class="item" style="cursor:default" data-sid="' + esc(s.SessionID) + '"><div class="t">' + esc(fmtDay(s.Date)) + ' · ' + esc(s.Lesson) + '</div>' +
-            (s.Confirmed ? '<span class="small" style="color:var(--ok);font-weight:700">Confirmed</span>' : '<span class="small muted">Not confirmed</span>') +
-            '<div class="s">' + esc(s.LessonTitle) + (s.Finished ? ' · finished' : ' · continued') + ' · by ' + esc(s.Discipler) + (s.NextMeeting ? ' · next ' + esc(fmtDayShort(s.NextMeeting)) : '') +
+          var canAdd = canPic && (s.Photos || []).length < 3, box = canAdd && (pics || si === 0);
+          var picRow = (pics || box) ? '<div class="shots">' + pics + (box ? '<button type="button" class="addshot" data-addpic="' + esc(s.SessionID) + '" aria-label="Add a photo">+</button>' : '') + '</div>' : '';
+          return '<div class="item sess" data-sid="' + esc(s.SessionID) + '"><div class="t">' + esc(fmtDay(s.Date)) + ' · ' + esc(s.Lesson) + '</div>' +
+            '<span class="pill ' + (s.Finished ? 'ok' : 'info') + '">' + (s.Finished ? 'Finished' : 'Continued') + '</span>' +
+            '<div class="s">' + esc(s.LessonTitle) + ' · by ' + esc(s.Discipler) + (s.NextMeeting ? ' · next ' + esc(fmtDayShort(s.NextMeeting)) : '') +
             (s.Notes ? '<br><span style="color:var(--ink)">' + esc(s.Notes) + '</span>' : '') + picRow +
-            (canDel ? '<button type="button" class="btn quiet sm" data-del style="padding-left:0">Remove this session</button>' : '') + '</div></div>';
+            '<div class="row">' + '<button type="button" class="btn quiet sm" data-upd="' + esc(s.SessionID) + '" style="padding-left:0">' + icon('send') + 'Send update</button>' + (canAdd && !box ? '<button type="button" class="btn quiet sm" data-addpic="' + esc(s.SessionID) + '">' + icon('camera') + 'Add photo</button>' : '') + (canDel ? '<button type="button" class="btn quiet sm" data-del>Remove</button>' : '') + '</div></div></div>';
         }).join('') + '</div>';
       }
       if (d.certificates.length) html += '<h3>Certificates</h3><div class="list">' + d.certificates.map(function (c) { return '<a class="item" href="#/cert/' + esc(c.CertNo) + '"><div class="t">' + esc(c.LevelName) + ' · ' + esc(c.ProgramYear) + '</div><span class="pill plain">' + esc(c.CertNo) + '</span></a>'; }).join('') + '</div>';
 
-      html += '<h3>Manage</h3><div class="card stack">';
+      var loginOn = S.me.settings.DiscipleLogin === 'TRUE', showPin = p.Role !== 'Disciple' || loginOn;
+      if (ppl || showPin) html += '<h3>Manage</h3><div class="card stack">';
       if (ppl) {
         var opts = ppl.disciplers.filter(function (x) { return x.UserID !== uid; }).map(function (x) { return '<option value="' + esc(x.UserID) + '"' + (x.UserID === p.DisciplerID ? ' selected' : '') + '>' + esc(x.Name) + ' (' + esc(x.Role) + ')</option>'; }).join('');
         html += '<label class="f">Discipler<div class="row"><select class="i" id="disc" style="flex:1;min-width:0"><option value="">No discipler</option>' + opts + '</select><button type="button" class="btn sm" id="assign">Save</button></div></label>';
+        html += '<details class="edit"><summary>Edit name, mobile or congregation</summary><div class="stack">' +
+          '<label class="f">Full name<input class="i" id="en" value="' + esc(p.Name) + '"></label>' +
+          '<label class="f">Mobile number <span class="muted" style="font-weight:500">(optional)</span><input class="i" id="em" inputmode="tel" value="' + esc(p.Mobile || '') + '"></label>' +
+          '<label class="f">Congregation<select class="i" id="ec">' + S.me.congregations.filter(function (c) { return !S.me.scope || S.me.scope.indexOf(c.CongregationID) >= 0; }).map(function (c) { return '<option value="' + esc(c.CongregationID) + '"' + (c.CongregationID === p.CongregationID ? ' selected' : '') + '>' + esc(c.Name) + '</option>'; }).join('') + '</select></label>' +
+          '<div><button type="button" class="btn sm" id="saveinfo">Save details</button></div></div></details>';
         var roles = rank() === 3 ? ['Disciple', 'Discipler', 'Coordinator', 'Admin'] : ['Disciple', 'Discipler'];
         if (roles.indexOf(p.Role) >= 0) {
           html += '<label class="f">Role<div class="row"><select class="i" id="role" style="flex:1;min-width:0">' + roles.map(function (r) { return '<option' + (r === p.Role ? ' selected' : '') + '>' + r + '</option>'; }).join('') + '</select><button type="button" class="btn sm" id="setrole">Save</button></div></label>';
         }
         if (rank() === 3) {
           var mods = (p.ModCongregations || '').split(',');
-          html += '<fieldset class="stack" id="modc" style="border:1px solid var(--line);border-radius:10px;padding:10px 12px"' + (p.Role === 'Coordinator' ? '' : ' hidden') + '><legend class="small muted" style="font-weight:700">Coordinator of</legend>' +
+          html += '<fieldset class="stack fs" id="modc"' + (p.Role === 'Coordinator' ? '' : ' hidden') + '><legend>Coordinator of</legend>' +
             S.me.congregations.map(function (c) { return '<label class="row small"><input type="checkbox" value="' + esc(c.CongregationID) + '"' + (mods.indexOf(c.CongregationID) >= 0 ? ' checked' : '') + '> ' + esc(c.Name) + '</label>'; }).join('') +
             '<button type="button" class="btn sm" id="savemods">Save congregations</button></fieldset>';
-          html += '<fieldset class="stack" id="copts" style="border:1px solid var(--line);border-radius:10px;padding:10px 12px"' + (p.Role === 'Coordinator' ? '' : ' hidden') + '><legend class="small muted" style="font-weight:700">Coordinator options</legend>' +
+          html += '<fieldset class="stack fs" id="copts"' + (p.Role === 'Coordinator' ? '' : ' hidden') + '><legend>Coordinator options</legend>' +
             switchRow('co-d', 'Also disciples people', 'Shows “My disciples” and lists them as a discipler.', p.Disciples) +
             switchRow('co-l', 'Taking the lessons this year', 'Shows “My progress” and “My certificates”.', p.TakesLessons) + '</fieldset>';
         }
       }
-      html += '<div class="row"><button type="button" class="btn sm" id="pin">Reset PIN</button>' +
-        (ppl ? (p.Status === 'Active' ? '<button type="button" class="btn sm danger" id="deact">Deactivate account</button>' : '<button type="button" class="btn sm" id="react">Reactivate account</button>') : '') + '</div>' +
+      if (ppl || showPin) html += '<div class="row">' + (showPin ? '<button type="button" class="btn sm" id="pin">Reset PIN</button>' : '') +
+        (ppl ? (p.Status === 'Active' ? '<button type="button" class="btn sm danger" id="deact">Deactivate</button>' : '<button type="button" class="btn sm" id="react">Reactivate</button>') : '') + '</div>' +
         '<p class="small" id="pinout" hidden></p></div>';
+      html += '</div></div>';
       var m = fill(html);
 
-      var lf = $('#logf', m), chosen = [];
+      /* record form */
+      var lf = $('#logf', m), chosen = [], sel = next && next.LessonID, finished = true;
+      function lessonById(id) { return path.filter(function (l) { return l.LessonID === id; })[0]; }
+      function drawSave() {
+        var b = $('#lsave'); if (!b) return;
+        var others = path.filter(function (l) { return l.LessonID !== sel && l.State !== 'Finished'; }).length;
+        b.innerHTML = finished ? (others ? 'Save &amp; move ' + esc(first) + ' forward ' + icon('arrow') : 'Save · all lessons done ' + icon('check')) : 'Save session';
+      }
+      function drawLesson() {
+        var l = lessonById(sel), i = path.indexOf(l);
+        $('#lnow').innerHTML = '<span class="ln-badge">' + esc(shortNum(l, i)) + '</span><span><span class="ln-num">' + esc(l.Number) + (l.State === 'Finished' ? ' · finished before' : l.State === 'Started' ? ' · started' : '') + '</span><span class="ln-title">' + esc(l.Title) + '</span></span>';
+        $$('.lt', lf).forEach(function (t) { t.setAttribute('aria-pressed', String(t.dataset.l === sel)); });
+        drawSave();
+      }
       function drawChosen() {
         $('#lpics').innerHTML = chosen.map(function (c, i) { return '<span class="shot"><img class="av shot-img" src="data:image/jpeg;base64,' + c.thumb + '" alt=""><button type="button" class="x" data-ci="' + i + '" aria-label="Remove">×</button></span>'; }).join('');
         $$('[data-ci]', lf).forEach(function (x) { x.onclick = function () { chosen.splice(+x.dataset.ci, 1); drawChosen(); }; });
-        $('#laddpic').hidden = chosen.length >= 3;
+        $('#laddpic').disabled = chosen.length >= 3;
+        $('#picn').textContent = chosen.length ? chosen.length + ' added' : 'up to 3';
+        $('#laddpic').classList.toggle('set', chosen.length > 0);
       }
-      if (lf) $('#laddpic').onclick = function () { pickImage(false, function (pic) { chosen.push(pic); drawChosen(); }); };
-      if (lf) lf.onsubmit = function (ev) {
-        ev.preventDefault(); var err = $('#lerr'), b = $('button.primary', lf); err.hidden = true; busy(b, true);
-        api('logSession', { userId: uid, date: $('#ld').value, lessonId: $('#ll').value, finished: $('#lf').checked, notes: $('#ln').value, nextMeeting: $('#lnm').value })
-          .then(function (r) {
-            toast('Session saved.');
-            var pics = chosen.slice(), sid = r && r.session && r.session.SessionID;
-            viewPerson(uid);
-            if (pics.length && sid) whenSynced().then(function () {
-              return pics.reduce(function (pr2, pic) { return pr2.then(function () { return uploadPhoto('session', sid, pic); }); }, Promise.resolve());
-            }).then(function () { rerender(); }).catch(function (x) { toast('Session saved. ' + (x.offline ? 'Photos need an internet connection; add them from the session when you’re online.' : x.message)); });
-          })
-          .catch(function (x) { err.textContent = x.message; err.hidden = false; busy(b, false); });
-      };
+      if (lf) {
+        drawLesson();
+        $('#chg').onclick = function () { var t = $('#ltiles'); t.hidden = !t.hidden; this.textContent = t.hidden ? 'Change lesson' : 'Done'; };
+        $$('.lt', lf).forEach(function (t) { t.onclick = function () { sel = t.dataset.l; drawLesson(); }; });
+        $$('[data-fin]', lf).forEach(function (b2) { b2.onclick = function () { finished = b2.dataset.fin === '1'; $$('[data-fin]', lf).forEach(function (x) { x.setAttribute('aria-pressed', String(x === b2)); }); drawSave(); }; });
+        $$('[data-day]', lf).forEach(function (c) { c.onclick = function () {
+          $$('[data-day]', lf).forEach(function (x) { x.setAttribute('aria-pressed', String(x === c)); });
+          var ld = $('#ld');
+          if (c.dataset.day === 'pick') { ld.hidden = false; try { ld.showPicker(); } catch (er) { ld.focus(); } return; }
+          ld.hidden = true; var dt = new Date(todayStr() + 'T12:00:00'); dt.setDate(dt.getDate() - +c.dataset.day);
+          ld.value = dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2);
+        }; });
+        $('#ld').onchange = function () { $('[data-day="pick"]', lf).textContent = this.value ? fmtDayShort(this.value) : 'Pick date'; };
+        $$('[data-x]', lf).forEach(function (x) { x.onclick = function () {
+          var pn = $('[data-xp="' + x.dataset.x + '"]', lf); pn.hidden = !pn.hidden; x.setAttribute('aria-expanded', String(!pn.hidden));
+          if (!pn.hidden) { var inp = $('textarea, input', pn); if (x.dataset.x === 'next') { try { inp.showPicker(); } catch (er) { inp.focus(); } } else inp.focus(); }
+        }; });
+        $('#ln').oninput = function () { $('#noten').textContent = this.value.trim() ? 'added' : 'only you and coordinators'; $('[data-x="note"]').classList.toggle('set', !!this.value.trim()); };
+        $('#lnm').onchange = function () { $('#nextn').textContent = this.value ? fmtDayShort(this.value) : 'not set'; $('[data-x="next"]').classList.toggle('set', !!this.value); };
+        $('#laddpic').onclick = function () { pickImage(false, function (pic) { chosen.push(pic); drawChosen(); }); };
+        lf.onsubmit = function (ev) {
+          ev.preventDefault(); var err = $('#lerr'), b = $('#lsave'); err.hidden = true; busy(b, true);
+          api('logSession', { userId: uid, date: $('#ld').value, lessonId: sel, finished: finished, notes: $('#ln').value, nextMeeting: $('#lnm').value })
+            .then(function (r) {
+              toast('Session saved.');
+              var pics = chosen.slice(), sid = r && r.session && r.session.SessionID;
+              viewPerson(uid);
+              setTimeout(function () { openUpdate(uid, 'session', { sessionId: sid, pic: pics[0] }); }, 250);
+              if (pics.length && sid) whenSynced().then(function () {
+                return pics.reduce(function (pr2, pic) { return pr2.then(function () { return uploadPhoto('session', sid, pic); }); }, Promise.resolve());
+              }).then(function () { rerender(); }).catch(function (x) { toast('Session saved. ' + (x.offline ? 'Photos need an internet connection; add them from the session when you’re online.' : x.message)); });
+            })
+            .catch(function (x) { err.textContent = x.message; err.hidden = false; busy(b, false); });
+        };
+        if (focusRecord) setTimeout(function () { lf.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 60);
+      }
+      var su = $('#sendupd'); if (su) su.onclick = function () { openUpdate(uid, pr.sessions.length ? 'session' : 'celebrate'); };
+      $$('[data-upd]', m).forEach(function (b2) { b2.onclick = function () { openUpdate(uid, 'session', { sessionId: b2.dataset.upd }); }; });
       var pph = $('#pph', m); if (pph) pph.onclick = function () { pickImage(true, function (pic) { uploadPhoto('person', uid, pic).then(function () { viewPerson(uid); }).catch(function (x) { toast(x.message); }); }); };
       var pphx = $('#pphx', m); if (pphx) confirmTap(pphx, 'Tap again to remove', function () { deletePhoto(p.PhotoID).then(function () { viewPerson(uid); }).catch(function (x) { toast(x.message); }); });
       $$('[data-open]', m).forEach(function (im) { im.onclick = function () { lightbox(im.dataset.open); }; });
@@ -2157,12 +2617,14 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         confirmTap(b, 'Tap again to remove', function () { api('deleteSession', { sessionId: b.closest('[data-sid]').dataset.sid }).then(function () { toast('Session removed.'); viewPerson(uid); }).catch(function (x) { toast(x.message); }); });
       });
       var g = $('#grad', m);
-      if (g) confirmTap(g, 'Tap again to confirm', function () { api('graduate', { enrollmentId: e.EnrollmentID }).then(function () { toast(p.Name + ' completed ' + e.LevelName + '.'); viewPerson(uid); }).catch(function (x) { toast(x.message); }); });
-      confirmTap($('#pin', m), 'Tap again to reset PIN', function () {
+      if (g) confirmTap(g, 'Tap again to confirm', function () { api('graduate', { enrollmentId: e.EnrollmentID }).then(function () { toast(p.Name + ' completed ' + e.LevelName + '.'); viewPerson(uid); setTimeout(function () { openUpdate(uid, 'celebrate'); }, 250); }).catch(function (x) { toast(x.message); }); });
+      var pinb = $('#pin', m);
+      if (pinb) confirmTap(pinb, 'Tap again to reset PIN', function () {
         api('resetPin', { userId: uid }).then(function (r) { var o = $('#pinout'); o.innerHTML = 'Temporary PIN: <b style="font-size:20px;letter-spacing:.15em;user-select:all">' + esc(r.tempPin) + '</b><br><span class="muted">Give this to ' + esc(first) + ' in person. They can change it under Profile.</span>'; o.hidden = false; }).catch(function (x) { toast(x.message); });
       });
       if (ppl) {
         $('#assign').onclick = function () { api('assign', { userId: uid, disciplerId: $('#disc').value }).then(function () { toast('Discipler saved.'); }).catch(function (x) { toast(x.message); }); };
+        $('#saveinfo').onclick = function () { api('updatePerson', { userId: uid, name: $('#en').value, mobile: $('#em').value, congregationId: $('#ec').value }).then(function () { toast('Details saved.'); }).catch(function (x) { toast(x.message); }); };
         var sr = $('#setrole');
         if (sr) {
           $('#role').onchange = function () { var mc = $('#modc'), co = $('#copts'); if (mc) mc.hidden = this.value !== 'Coordinator'; if (co) co.hidden = this.value !== 'Coordinator'; };
@@ -2178,45 +2640,298 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       }
     });
   }
+  /* ---------- picture updates for disciples ----------
+     Disciples don't need to sign in. After a session the discipler sends a picture made on the phone
+     (progress, lesson, memory verse, a question to reply to, next meeting) through Messenger, Viber or any app. */
+  var DEFAULT_Q = {
+    'L1-01': 'Who is one person you’d like to tell that Jesus is the hope of sinners?',
+    'L1-02': 'How does knowing you can never lose your salvation change the way you face this week?',
+    'L1-03': 'What are you looking forward to most as part of our church family?',
+    'L1-04A': 'What’s one change you’ve noticed in your life since you trusted Christ?',
+    'L1-04B': 'Which part of the Christian walk do you want to practise this week?',
+    'L1-05': 'What time of day works best for you to read your Bible?',
+    'L1-06': 'What’s one thing God has given you that you can use for Him this week?',
+    'L1-07': 'Who is one person you can pray for and share the gospel with this month?'
+  };
+  var GENERIC_Q = 'What stood out to you most from our lesson?';
+  function questionFor(l) { return (l && (l.Question || DEFAULT_Q[l.LessonID])) || GENERIC_Q; }
+  function wrapLines(ctx, text, maxW) {
+    var words = String(text || '').split(/\s+/), lines = [], line = '';
+    words.forEach(function (w) { var t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; });
+    if (line) lines.push(line);
+    return lines;
+  }
+  function rrect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function coverImg(ctx, im, x, y, w, h, r) {
+    ctx.save(); rrect(ctx, x, y, w, h, r); ctx.clip();
+    var k = Math.max(w / im.width, h / im.height), iw = im.width * k, ih = im.height * k;
+    ctx.drawImage(im, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih); ctx.restore();
+  }
+  function longDay(d) { var x = new Date(String(d).slice(0, 10) + 'T12:00:00'); return x.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' }); }
+  // Draws the update. Runs twice: once to measure the height, once to paint.
+  function drawUpdate(o) {
+    var W = 1080, NAVY = '#243049', FL = '#e05a1c', GOLD = '#f6b13a', INK = '#1b2236', MUTED = '#5a6278';
+    function body(ctx, paint) {
+      var y = 0, X = 100, IW = W - 200;
+      var T = function (txt, x, yy, font, color, align) { if (!paint) return; ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align || 'left'; ctx.fillText(txt, x, yy); };
+      var para = function (txt, font, color, lh, maxW, x) { ctx.font = font; var ls = wrapLines(ctx, txt, maxW || IW); ls.forEach(function (l, i) { T(l, x || X, y + lh * (i + 1) - lh * 0.25, font, color); }); y += ls.length * lh; return ls.length; };
+      var spaced = function (t) { return t.toUpperCase().split('').join(String.fromCharCode(8202)); };
+      /* navy top */
+      if (paint) { ctx.fillStyle = '#f3f4f8'; ctx.fillRect(0, 0, W, ctx.canvas.height); ctx.fillStyle = NAVY; ctx.fillRect(0, 0, W, 640); }
+      if (paint && o.church) { ctx.save(); ctx.beginPath(); ctx.arc(108, 96, 36, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(o.church, 72, 60, 72, 72); ctx.restore(); }
+      T(spaced(o.churchName), 164, 88, '700 21px ' + SANS, GOLD);
+      T('Discipleship · ' + o.program, 164, 122, '600 26px ' + SANS, 'rgba(255,255,255,.8)');
+      T(spaced(o.eyebrow), 80, 214, '800 26px ' + SANS, GOLD);
+      /* photo with progress ring */
+      var cx = 200, cy = 370, r = 112, pct = o.total ? o.finished / o.total : 0;
+      if (paint) {
+        ctx.lineWidth = 16; ctx.strokeStyle = 'rgba(255,255,255,.16)'; ctx.beginPath(); ctx.arc(cx, cy, r + 22, 0, Math.PI * 2); ctx.stroke();
+        if (pct) { var g = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r); g.addColorStop(0, GOLD); g.addColorStop(1, '#e64a26'); ctx.strokeStyle = g; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(cx, cy, r + 22, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * pct); ctx.stroke(); ctx.lineCap = 'butt'; }
+        circleImg(ctx, o.photo, cx, cy, r, { w: 0, c: 'transparent' });
+      }
+      if (paint) { ctx.font = '700 64px ' + SERIF; fitText(ctx, o.name, 600, 64, '700 {s}px ' + SERIF); ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText(o.name, 380, 350); }
+      T(o.total ? o.finished + ' of ' + o.total + ' lessons' : 'Starting the lessons', 380, 404, '800 32px ' + SANS, GOLD);
+      T(o.discipler ? 'with ' + o.discipler : '', 380, 450, '600 26px ' + SANS, 'rgba(255,255,255,.75)');
+      /* lesson path */
+      var n = o.path.length;
+      if (n && paint) {
+        var x0 = 110, x1 = W - 110, step = n > 1 ? (x1 - x0) / (n - 1) : 0, py = 560, dr = Math.min(30, step / 2.6 || 30);
+        o.path.forEach(function (l, i) {
+          var x = x0 + i * step;
+          if (i) { ctx.strokeStyle = o.path[i - 1].State === 'Finished' ? GOLD : 'rgba(255,255,255,.22)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x - step + dr, py); ctx.lineTo(x - dr, py); ctx.stroke(); }
+          var done = l.State === 'Finished', cur = l.LessonID === o.curId;
+          ctx.beginPath(); ctx.arc(x, py, cur ? dr + 6 : dr, 0, Math.PI * 2); ctx.fillStyle = done ? GOLD : cur ? FL : 'rgba(255,255,255,.16)'; ctx.fill();
+          if (cur) { ctx.lineWidth = 5; ctx.strokeStyle = '#fff'; ctx.stroke(); }
+          ctx.fillStyle = done ? NAVY : '#fff'; ctx.font = '800 ' + (shortNum(l, i).length > 1 ? 20 : 24) + 'px ' + SANS; ctx.textAlign = 'center'; ctx.fillText(shortNum(l, i), x, py + 8);
+        });
+      }
+      /* white panel */
+      var PX = 50, PY = 680; y = PY + 60;
+      var panelTop = PY;
+      if (paint) { ctx.fillStyle = '#fff'; rrect(ctx, PX, PY, W - PX * 2, o._panelH || 600, 40); ctx.fill(); }
+      if (o.kind === 'session') {
+        if (o.sessionImg) { if (paint) coverImg(ctx, o.sessionImg, X, y, IW, 470, 28); y += 500; }
+        T(spaced(o.sessionFinished ? 'Today we studied' : 'Today we started'), X, y + 24, '800 22px ' + SANS, MUTED); y += 46;
+        T(o.lesson.Number, X, y + 30, '800 30px ' + SANS, FL); y += 44;
+        para(o.lesson.Title, '700 52px ' + SERIF, INK, 64); y += 18;
+        if (paint) { var lab = o.sessionFinished ? '✓  Finished' : 'To be continued next time'; ctx.font = '800 26px ' + SANS; var tw = ctx.measureText(lab).width; ctx.fillStyle = o.sessionFinished ? '#e6f3ec' : '#e8ebf4'; rrect(ctx, X, y, tw + 48, 52, 26); ctx.fill(); T(lab, X + 24, y + 35, '800 26px ' + SANS, o.sessionFinished ? '#2c7a4b' : '#2e4a9a'); }
+        y += 86;
+        if (o.verse) {
+          var vy = y; y += 20;
+          T(spaced('Memory verse'), X + 34, y + 22, '800 21px ' + SANS, FL); y += 40;
+          para('“' + o.verse.text + '”', 'italic 500 38px ' + SERIF, INK, 52, IW - 40, X + 34); y += 6;
+          T(o.verse.ref + ' · KJV', X + 34, y + 28, '800 24px ' + SANS, MUTED); y += 46;
+          if (paint) { ctx.fillStyle = FL; rrect(ctx, X, vy + 8, 8, y - vy - 16, 4); ctx.fill(); }
+          y += 30;
+        }
+      } else if (o.kind === 'reminder') {
+        if (paint) { ctx.fillStyle = NAVY; rrect(ctx, X, y, 220, 240, 30); ctx.fill(); }
+        var d = new Date(o.nextMeeting + 'T12:00:00');
+        T(d.toLocaleDateString('en-PH', { month: 'short' }).toUpperCase(), X + 110, y + 66, '800 34px ' + SANS, GOLD, 'center');
+        T(String(d.getDate()), X + 110, y + 180, '800 110px ' + SANS, '#fff', 'center');
+        T(spaced('Next meeting'), X + 260, y + 50, '800 22px ' + SANS, MUTED);
+        if (paint) { ctx.font = '700 50px ' + SERIF; } T(d.toLocaleDateString('en-PH', { weekday: 'long' }), X + 260, y + 118, '700 54px ' + SERIF, INK);
+        T(d.toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' }), X + 260, y + 170, '600 32px ' + SANS, MUTED);
+        y += 290;
+        if (o.lesson) { T(spaced('We’ll study'), X, y + 24, '800 22px ' + SANS, MUTED); y += 46; T(o.lesson.Number, X, y + 30, '800 30px ' + SANS, FL); y += 44; para(o.lesson.Title, '700 48px ' + SERIF, INK, 60); y += 30; }
+        para('Please bring your lesson booklet and your Bible. See you!', '500 34px ' + SANS, MUTED, 48); y += 40;
+      } else {
+        var big = o.completed ? 'Congratulations, ' + o.first + '!' : o.finished && o.finished >= o.total ? 'All lessons finished!' : 'Keep going, ' + o.first + '!';
+        para(big, '700 64px ' + SERIF, FL, 76); y += 10;
+        para(o.completed ? 'You’ve completed ' + o.level + '.' : 'You’ve finished ' + o.finished + ' of ' + o.total + ' lessons' + (o.total - o.finished > 0 ? '. Only ' + (o.total - o.finished) + ' more to go.' : '.'), '600 36px ' + SANS, INK, 50); y += 30;
+        if (o.cert) { para('Certificate No. ' + o.cert.CertNo + ' · valid until ' + fmtDate(o.cert.ValidUntil), '600 28px ' + SANS, MUTED, 40); y += 30; }
+        o.path.filter(function (l) { return l.State === 'Finished'; }).slice(0, 8).forEach(function (l) {
+          if (paint) { ctx.fillStyle = '#e6f3ec'; ctx.beginPath(); ctx.arc(X + 22, y + 26, 22, 0, Math.PI * 2); ctx.fill(); }
+          T('✓', X + 22, y + 36, '800 26px ' + SANS, '#2c7a4b', 'center');
+          ctx.font = '600 32px ' + SANS; var t = l.Title; while (ctx.measureText(t).width > IW - 70 && t.length > 4) t = t.slice(0, -2); if (t !== l.Title) t = t.replace(/\s*\S*$/, '') + '…';
+          T(t, X + 64, y + 38, '600 32px ' + SANS, INK); y += 62;
+        });
+        y += 30;
+      }
+      if (o.question && o.kind !== 'reminder') {
+        ctx.font = 'italic 500 40px ' + SERIF; var ql = wrapLines(ctx, o.question, IW - 80), qh = 70 + ql.length * 54 + 96;
+        if (paint) { ctx.fillStyle = '#fdeee2'; rrect(ctx, X, y, IW, qh, 30); ctx.fill(); }
+        T(spaced('Something to think about'), X + 40, y + 56, '800 21px ' + SANS, '#a3410f');
+        ql.forEach(function (l, i) { T(l, X + 40, y + 70 + 54 * (i + 1) - 12, 'italic 500 40px ' + SERIF, INK); });
+        T('Reply and tell me what you think.', X + 40, y + qh - 40, '600 26px ' + SANS, '#a3410f');
+        y += qh + 40;
+      }
+      if (o.nextMeeting && o.kind === 'session') {
+        if (paint) { ctx.fillStyle = NAVY; rrect(ctx, X, y, 110, 120, 22); ctx.fill(); }
+        var nd = new Date(o.nextMeeting + 'T12:00:00');
+        T(nd.toLocaleDateString('en-PH', { month: 'short' }).toUpperCase(), X + 55, y + 40, '800 22px ' + SANS, GOLD, 'center');
+        T(String(nd.getDate()), X + 55, y + 96, '800 50px ' + SANS, '#fff', 'center');
+        T(spaced('Next meeting'), X + 140, y + 46, '800 21px ' + SANS, MUTED);
+        T(longDay(o.nextMeeting), X + 140, y + 94, '700 40px ' + SERIF, INK);
+        y += 160;
+      }
+      var panelH = y - panelTop + 20;
+      T('Sent by ' + o.discipler + ' · ' + o.churchName, W / 2, panelTop + panelH + 66, '600 24px ' + SANS, MUTED, 'center');
+      return { panelH: panelH, H: panelTop + panelH + 110 };
+    }
+    var probe = document.createElement('canvas').getContext('2d');
+    var m = body(probe, false); o._panelH = m.panelH;
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = Math.max(1350, m.H);
+    body(cv.getContext('2d'), true);
+    return cv;
+  }
+  function shareImage(cv, name, text) {
+    return new Promise(function (res) { cv.toBlob(res, 'image/jpeg', 0.9); }).then(function (blob) {
+      var file = null; try { file = new File([blob], name, { type: 'image/jpeg' }); } catch (e) { file = null; }
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        return navigator.share({ files: [file], text: text }).then(function () { return 'shared'; }, function (e) { if (e && e.name === 'AbortError') return 'cancelled'; throw e; });
+      }
+      saveBlob(blob, name); return 'saved';
+    });
+  }
+  function saveBlob(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
+  function copyText(t) {
+    return (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { toast('Message copied. Paste it with the picture.'); }).catch(function () { toast('Select the message and copy it.'); });
+  }
+  function openUpdate(uid, kind, extra) {
+    extra = extra || {};
+    var r = runLocal('person', { userId: uid }); if (!r.ok) { toast(r.error); return; }
+    var d = r.data, p = d.person, e = d.enrollment, pr = d.progress, first = firstName(p.Name), st = S.me.settings;
+    var ses = pr.sessions.filter(function (x) { return x.SessionID === extra.sessionId; })[0] || pr.sessions[0];
+    var fresh = !e || e.Status !== 'In progress';
+    var path = !fresh || !d.canLog ? pr.lessons : d.logLessons.map(function (l) { return Object.assign({}, l, { State: 'Not started' }); });
+    var nextL = path.filter(function (l) { return l.State === 'Started'; })[0] || path.filter(function (l) { return l.State !== 'Finished'; })[0];
+    var nm = pr.nextMeeting || (ses && ses.NextMeeting >= todayStr() ? ses.NextMeeting : '');
+    var kinds = [];
+    if (ses) kinds.push(['session', 'Session update']);
+    if (nm) kinds.push(['reminder', 'Meeting reminder']);
+    if (pr.finished || (e && e.Status === 'Completed')) kinds.push(['celebrate', e && e.Status === 'Completed' ? 'Congratulations' : 'Progress']);
+    if (!kinds.length) { toast('Record a session first, then you can send ' + first + ' an update.'); return; }
+    if (!kinds.some(function (k) { return k[0] === kind; })) kind = kinds[0][0];
+    var sesLesson = ses ? (pr.lessons.filter(function (l) { return l.LessonID === ses.LessonID; })[0] || { LessonID: ses.LessonID, Number: ses.Lesson, Title: ses.LessonTitle }) : null;
+    var q = { session: questionFor(sesLesson), celebrate: GENERIC_Q.replace('from our lesson', 'so far in our lessons') };
+    var cert = e && e.Status === 'Completed' ? d.certificates.filter(function (c) { return c.EnrollmentID === e.EnrollmentID; })[0] : null;
+    function message() {
+      if (kind === 'session') return 'Hi ' + first + '! Thank you for meeting with me' + (ses.Date === todayStr() ? ' today' : '') + '. We ' + (ses.Finished ? 'studied ' : 'started ') + ses.Lesson + ': ' + ses.LessonTitle + '. ' + (q.session ? 'Something to think about: ' + q.session + ' ' : '') + (nm ? 'See you on ' + longDay(nm) + '!' : '');
+      if (kind === 'reminder') return 'Hi ' + first + '! A reminder that we’ll meet on ' + longDay(nm) + (nextL ? ' for ' + nextL.Number + ': ' + nextL.Title : '') + '. Please bring your booklet and Bible. See you!';
+      return e && e.Status === 'Completed' ? 'Congratulations, ' + first + '! You’ve completed ' + e.LevelName + '. I’m so glad I could walk through the lessons with you.' : 'Hi ' + first + '! You’ve finished ' + pr.finished + ' of ' + pr.total + ' lessons. Keep going! ' + (q.celebrate ? q.celebrate : '');
+    }
+    var scrim = document.createElement('div'); scrim.className = 'scrim';
+    var sh = document.createElement('div'); sh.className = 'sheet upd'; sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-modal', 'true'); sh.setAttribute('aria-label', 'Send ' + first + ' an update');
+    sh.innerHTML = '<div class="grip"></div><header><h4>Send ' + esc(first) + ' an update</h4><button type="button" class="close" aria-label="Close">×</button></header>' +
+      '<div class="sheet-body upd-body"><div class="chips" role="group" aria-label="Kind of update">' + kinds.map(function (k) { return '<button type="button" class="chip" data-k="' + k[0] + '" aria-pressed="' + (k[0] === kind) + '">' + k[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="upd-grid"><div class="upd-prev"><div class="upd-img" id="updimg"><div class="loading"><span class="spin"></span></div></div></div><div class="upd-side stack">' +
+      '<label class="f" id="qwrap">Question to start a conversation<textarea class="i" id="updq" style="min-height:76px"></textarea></label>' +
+      '<label class="f">Message to send with it<textarea class="i" id="updm" style="min-height:110px"></textarea></label>' +
+      '<p class="small muted">Private notes are never shown. ' + (p.Mobile ? 'Send it to ' + esc(p.Mobile) + ' on Messenger, Viber or SMS.' : 'Send it on Messenger, Viber or any chat app.') + '</p>' +
+      '<div class="upd-acts"><button type="button" class="btn flame" id="updshare">' + icon('share') + 'Share picture</button><button type="button" class="btn" id="updcopy">' + icon('copy') + 'Copy message</button><button type="button" class="btn quiet" id="updsave">' + icon('image') + 'Save picture</button></div>' +
+      '</div></div></div>';
+    document.body.appendChild(scrim); document.body.appendChild(sh);
+    requestAnimationFrame(function () { scrim.classList.add('on'); sh.classList.add('on'); });
+    var close = function () { scrim.classList.remove('on'); sh.classList.remove('on'); setTimeout(function () { scrim.remove(); sh.remove(); }, 260); document.removeEventListener('keydown', key); window.removeEventListener('hashchange', close); };
+    window.addEventListener('hashchange', close);
+    var key = function (ev) { if (ev.key === 'Escape') close(); };
+    document.addEventListener('keydown', key); scrim.onclick = close; $('.close', sh).onclick = close;
+    var cv = null, imgs = {}, seq = 0, mEdited = false;
+    var src = function (id) { return id && (FULL[id] || THUMBS[id]) ? 'data:image/jpeg;base64,' + (FULL[id] || THUMBS[id]) : null; };
+    var FONTS = ['700 40px "Source Serif 4"', 'italic 500 40px "Source Serif 4"', '800 20px Manrope', '600 20px Manrope'];
+    var ready = Promise.all([
+      document.fonts && document.fonts.load ? Promise.all(FONTS.map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve(),
+      fullPhotos([p.PhotoID].concat(ses && ses.Photos ? ses.Photos.slice(0, 1) : []).filter(String)).catch(function () {})
+    ]).then(function () {
+      return Promise.all([loadImg(src(p.PhotoID)), loadImg(CHURCH_URI), extra.pic ? loadImg('data:image/jpeg;base64,' + extra.pic.full) : loadImg(src(ses && ses.Photos && ses.Photos[0]))]);
+    }).then(function (a) { imgs = { photo: a[0], church: a[1], ses: a[2] }; });
+    function draw() {
+      var my = ++seq;
+      ready.then(function () {
+        if (my !== seq) return;
+        var verse = null;
+        if (kind === 'session' && ses.Finished && sesLesson && sesLesson.MemoryText) verse = { text: sesLesson.MemoryText, ref: sesLesson.MemoryRef };
+        cv = drawUpdate({ kind: kind, eyebrow: kind === 'session' ? 'Session update · ' + fmtDayShort(ses.Date) : kind === 'reminder' ? 'See you soon' : (e && e.Status === 'Completed' ? 'Congratulations' : 'Your progress'),
+          churchName: st.ChurchName, program: st.ProgramName, name: p.Name, first: first, discipler: (ses && ses.Discipler) || p.Discipler || S.me.user.Name,
+          finished: e && e.Status === 'Completed' ? pr.total : (fresh ? 0 : pr.finished), total: path.length, path: path, curId: kind === 'celebrate' ? '' : (nextL && nextL.LessonID),
+          photo: imgs.photo, church: imgs.church, sessionImg: kind === 'session' ? imgs.ses : null,
+          lesson: kind === 'session' ? sesLesson : nextL, sessionFinished: ses && ses.Finished, verse: verse,
+          question: $('#updq', sh).value.trim(), nextMeeting: nm, completed: !!(e && e.Status === 'Completed'), level: e ? e.LevelName : '', cert: cert });
+        var box = $('#updimg', sh); box.innerHTML = ''; var im = new Image(); im.alt = 'Update picture for ' + p.Name; im.src = cv.toDataURL('image/jpeg', 0.85); box.appendChild(im);
+      });
+    }
+    function setKind(k) {
+      kind = k; $$('[data-k]', sh).forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.k === k)); });
+      $('#qwrap', sh).hidden = k === 'reminder';
+      $('#updq', sh).value = q[k] || '';
+      mEdited = false; $('#updm', sh).value = message(); draw();
+    }
+    $$('[data-k]', sh).forEach(function (b) { b.onclick = function () { setKind(b.dataset.k); }; });
+    var t = null;
+    $('#updq', sh).oninput = function () { q[kind] = this.value.trim(); if (!mEdited) $('#updm', sh).value = message(); clearTimeout(t); t = setTimeout(draw, 350); };
+    $('#updm', sh).oninput = function () { mEdited = true; };
+    var fname = function () { return first + ' ' + (kind === 'session' ? 'update ' + ses.Date : kind === 'reminder' ? 'reminder ' + nm : 'progress') + '.jpg'; };
+    $('#updshare', sh).onclick = function () {
+      if (!cv) return; var txt = $('#updm', sh).value;
+      shareImage(cv, fname(), txt).then(function (how) {
+        if (how === 'saved') { copyText(txt); toast('Picture saved. Send it to ' + first + ' with the copied message.'); }
+        if (how === 'shared') toast('Update sent.');
+      }).catch(function (x) { toast(IS_ARTIFACT ? 'Sharing works in the live app. Here you can see the picture.' : 'Couldn’t share: ' + x.message); });
+    };
+    $('#updcopy', sh).onclick = function () { copyText($('#updm', sh).value); };
+    $('#updsave', sh).onclick = function () { if (!cv) return; cv.toBlob(function (bl) { saveBlob(bl, fname()); toast(IS_ARTIFACT ? 'Saving works in the live app.' : 'Picture saved to your downloads.'); }, 'image/jpeg', 0.9); };
+    setKind(kind);
+  }
   /* ---------- coordinator ---------- */
   function viewDash() {
-    frame({ title: 'Dashboard' });
-    live('dashboard', null, function (d) {
-      var c = d.counts, n = function (x, one, many) { return x + ' ' + (x === 1 ? one : many); };
-      var items = [
-        [c.ready, 'c-flame', n(c.ready, 'member is', 'members are') + ' ready to graduate', 'All lessons finished. Their discipler needs to confirm.', '#/reports/Ready'],
-        [c.certs, 'c-flame', n(c.certs, 'certificate', 'certificates') + ' to issue', 'Completed members waiting for their certificate.', '#/certadmin'],
-        [c.pending, 'c-warn', n(c.pending, 'registration', 'registrations') + ' to approve', 'New members waiting for access.', '#/people/pending'],
-        [c.stale, 'c-miss', n(c.stale, 'member has', 'members have') + ' not met in ' + d.staleDays + '+ days', 'Lessons started but no recent session recorded.', '#/reports/Stale'],
-        [c.unassigned, 'c-warn', n(c.unassigned, 'member has', 'members have') + ' no discipler', 'Assign someone so their lessons can start.', '#/people/unassigned'],
-        [c.expiring, 'c-warn', n(c.expiring, 'completion expires', 'completions expire') + ' within 60 days', 'Plan their lessons for the coming year.', '#/reports/Expiring'],
-        [c.Expired, 'c-miss', n(c.Expired, 'member needs', 'members need') + ' to retake', 'Their completion has expired.', '#/reports/Expired']
-      ].filter(function (x) { return x[0]; });
-      var html = '<h3>Needs attention</h3>' + (items.length ? '<nav class="attn" aria-label="Needs attention">' + items.map(function (x) {
-        return '<a href="' + x[4] + '"><span class="dot ' + x[1] + '"></span><span class="txt"><b>' + esc(x[2]) + '</b><span>' + esc(x[3]) + '</span></span><span class="go" aria-hidden="true">›</span></a>';
-      }).join('') + '</nav>' : '<div class="calm">' + CHECK + ' Nothing needs attention right now.</div>');
+    frame({ eyebrow: greeting(), title: S.me.user.Name, wide: true });
+    liveAll([['dashboard', null], ['people', null]], function (res) {
+      var d = res[0], c = d.counts, wk = d.week || { sessions: 0, finished: 0, signups: 0 }, n = function (x, one, many) { return x + ' ' + (x === 1 ? one : many); };
+      var ppl = res[1].people.filter(function (p) { return p.Status === 'Active' && (p.Role === 'Disciple' || p.Role === 'Discipler'); });
+      var tiles = [[c.ready, 'Ready to graduate', 'cap', '#/reports/Ready', 'flame'], [c.pending, c.pending === 1 ? 'Sign-up to approve' : 'Sign-ups to approve', 'userplus', '#/people/pending', 'info'],
+        [c.stale, 'Not met in ' + d.staleDays + '+ days', 'clock', '#/reports/Stale', 'miss'], [c.certs, c.certs === 1 ? 'Certificate to issue' : 'Certificates to issue', 'award', '#/certadmin', 'warn']];
+      var hot = false;
+      var html = '<section class="sec"><h3>Needs you today</h3><div class="ntiles">' + tiles.map(function (t) {
+        var cls = !t[0] ? ' zero' : !hot ? (hot = true, ' hot') : '';
+        return '<a class="ntile tone-' + t[4] + cls + '" href="' + t[3] + '">' + icon(t[2]) + '<span><b>' + (t[0] || 0) + '</b><span>' + esc(t[1]) + '</span></span></a>';
+      }).join('') + '</div>';
+      var extra = [];
+      if (c.unassigned) extra.push(['#/people/unassigned', n(c.unassigned, 'member has', 'members have') + ' no discipler yet', 'Assign someone so their lessons can start.']);
+      if (c.expiring) extra.push(['#/reports/Expiring', n(c.expiring, 'completion expires', 'completions expire') + ' within 60 days', 'Plan their lessons for the coming year.']);
+      if (extra.length) html += '<nav class="attn" aria-label="Also needs attention">' + extra.map(function (x) { return '<a href="' + x[0] + '"><span class="dot c-warn"></span><span class="txt"><b>' + esc(x[1]) + '</b><span>' + esc(x[2]) + '</span></span><span class="go" aria-hidden="true">›</span></a>'; }).join('') + '</nav>';
+      html += '</section>';
 
-      var total = c.people || 0, seg = [['Completed', 'c-ok', c.Completed], ['In progress', 'c-info', c['In progress']], ['Not started', 'c-none', c['Not started']], ['Expired', 'c-miss', c.Expired]];
-      var pct = function (x) { return total ? Math.round(x / total * 100) : 0; };
-      html += '<h3>This year at a glance</h3><div class="card glance">' +
-        '<p class="big"><b>' + (c.Completed || 0) + '</b> of ' + total + ' members have completed their lessons</p>' +
-        '<div class="sbar" role="img" aria-label="' + esc(seg.map(function (x) { return x[0] + ' ' + (x[2] || 0); }).join(', ')) + '">' + seg.filter(function (x) { return x[2]; }).map(function (x) { return '<span class="' + x[1] + '" style="flex:' + x[2] + '" title="' + x[0] + ': ' + x[2] + '"></span>'; }).join('') + '</div>' +
-        '<ul class="legend">' + seg.map(function (x) { return '<li><i class="' + x[1] + '"></i><b>' + (x[2] || 0) + '</b><span>' + x[0] + ' · ' + pct(x[2] || 0) + '%</span></li>'; }).join('') + '</ul></div>';
+      var by = function (f) { return ppl.filter(f).sort(bySort); }, pct = function (x) { return ppl.length ? Math.round(x / ppl.length * 100) : 0; };
+      var S0 = by(function (p) { return p.LessonStatus === 'Not started'; }), S1 = by(function (p) { return p.LessonStatus === 'In progress' && !p.ReadyToGraduate; }),
+        S2 = by(function (p) { return p.ReadyToGraduate; }), S3 = by(function (p) { return p.LessonStatus === 'Completed'; }).sort(function (a, b) { return (a.HasCert ? 1 : 0) - (b.HasCert ? 1 : 0); }), S4 = by(function (p) { return p.LessonStatus === 'Expired'; });
+      var noDisc = S0.filter(function (p) { return !p.DisciplerID; }).length;
+      var stages = [
+        ['Not started', S0, noDisc ? n(noDisc, 'has', 'have') + ' no discipler yet' : 'Waiting for their first session', noDisc ? 'warn' : '', 'Not started', 'none', function (p) { return p.DisciplerID ? 'Discipler: ' + esc(firstName(p.Discipler)) : '<span class="warn-t">No discipler</span>'; }],
+        ['Meeting', S1, c.stale ? c.stale + ' not met in ' + d.staleDays + '+ days' : 'Lessons in progress', c.stale ? 'miss' : '', 'In progress', 'info', function (p) { return p.Stale ? '<span class="miss-t">No meeting ' + (p.LastSession ? daysAgo(p.LastSession) + ' days' : 'yet') + '</span>' : segs(p.Finished, p.TotalLessons); }],
+        ['Ready to graduate', S2, 'Waiting for the discipler’s OK', '', 'Ready', 'flame', function (p) { return p.Finished + ' of ' + p.TotalLessons + ' · confirm'; }],
+        ['Completed', S3, c.certs ? n(c.certs, 'certificate', 'certificates') + ' to issue' : pct(S3.length) + '% of members', c.certs ? 'warn' : '', 'Completed', 'ok', function (p) { return p.HasCert ? 'Certificate issued' : '<span class="warn-t">Certificate to issue</span>'; }],
+        ['Expired', S4, c.expiring ? c.expiring + ' more expire within 60 days' : 'Need to retake the lessons', '', 'Expired', 'miss', function (p) { return 'Expired ' + esc(fmtDay(p.ExpiryDate)); }]
+      ];
+      html += '<section class="sec"><div class="sec-h"><h2>The journey</h2><span class="small muted">' + n(ppl.length, 'member', 'members') + ' · ' + new Date().getFullYear() + '</span></div><div class="journey">' + stages.map(function (s) {
+        var list = s[1], href = '#/reports/' + encodeURIComponent(s[4]);
+        return '<div class="stage tone-' + s[5] + (s[5] === 'flame' && list.length ? ' hot' : '') + '">' +
+          '<a class="stage-h" href="' + href + '"><span class="cnt">' + list.length + '</span><span class="stage-t"><b>' + s[0] + '</b><span' + (s[3] ? ' class="' + s[3] + '-t"' : '') + '>' + esc(s[2]) + '</span></span>' +
+          (list.length ? '<span class="faces">' + list.slice(0, 3).map(function (p) { return avatar(p.PhotoID, 'sm', ''); }).join('') + '</span>' : '') + '<span class="go" aria-hidden="true">›</span></a>' +
+          '<div class="stage-p">' + list.slice(0, 3).map(function (p) { return '<a class="mini" href="#/person/' + esc(p.UserID) + '">' + avatar(p.PhotoID, 'sm', '') + '<span class="mini-t"><b>' + esc(p.Name) + '</b><span>' + s[6](p) + '</span></span></a>'; }).join('') +
+          (list.length > 3 ? '<a class="more-l" href="' + href + '">+ ' + (list.length - 3) + ' more</a>' : '') + (list.length ? '' : '<span class="small muted none">No one here</span>') + '</div></div>';
+      }).join('') + '</div></section>';
 
-      html += '<h3>Disciplers</h3>' + (d.disciplers.length ? '<div class="list">' + d.disciplers.map(function (x) {
+      html += '<section class="week"><span class="wk-l">This week</span><span class="wk"><b>' + wk.sessions + '</b>' + (wk.sessions === 1 ? 'session' : 'sessions') + '</span><span class="wk"><b>' + wk.finished + '</b>' + (wk.finished === 1 ? 'lesson finished' : 'lessons finished') + '</span><span class="wk"><b>' + wk.signups + '</b>' + (wk.signups === 1 ? 'new member' : 'new members') + '</span>' +
+        '<a class="btn wk-btn" href="#/reports">' + icon('pdf') + 'Report PDF</a></section>';
+
+      html += '<div class="dash-2"><section class="sec"><h3>Disciplers</h3>' + (d.disciplers.length ? '<div class="list">' + d.disciplers.slice().sort(function (a, b) { return b.Stale - a.Stale || a.Name.localeCompare(b.Name); }).map(function (x) {
+        var pc = x.Disciples ? Math.round(x.Completed / x.Disciples * 100) : 0;
         return '<a class="item person-item" href="#/reports//' + esc(x.UserID) + '">' + avatar(x.PhotoID, '', '') + '<div class="pi"><div class="t">' + esc(x.Name) + '</div>' +
           (x.Stale ? '<div class="row">' + pill('Returned', x.Stale + ' not met recently') + '</div>' : '') +
-          '<div class="s">' + esc(x.Congregation) + ' · ' + n(x.Disciples, 'disciple', 'disciples') + ' · ' + x.Completed + ' completed · ' + n(x.Sessions30, 'session', 'sessions') + ' in the last 30 days</div></div></a>';
-      }).join('') + '</div>' : '<p class="muted">No disciplers yet. Promote a disciple from the People tab.</p>');
-      if (d.congregations.length > 1) html += '<h3>Completion by congregation</h3><div class="list">' + d.congregations.map(function (x) {
+          '<div class="prog"><span class="track"><span class="fill" style="width:' + pc + '%"></span></span><span>' + x.Completed + '/' + x.Disciples + '</span></div>' +
+          '<div class="s">' + esc(x.Congregation) + ' · ' + n(x.Disciples, 'disciple', 'disciples') + ' · ' + n(x.Sessions30, 'session', 'sessions') + ' in 30 days</div></div></a>';
+      }).join('') + '</div>' : '<p class="muted">No disciplers yet. Promote someone from the People tab.</p>') + '</section>';
+      html += '<section class="sec"><h3>Completion by congregation</h3><div class="card stack">' + (d.congregations.length ? d.congregations.map(function (x) {
         var p = x.People ? Math.round(x.Completed / x.People * 100) : 0;
-        return '<div class="card"><div class="spread"><b>' + esc(x.Congregation) + '</b><span class="small muted">' + x.Completed + ' of ' + x.People + ' · ' + p + '%</span></div><div class="track"><div class="fill" style="width:' + p + '%"></div></div></div>';
-      }).join('') + '</div>';
+        return '<div class="cong"><div class="spread"><b>' + esc(x.Congregation) + '</b><span class="small muted">' + x.Completed + ' of ' + x.People + ' · ' + p + '%</span></div><div class="track"><div class="fill" style="width:' + p + '%"></div></div></div>';
+      }).join('') : '<p class="muted small">No members yet.</p>') + '</div></section></div>';
       fill(html);
     });
   }
   function viewPeople(filter) {
-    frame({ title: 'People' });
+    if (filter === 'add') return viewAddPerson();
+    frame({ title: 'People', wide: true });
     live('people', null, function (d) {
       var f = filter || (d.people.some(function (p) { return p.Status === 'Pending'; }) ? 'pending' : 'disciples'), q = '';
       var groups = {
@@ -2228,11 +2943,14 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         inactive: function (p) { return p.Status === 'Inactive'; }
       };
       var labels = { pending: 'To approve', disciples: 'Disciples', unassigned: 'No discipler', disciplers: 'Disciplers', leaders: 'Coordinators', inactive: 'Inactive' };
-      var m = fill('<div class="chips" role="group" aria-label="Filter">' + Object.keys(groups).map(function (k) { return '<button type="button" class="chip" data-f="' + k + '" aria-pressed="' + (k === f) + '">' + labels[k] + '<span class="n">' + d.people.filter(groups[k]).length + '</span></button>'; }).join('') + '</div>' +
+      var m = fill('<div class="spread"><p class="small muted">' + d.people.filter(function (p) { return p.Status === 'Active'; }).length + ' active people</p><a class="btn flame" href="#/people/add">' + icon('userplus') + 'Add a disciple</a></div>' +
+        '<div class="chips" role="group" aria-label="Filter">' + Object.keys(groups).map(function (k) { return '<button type="button" class="chip" data-f="' + k + '" aria-pressed="' + (k === f) + '">' + labels[k] + '<span class="n">' + d.people.filter(groups[k]).length + '</span></button>'; }).join('') + '</div>' +
         '<input class="i" id="q" type="search" placeholder="Search by name or mobile" aria-label="Search people">' +
-        '<div class="list" id="plist"></div>');
+        '<div class="list grid" id="plist"></div>');
       var discOpts = '<option value="">No discipler yet</option>' + d.disciplers.map(function (x) { return '<option value="' + esc(x.UserID) + '">' + esc(x.Name) + '</option>'; }).join('');
-      var roleOpts = (rank() === 3 ? ['Disciple', 'Discipler', 'Coordinator', 'Admin'] : ['Disciple', 'Discipler']).map(function (r) { return '<option>' + r + '</option>'; }).join('');
+      var roleList = rank() === 3 ? ['Disciple', 'Discipler', 'Coordinator', 'Admin'] : ['Disciple', 'Discipler'];
+      if (S.me.settings.DiscipleLogin !== 'TRUE') roleList = ['Discipler', 'Disciple'].concat(roleList.slice(2)); // people who register are usually disciplers now
+      var roleOpts = roleList.map(function (r) { return '<option>' + r + '</option>'; }).join('');
       var congChecks = function (own) { return S.me.congregations.map(function (c) { return '<label class="row small"><input type="checkbox" value="' + esc(c.CongregationID) + '"' + (c.CongregationID === own ? ' checked' : '') + '> ' + esc(c.Name) + '</label>'; }).join(''); };
       function draw() {
         var list = d.people.filter(groups[f]).filter(function (p) { return !q || (p.Name + ' ' + p.Mobile).toLowerCase().indexOf(q) >= 0; }).sort(function (a, b) { return a.Name.localeCompare(b.Name); });
@@ -2258,13 +2976,33 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       draw();
     });
   }
+  function viewAddPerson() {
+    frame({ title: 'Add a disciple', back: '#/people', section: 'people' });
+    (function (rr) { if (!rr.ok) return failView(new Error(rr.error)); var d = rr.data;
+      var congs = S.me.congregations.filter(function (c) { return c.Status !== 'Inactive' && (!S.me.scope || S.me.scope.indexOf(c.CongregationID) >= 0); });
+      var m = fill('<form class="card stack" id="af" novalidate><div class="rec-h"><h2>Add a disciple</h2><p class="small muted">Disciples don’t need to sign in. Their discipler records each meeting and sends them a picture update.</p></div>' +
+        '<label class="f">Full name<input class="i" id="an" autocomplete="off" autocapitalize="words" required placeholder="Juan Dela Cruz"></label>' +
+        '<label class="f">Mobile number <span class="muted" style="font-weight:500">(optional, helps the discipler message them)</span><input class="i" id="am" inputmode="tel" placeholder="0917 123 4567"></label>' +
+        '<label class="f">Congregation<select class="i" id="ac">' + (congs.length === 1 ? '' : '<option value="">Choose a congregation</option>') + congs.map(function (c) { return '<option value="' + esc(c.CongregationID) + '">' + esc(c.Name) + '</option>'; }).join('') + '</select></label>' +
+        '<label class="f">Discipler<select class="i" id="ad"><option value="">Assign later</option>' + d.disciplers.map(function (x) { return '<option value="' + esc(x.UserID) + '">' + esc(x.Name) + ' (' + esc(x.Role) + ')</option>'; }).join('') + '</select></label>' +
+        '<p class="err" id="aerr" hidden></p><div class="row"><button class="btn flame" id="asave">' + icon('userplus') + 'Add disciple</button><label class="row small"><input type="checkbox" id="amore"> Add another after this</label></div></form>');
+      $('#af', m).onsubmit = function (ev) {
+        ev.preventDefault(); var err = $('#aerr'), b = $('#asave'); err.hidden = true; busy(b, true);
+        api('addPerson', { name: $('#an').value, mobile: $('#am').value, congregationId: $('#ac').value, disciplerId: $('#ad').value }).then(function (r) {
+          toast($('#an').value.trim() + ' added.');
+          if ($('#amore').checked) { $('#an').value = ''; $('#am').value = ''; busy(b, false); $('#an').focus(); return; }
+          location.hash = '#/person/' + r.userId;
+        }).catch(function (x) { err.textContent = x.message; err.hidden = false; busy(b, false); });
+      };
+    })(runLocal('people'));
+  }
   var COLS = [['Name', 'Name'], ['LessonStatus', 'Status'], ['Finished', 'Finished'], ['TotalLessons', 'Lessons'], ['LastSession', 'Last meeting'], ['NextMeeting', 'Next meeting'], ['Discipler', 'Discipler'], ['Congregation', 'Congregation'], ['Role', 'Role'], ['Year', 'Year'], ['Level', 'Level'], ['ExpiryDate', 'Valid until'], ['HasCert', 'Certificate'], ['Mobile', 'Mobile']];
   var NUMS = /^(Finished|TotalLessons)$/;
   var FILTERS = [['', 'Any status'], ['Not started', 'Not started'], ['In progress', 'In progress'], ['Ready', 'Ready to graduate'], ['Stale', 'No recent meeting'], ['Completed', 'Completed'], ['Expiring', 'Expiring within 60 days'], ['Expired', 'Expired']];
   function cell(r, k) { var v = r[k]; if (k === 'ExpiryDate') return fmtDate(v); if (k === 'LastSession' || k === 'NextMeeting') return fmtDay(v); if (k === 'HasCert') return v ? 'Yes' : ''; return v == null ? '' : v; }
   function toCSV(rows) { return [COLS.map(function (c) { return c[1]; })].concat(rows.map(function (r) { return COLS.map(function (c) { return cell(r, c[0]); }); })).map(function (line) { return line.map(function (v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n'); }
   function viewReports(status, discId) {
-    frame({ title: 'Reports' });
+    frame({ title: 'Reports', wide: true });
     live('people', null, function (pd) {
       var congs = S.me.congregations.filter(function (c) { return !S.me.scope || S.me.scope.indexOf(c.CongregationID) >= 0; });
       var m = fill('<div class="filters">' +
@@ -2279,7 +3017,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
           rows = r.rows;
           var done = rows.filter(function (x) { return x.LessonStatus === 'Completed'; }).length;
           $('#rep').innerHTML = '<div class="spread"><p class="small"><b>' + rows.length + ' people</b> · ' + done + ' completed (' + (rows.length ? Math.round(done / rows.length * 100) : 0) + '%) · as of ' + fmtDate(r.generated) + '</p><div class="row">' +
-            '<button type="button" class="btn sm" id="copy">Copy as CSV</button>' + (IS_ARTIFACT ? '' : '<button type="button" class="btn sm" id="dl">Download CSV</button>') + '</div></div>' +
+            '<button type="button" class="btn flame sm" id="pdf">' + icon('pdf') + 'Download PDF</button><button type="button" class="btn sm" id="copy">Copy as CSV</button>' + (IS_ARTIFACT ? '' : '<button type="button" class="btn sm" id="dl">Download CSV</button>') + '</div></div>' +
             '<div class="tablewrap"><table><thead><tr>' + COLS.map(function (c) { return '<th' + (NUMS.test(c[0]) ? ' class="num"' : '') + '>' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
             (rows.length ? rows.map(function (x) { return '<tr class="click" data-go="#/person/' + esc(x.UserID) + '">' + COLS.map(function (c) { var v = cell(x, c[0]); return c[0] === 'LessonStatus' ? '<td>' + pill(v) + '</td>' : '<td' + (NUMS.test(c[0]) ? ' class="num"' : '') + '>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="' + COLS.length + '" class="muted">No one matches these filters.</td></tr>') +
             '</tbody></table></div>';
@@ -2289,6 +3027,11 @@ if (typeof module !== 'undefined') module.exports = DEMO;
               var t = document.createElement('textarea'); t.className = 'i code'; t.value = csv; $('#rep').appendChild(t); t.select(); toast('Select all and copy the text below.');
             });
           };
+          $('#pdf').onclick = function () {
+            var b = this, lab = function (sel) { var o = $(sel).selectedOptions[0]; return o ? o.textContent : ''; };
+            busy(b, true);
+            reportPDF(rows, [lab('#fc'), lab('#fs'), lab('#fd')].join(' · '), r.generated).then(function () { busy(b, false); }).catch(function (x) { toast(x.message); busy(b, false); });
+          };
           var dl = $('#dl'); if (dl) dl.onclick = function () { var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([toCSV(rows)], { type: 'text/csv' })); a.download = 'discipleship-report-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.appendChild(a); a.click(); a.remove(); };
         }).catch(function (e) { $('#rep').innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
       }
@@ -2296,8 +3039,72 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       run();
     });
   }
+  // A printable report: summary boxes, then a table of everyone matching the filters.
+  function reportPDF(rows, filterText, generated) {
+    return loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js').then(function () {
+      var st = S.me.settings, doc = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+      var W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 36;
+      var NAVY = [36, 48, 73], FL = [224, 90, 28], GOLD = [246, 177, 58], MUT = [90, 98, 120], INK = [27, 34, 54], LINE = [219, 223, 233];
+      var clean = function (t) { return String(t == null ? '' : t).replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-').replace(/…/g, '...').replace(/[^\x00-\xFF]/g, ''); };
+      var fit = function (t, w) { t = clean(t); if (doc.getTextWidth(t) <= w) return t; while (t.length > 1 && doc.getTextWidth(t + '...') > w) t = t.slice(0, -1); return t + '...'; };
+      var cnt = function (f) { return rows.filter(f).length; };
+      var done = cnt(function (x) { return x.LessonStatus === 'Completed'; });
+      var cols = [['Name', 150], ['Congregation', 105], ['Discipler', 115], ['Status', 92], ['Lessons', 52], ['Last meeting', 78], ['Next meeting', 78], ['Valid until', 78], ['Cert.', 22]];
+      var scale = (W - M * 2) / cols.reduce(function (a, c) { return a + c[1]; }, 0); cols.forEach(function (c) { c[1] *= scale; });
+      var DOT = { 'Completed': [44, 122, 75], 'In progress': [46, 74, 154], 'Not started': [140, 147, 165], 'Expired': [192, 57, 43] };
+      var page = 0;
+      function header(first) {
+        if (page++) doc.addPage();
+        doc.setFillColor.apply(doc, NAVY); doc.rect(0, 0, W, first ? 92 : 44, 'F');
+        doc.setFillColor.apply(doc, FL); doc.rect(0, first ? 92 : 44, W, 3, 'F');
+        doc.setTextColor.apply(doc, GOLD); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.text(clean(st.ChurchName).toUpperCase(), M, first ? 30 : 27);
+        doc.setTextColor(255, 255, 255);
+        if (first) {
+          doc.setFont('times', 'bold'); doc.setFontSize(22); doc.text('Discipleship report', M, 58);
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(210, 214, 226); doc.text(fit(filterText + ' · as of ' + fmtDate(generated), W - M * 2), M, 78);
+        } else { doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.text('Discipleship report (continued)', W - M, 27, { align: 'right' }); }
+      }
+      function tableHead(y) {
+        doc.setFillColor(243, 244, 248); doc.rect(M, y, W - M * 2, 20, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor.apply(doc, MUT);
+        var x = M + 6; cols.forEach(function (c) { doc.text(c[0].toUpperCase(), x, y + 13); x += c[1]; });
+        return y + 20;
+      }
+      header(true);
+      var y = 112, boxes = [['People', rows.length, INK], ['Completed', done + ' (' + (rows.length ? Math.round(done / rows.length * 100) : 0) + '%)', [44, 122, 75]], ['In progress', cnt(function (x) { return x.LessonStatus === 'In progress'; }), [46, 74, 154]], ['Ready to graduate', cnt(function (x) { return x.ReadyToGraduate; }), FL], ['Not met recently', cnt(function (x) { return x.Stale; }), [192, 57, 43]], ['Not started', cnt(function (x) { return x.LessonStatus === 'Not started'; }), MUT], ['Expired', cnt(function (x) { return x.LessonStatus === 'Expired'; }), [192, 57, 43]]];
+      var bw = (W - M * 2 - 8 * (boxes.length - 1)) / boxes.length;
+      boxes.forEach(function (b, i) {
+        var x = M + i * (bw + 8);
+        doc.setDrawColor.apply(doc, LINE); doc.setFillColor(255, 255, 255); doc.roundedRect(x, y, bw, 50, 6, 6, 'FD');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor.apply(doc, b[2]); doc.text(String(b[1]), x + 10, y + 24);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor.apply(doc, MUT); doc.text(b[0], x + 10, y + 40);
+      });
+      y = tableHead(y + 66);
+      doc.setFontSize(8.5);
+      if (!rows.length) { doc.setTextColor.apply(doc, MUT); doc.text('No one matches these filters.', M + 6, y + 18); }
+      rows.forEach(function (r, i) {
+        if (y > H - 50) { header(false); y = tableHead(60); doc.setFontSize(8.5); }
+        if (i % 2) { doc.setFillColor(250, 251, 253); doc.rect(M, y, W - M * 2, 18, 'F'); }
+        var x = M + 6, label = r.ReadyToGraduate ? 'Ready to graduate' : r.Stale ? 'Not met recently' : r.LessonStatus;
+        var vals = [r.Name, r.Congregation, r.Discipler || '-', label, r.TotalLessons ? r.Finished + '/' + r.TotalLessons : '', fmtDay(r.LastSession), fmtDay(r.NextMeeting), fmtDate(r.ExpiryDate), r.HasCert ? 'Yes' : ''];
+        vals.forEach(function (v, k) {
+          doc.setFont('helvetica', k === 0 ? 'bold' : 'normal'); doc.setTextColor.apply(doc, k === 0 ? INK : [60, 66, 84]);
+          if (k === 3) { var c = r.ReadyToGraduate ? FL : r.Stale ? [192, 57, 43] : (DOT[r.LessonStatus] || MUT); doc.setFillColor.apply(doc, c); doc.circle(x + 2.5, y + 9.5, 2.5, 'F'); doc.setTextColor.apply(doc, c); doc.text(fit(v, cols[k][1] - 16), x + 9, y + 12.5); }
+          else doc.text(fit(v, cols[k][1] - 8), x, y + 12.5);
+          x += cols[k][1];
+        });
+        doc.setDrawColor.apply(doc, LINE); doc.line(M, y + 18, W - M, y + 18);
+        y += 18;
+      });
+      var pages = doc.internal.getNumberOfPages();
+      for (var pgi = 1; pgi <= pages; pgi++) { doc.setPage(pgi); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor.apply(doc, MUT); doc.text('MBBE Discipleship · ' + clean(st.ProgramName) + ' · page ' + pgi + ' of ' + pages, W / 2, H - 18, { align: 'center' }); }
+      var name = 'Discipleship report ' + todayStr() + '.pdf';
+      if (IS_ARTIFACT) { toast('Made a ' + pages + '-page PDF. Downloading works in the live app.'); return; }
+      doc.save(name); toast('Saved “' + name + '” to your downloads.');
+    });
+  }
   function viewCertAdmin() {
-    frame({ title: 'Certificates' });
+    frame({ title: 'Certificates', wide: true });
     live('certQueue', null, function (d) {
       var m = fill('<a class="card present-cta" href="#/present"><b>Certificate presentation</b><span class="small muted">Make a PDF with a cover slide per congregation and each graduate’s certificate with their photo.</span></a>' +
         '<h3>Ready to issue</h3>' + (d.ready.length ? '<div class="card stack">' + d.ready.map(function (r) {
@@ -2462,14 +3269,14 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     remote('sampleStatus').then(show).catch(function (x) { failView(x); });
   }
   function viewMore() {
-    frame({ title: 'More' });
+    frame({ title: 'More', wide: true });
     var my = mine(), items = [];
-    if (my.disciples) items.push(['#/disciples', 'My disciples', 'Record sessions for people you disciple personally']);
-    if (my.lessons) items.push(['#/home', 'My progress', 'Your own yearly lessons and status'], ['#/certs', 'My certificates', 'Certificates issued to you']);
-    items.push(['#/present', 'Certificate presentation', 'Make a PDF of certificates, grouped by congregation'], ['#/audit', 'Activity log', 'Approvals, promotions, PIN resets and certificates']);
-    if (rank() === 3) items = items.concat([['#/setup/congregations', 'Congregations', 'Congregations, preachers and their photos'], ['#/setup/lessons', 'Lessons', 'Lesson checklist and memory verses'], ['#/setup/settings', 'Settings', 'Church name, certificate signatories, validity'], ['#/setup/sample', 'Sample data', 'Load test people and sessions, then clear them']]);
-    items.push(['#/profile', 'Profile', rank() === 2 ? 'Photo, your options, PIN, sign out' : 'Photo, PIN, sign out']);
-    fill('<div class="list">' + items.map(function (i) { return '<a class="item" href="' + i[0] + '"><div class="t">' + i[1] + '</div><span class="muted">›</span><div class="s">' + i[2] + '</div></a>'; }).join('') + '</div>');
+    if (my.disciples) items.push(['#/disciples', 'My disciples', 'Record sessions and send updates', 'users']);
+    if (my.lessons) items.push(['#/home', 'My progress', 'Your own yearly lessons', 'book'], ['#/certs', 'My certificates', 'Certificates issued to you', 'award']);
+    items.push(['#/certadmin', 'Certificates', 'Issue certificates to graduates', 'award'], ['#/present', 'Presentation', 'PDF slides of certificates by congregation', 'screen'], ['#/reports', 'Report PDF', 'Filter and download a report', 'pdf'], ['#/people/add', 'Add a disciple', 'New member with a discipler', 'userplus'], ['#/audit', 'Activity log', 'Approvals, roles, PIN resets', 'list']);
+    if (rank() === 3) items = items.concat([['#/setup/congregations', 'Congregations', 'Preachers and their photos', 'church'], ['#/setup/lessons', 'Lessons', 'Checklist, memory verses, questions', 'book'], ['#/setup/settings', 'Settings', 'Church, certificates, sign-in', 'gear'], ['#/setup/sample', 'Sample data', 'Load or clear test people', 'flask']]);
+    items.push(['#/profile', 'Profile', 'Photo, PIN, sign out', 'user']);
+    fill('<div class="mtiles">' + items.map(function (i) { return '<a class="mtile" href="' + i[0] + '"><span class="ci">' + icon(i[3]) + '</span><b>' + i[1] + '</b><span>' + i[2] + '</span></a>'; }).join('') + '</div>');
   }
   function viewAudit() {
     frame({ title: 'Activity log', back: '#/more', section: 'more' });
@@ -2526,7 +3333,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
           return '<h3>' + esc(k) + '</h3><div class="list">' + by[k].map(function (l) {
             return '<div class="item lesson-item" style="cursor:default' + (l.Published ? '' : ';opacity:.65') + '"><div><div class="num">' + esc(l.Number) + '</div><div class="t">' + esc(l.Title) + '</div></div>' +
               (l.Published ? '' : '<span class="pill plain">Hidden</span>') +
-              '<div class="s">' + (l.MemoryRef ? 'Memory verse: ' + esc(l.MemoryRef) : '<span style="color:var(--warn)">No memory verse yet</span>') +
+              '<div class="s">' + (l.MemoryRef ? 'Memory verse: ' + esc(l.MemoryRef) : '<span style="color:var(--warn)">No memory verse yet</span>') + '<br>Question: ' + esc(questionFor(l)) + (l.Question ? '' : ' <span class="muted">(default)</span>') +
               '<div class="row" style="margin-top:6px"><a class="btn sm" href="#/setup/lesson/' + esc(l.LessonID) + '">Edit</a><button type="button" class="btn sm" data-pub="' + esc(l.LessonID) + '" data-on="' + (l.Published ? '' : '1') + '">' + (l.Published ? 'Hide' : 'Include') + '</button></div></div></div>';
           }).join('') + '</div>';
         }).join(''));
@@ -2548,11 +3355,12 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         '<label class="f">Title<input class="i" id="lt" value="' + esc(l.Title || '') + '" required></label>' +
         '<label class="f">Memory verse reference<input class="i" id="mr" value="' + esc(l.MemoryRef || '') + '" placeholder="John 3:16"></label>' +
         '<label class="f">Memory verse text (KJV)<textarea class="i" id="mt" placeholder="Type the verse exactly as in the King James Version">' + esc(l.MemoryText || '') + '</textarea></label>' +
+        '<label class="f">Question for the disciple <span class="muted" style="font-weight:500">(goes on the picture update to start a conversation)</span><textarea class="i" id="lq" style="min-height:70px" placeholder="' + esc(DEFAULT_Q[id] || GENERIC_Q) + '">' + esc(l.Question || '') + '</textarea></label>' +
         '<p class="small muted">Lessons with the same level are tracked together. Order sets their position in the checklist.</p>' +
         '<button class="btn primary">Save lesson</button></form>');
       $('#f').onsubmit = function (e) {
         e.preventDefault();
-        api('saveLesson', { isNew: isNew, LessonID: $('#lid').value.trim(), Level: $('#lv').value, Order: $('#lo').value, LevelName: $('#ln').value, Number: $('#lnum').value, Title: $('#lt').value, MemoryRef: $('#mr').value, MemoryText: $('#mt').value })
+        api('saveLesson', { isNew: isNew, LessonID: $('#lid').value.trim(), Level: $('#lv').value, Order: $('#lo').value, LevelName: $('#ln').value, Number: $('#lnum').value, Title: $('#lt').value, MemoryRef: $('#mr').value, MemoryText: $('#mt').value, Question: $('#lq').value })
           .then(function () { toast('Lesson saved.'); location.hash = '#/setup/lessons'; }).catch(function (x) { toast(x.message); });
       };
     });
@@ -2562,9 +3370,10 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     live('me', null, function (me) {
       var s = me.settings;
       var F = [['ChurchName', 'Church name'], ['ProgramName', 'Program name (on certificates)'], ['ValidityDays', 'Days a completion stays valid'], ['StaleDays', 'Flag disciples with no meeting after this many days'], ['Signatory1', 'Certificate signatory 1'], ['Signatory1Title', 'Signatory 1 title'], ['Signatory2', 'Certificate signatory 2'], ['Signatory2Title', 'Signatory 2 title']];
-      fill('<form class="card" id="f">' + F.map(function (x) { return '<label class="f">' + x[1] + '<input class="i" id="s-' + x[0] + '" value="' + esc(s[x[0]]) + '"' + (/Days$/.test(x[0]) ? ' inputmode="numeric"' : '') + '></label>'; }).join('') +
+      fill('<form class="card" id="f">' + switchRow('s-dl', 'Disciples can sign in', 'Off: disciples don’t need an account; disciplers send them picture updates. On: disciples can sign in to see their progress.', s.DiscipleLogin === 'TRUE') +
+        F.map(function (x) { return '<label class="f">' + x[1] + '<input class="i" id="s-' + x[0] + '" value="' + esc(s[x[0]]) + '"' + (/Days$/.test(x[0]) ? ' inputmode="numeric"' : '') + '></label>'; }).join('') +
         '<p class="small muted">If signatory 2 is blank, the certificate shows the coordinator who issued it.</p><button class="btn primary">Save settings</button></form>');
-      $('#f').onsubmit = function (e) { e.preventDefault(); var q = {}; F.forEach(function (x) { q[x[0]] = $('#s-' + x[0]).value; }); api('saveSettings', q).then(function () { toast('Settings saved.'); S.info = null; }).catch(function (x) { toast(x.message); }); };
+      $('#f').onsubmit = function (e) { e.preventDefault(); var q = { DiscipleLogin: $('#s-dl').checked ? 'TRUE' : 'FALSE' }; F.forEach(function (x) { q[x[0]] = $('#s-' + x[0]).value; }); api('saveSettings', q).then(function () { S.me.settings.DiscipleLogin = q.DiscipleLogin; LS.del('dt-info'); toast('Settings saved.'); S.info = null; }).catch(function (x) { toast(x.message); }); };
     });
   }
 
@@ -2621,7 +3430,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       login: function () { location.replace('#/' + homeRoute()); },
       register: function () { location.replace('#/' + homeRoute()); },
       home: viewHome, certs: viewMyCerts, cert: function () { viewCert(parts[1]); }, profile: viewProfile,
-      disciples: R >= 1 && viewDisciples, person: R >= 1 && function () { viewPerson(parts[1]); },
+      disciples: R >= 1 && mine().disciples && viewDisciples, person: R >= 1 && function () { viewPerson(parts[1], parts[2] === 'record'); }, record: R >= 1 && mine().disciples && viewRecordPick,
       dash: R >= 2 && viewDash, people: R >= 2 && function () { viewPeople(parts[1]); }, reports: R >= 2 && function () { viewReports(parts[1], parts[2]); },
       certadmin: R >= 2 && viewCertAdmin, present: R >= 2 && viewPresent, more: R >= 2 && viewMore, audit: R >= 2 && viewAudit,
       setup: R >= 3 && function () { ({ congregations: viewCongs, lessons: viewLessonsAdmin, lesson: function () { viewLessonEdit(parts[2]); }, settings: viewSettings, sample: viewSample }[parts[1]] || viewMore)(); }
