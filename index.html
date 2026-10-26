@@ -3915,7 +3915,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
   /* ---------- admin setup ---------- */
-  // "Ptr. Robert Malit (Resident Pastor), Ptr. Jay Caparas (Chief Acts Preacher)" → names, and names with titles
+  // "Ptr. Robert Malit (Resident Pastor), Pr. Juan Luna (Chief Acts Preacher)" → names, and names with titles
   function preacherList(c) { return String(c.Preachers || '').split(',').map(function (x) { var m = /^\s*([^()]+?)\s*(?:\(([^)]*)\))?\s*$/.exec(x) || []; return { name: (m[1] || '').trim(), title: (m[2] || '').trim() }; }).filter(function (p) { return p.name; }); }
   function preachersOf(c) { return preacherList(c).map(function (p) { return p.name; }); }
   function viewCongs() {
@@ -3930,7 +3930,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         }).join('') + '</div>' +
         '<form class="card" id="f"><h2 id="ft">Add a congregation</h2><input type="hidden" id="cid">' +
         '<label class="f">Name<input class="i" id="cn" required></label><label class="f">Location<input class="i" id="cl"></label>' +
-        '<label class="f">Preacher(s) in charge<input class="i" id="cp" placeholder="Ptr. Jay Caparas (Chief Acts Preacher)"></label><p class="small muted" style="margin-top:-6px">Separate names with commas. Put each title in brackets; it shows on the cover slide.</p>' +
+        '<label class="f">Preacher(s) in charge<input class="i" id="cp" placeholder="Pr. Juan Luna (Chief Acts Preacher)"></label><p class="small muted" style="margin-top:-6px">Separate names with commas. Put each title in brackets; it shows on the cover slide.</p>' +
         '<label class="f">Status<select class="i" id="cs"><option>Active</option><option>Inactive</option></select></label>' +
         '<div id="pphotos" class="stack" hidden></div>' +
         '<div class="row"><button class="btn primary">Save congregation</button><button type="button" class="btn quiet" id="clr">Clear</button></div></form>');
