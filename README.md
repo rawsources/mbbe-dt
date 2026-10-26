@@ -56,6 +56,14 @@ Disciplers and coordinators still sign in. A new discipler can use **Create your
 
 **Settings → Disciples can sign in** (admin): off by default. Turn it on if you want disciples to sign in to see their own progress. They'll need a PIN; reset one from their page under **Manage**.
 
+## Levels and recording a session
+
+If each book is its own level (Level 1 The Foundation, Level 2 The Direction, …), the app counts progress in levels: the lesson path, the disciple's page, people cards and picture updates show “2 of 7 levels”.
+
+**Record a session → Change level or lesson** lists every level (and the lessons inside levels that have several). Completed levels are greyed out.
+
+When the session finishes the last lesson of a level, a box appears: **Complete Level 2 · The Direction now** (ticked). Saving then also marks the disciple fit to graduate for that level, so the coordinator can issue its certificate. If you untick it and later record the next level, the finished level is completed automatically. A level that was started but not finished has to be continued (or its session removed) before moving to another.
+
 ## Picture updates for disciples
 
 After saving a session the app opens **Send [name] an update**. It draws a picture on the phone with:
@@ -110,7 +118,7 @@ Every screen shows the save status at the top: **All changes saved · updated 2 
 
 When someone signs in or opens the app, it downloads everything that person is allowed to see in one go. After that every screen opens instantly from the phone's copy.
 
-- Changes (recording a session, adding a disciple, marking fit to graduate) show immediately and are sent in the background. The header shows **Saving…** or **Offline · 2 changes waiting**.
+- Changes (recording a session, adding a disciple, marking fit to graduate) show immediately and are sent in the background. All waiting changes go to the server in one request, and the reply brings back the fresh copy, so saving takes one trip instead of several. The header shows **Saving…** or **Offline · 2 changes waiting**.
 - With no signal, people can still browse and record sessions. Waiting changes are sent automatically when the phone is back online.
 - If the server can't accept a waiting change (for example the disciple was reassigned in the meantime), the app says so and refreshes.
 - The copy refreshes itself every few minutes and whenever the app is reopened. The **refresh** button in the header does it on demand.
