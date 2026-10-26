@@ -17,7 +17,7 @@ A phone-friendly tracking app for the discipleship ministry. Lessons are taught 
 3. **Deploy a new version:** **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy**. The link stays the same.
 4. **App:** in your GitHub repository, **Add file → Upload files**, drag in `index.html` and the five home-screen files, then **Commit changes**.
 
-The Sheet upgrades itself: new columns (such as **Question** in the Lessons tab) and tabs appear the first time they're needed.
+The Sheet upgrades itself: new columns (such as **Question** and **SelfPaced** in the Lessons tab, **Kind** and **Reflection** in Sessions) and new tabs (such as **Reflections**) appear the first time they're needed.
 
 **What changed in this version:** the new look (tiles, the journey, floating menu with a big **+** button, wide layouts for tablet and computer), a refresh button and save status in the header, the new Record a session, picture updates for disciples, report PDF, coordinators adding disciples, and disciple sign-in switched **off** (Settings can turn it back on). Meeting confirmations were removed.
 
@@ -73,7 +73,25 @@ If each book is its own level (Level 1 The Foundation, Level 2 The Direction, �
 
 **Record a session → Change level or lesson** lists every level (and the lessons inside levels that have several). Completed levels are greyed out.
 
+**Several lessons in one meeting:** open **Change level or lesson** and tap each lesson you covered in that level (or **All remaining**). They're saved together as one session, counted as one meeting, sent as one picture update, and removed together if needed. The Levels list shows each lesson of the level in progress.
+
 When the session finishes the last lesson of a level, a box appears: **Complete Level 2 · The Direction now** (ticked). Saving then also marks the disciple fit to graduate for that level, so the coordinator can issue its certificate. If you untick it and later record the next level, the finished level is completed automatically. A level that was started but not finished has to be continued (or its session removed) before moving to another.
+
+## Self-paced levels and reflections
+
+Some levels don't need meetings: the disciple studies the booklet alone and sends a **reflection** (what they learned and how they'll live it out). The discipler reads it as proof and marks the lesson finished.
+
+**Turn it on (admin):** **More → Lessons**. Each level has a **Self-paced** switch. All levels start switched off, so nothing changes until you choose which ones are self-paced. You can change it any time.
+
+**Asking for a reflection:** when a disciple's next level is self-paced, the button on their page says **Ask for reflection**. It makes a picture with the lesson, its question and a **QR code**, plus a message with a **personal link**. The disciple opens it on their phone with no account, picks the lesson, types the reflection (or adds up to 3 photos of a handwritten one) and sends it. The link is only for that disciple and stays the same, so they can use it for every lesson of the level.
+
+**Reading it:** the disciple moves to the top of **My disciples** with **Reflection to read**, and the coordinator dashboard shows how many are waiting (**Reports → Reflection to read** lists them). On the disciple's page:
+- **Accept · lesson finished** records the lesson as finished, keeping the reflection and photos with it. On the last lesson of the level, a ticked box completes the level too. Then send a thank-you picture.
+- **Ask for more** sends it back with your note. The disciple sees the note the next time they open the link; the app makes a picture and message for you to send so they know.
+
+**Typing it in yourself:** if the disciple gave you the reflection on paper or in a chat, **Record a reflection** (the record form changes for self-paced levels) lets you paste the text or add a photo of it.
+
+Reflections are visible only to the discipler and coordinators (under **Sessions → Read the reflection**). They never appear on picture updates, and reports count them separately from meetings.
 
 ## Picture updates for disciples
 
