@@ -1,89 +1,129 @@
 # MBBE Discipleship Tracker
 
-A phone-friendly tracking app for the discipleship ministry. Lessons are taught from the printed Discovery Lessons booklet. Disciplers record each meeting, disciples follow their progress and confirm meetings, and moderators track everyone and issue certificates. Google Sheets holds the data, Google Apps Script is the server, and GitHub Pages hosts the app.
+A phone-friendly tracking app for the discipleship ministry. Lessons are taught from the printed Discovery Lessons booklet. Disciplers record each meeting (with photos if they like) and send the disciple a picture update on Messenger or Viber. Coordinators add disciples, track everyone, download report PDFs, issue certificates and make the certificate presentation. Disciples don't need an account. Google Sheets holds the data, Google Drive holds the photos privately, Google Apps Script is the server, and GitHub Pages hosts the app.
 
 ## What's in this folder
 
 | File | Where it goes |
 | --- | --- |
 | `Code.gs` | Google Apps Script, attached to your Google Sheet |
-| `index.html` | GitHub repository (the app itself) |
-| `manifest.json`, `icon.svg` | GitHub repository (home-screen icon) |
+| `index.html` | Your GitHub repository (the whole app, icons included) |
 
-With `API_URL` left empty, `index.html` runs a demo with sample people. Use that to show the moderators before going live.
+## Updating from the previous version (you already have it running)
 
-## 1. Set up the Google Sheet and server (about 10 minutes)
+1. **Server:** in Apps Script, delete all the code and paste the new `Code.gs`. Save.
+2. **Run `setup` once.** Choose `setup` in the function menu and click **Run**. Google asks for one new permission: **Google Drive**, so the app can keep photos in a private folder. Allow it. Setup is safe to run again; it only adds what's missing. Your people and sessions stay.
+3. **Deploy a new version:** **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy**. The link stays the same.
+4. **App:** replace `index.html` in your GitHub repository with the new one.
 
-1. In Google Drive, create a new Google Sheet named **MBBE Discipleship**.
-2. Open **Extensions → Apps Script**. Delete the sample code and paste all of `Code.gs`.
-3. At the top, edit the `SETUP` values: your name, **your mobile number** (this is your login), a starting PIN, and the first congregation.
-4. Click **Save**, choose `setup` in the function menu, and click **Run**. Google asks you to authorize. Choose your account, then **Advanced → Go to project → Allow**.
-5. Back in the Sheet you now have eight tabs: Users, Congregations, Lessons, Enrollments, Sessions, Certificates, AuditLog, Settings. The Level One lesson checklist (Lessons One to Seven) is already loaded.
-6. In Apps Script, click **Deploy → New deployment**. Choose type **Web app**.
-   - Execute as: **Me**
-   - Who has access: **Anyone**
-7. Click **Deploy** and copy the **Web app URL** (it ends in `/exec`).
+The Sheet upgrades itself: new columns (such as **Question** in the Lessons tab) and tabs appear the first time they're needed.
 
-Setup also adds a nightly job that marks completions older than one year as **Expired**.
+**What changed in this version:** the new look (tiles, the journey, floating menu with a big **+** button, wide layouts for tablet and computer), a refresh button and save status in the header, the new Record a session, picture updates for disciples, report PDF, coordinators adding disciples, and disciple sign-in switched **off** (Settings can turn it back on). Meeting confirmations were removed.
 
-## 2. Put the app on GitHub Pages
+## First-time setup (new Sheet)
 
-1. Open `index.html` in a text editor. Near the bottom, find:
-   ```
-   var API_URL = "";
-   ```
-   Paste your Web app URL between the quotes and save.
-2. On GitHub (account **rawsources**), create a new public repository, for example `discipleship`.
-3. Upload `index.html`, `manifest.json` and `icon.svg`.
-4. Go to **Settings → Pages**. Under *Branch*, choose **main** and **/ (root)**, then **Save**.
-5. After a minute the app is live at `https://rawsources.github.io/discipleship/`.
+1. Create a Google Sheet named **MBBE Discipleship**. Open **Extensions → Apps Script**, paste `Code.gs`, and edit the `SETUP` lines at the top (admin name, mobile number, starting PIN, first congregation).
+2. Save, choose `setup`, click **Run**, and allow the permissions (Sheets, Drive).
+3. **Deploy → New deployment → Web app**, Execute as **Me**, Who has access **Anyone**. Copy the `/exec` link into `var API_URL = "";` near the bottom of `index.html`.
+4. Upload `index.html` to a public GitHub repository and turn on **Settings → Pages** (branch **main**, folder **/ (root)**).
 
-## 3. First steps as admin
+## Adding disciples
 
-1. Open the app, sign in with your mobile number and starting PIN, then go to **More → Profile** and change the PIN.
-2. **More → Congregations**: add each congregation, its location and preacher(s) in charge.
-3. **More → Settings**: set the certificate signatories.
-4. **More → Lessons**: add the memory verse (reference and KJV text) for Lessons Two to Seven.
-5. **Appoint moderators.** Each moderator registers like a disciple. Approve them under **People → To approve**, open their name, set **Role** to *Moderator*, tick their congregations, and save.
-6. Share the link with members. On a phone, use **Add to Home Screen** so it opens like an app.
+Disciples don't create accounts. A coordinator adds them: **People → Add a disciple** (or **More → Add a disciple**). Enter the full name, congregation and discipler. The mobile number is optional; it's shown to the discipler so they can message the disciple.
+
+Disciplers and coordinators still sign in. A new discipler can use **Create your account** on the sign-in page; a coordinator approves them and sets the role.
+
+**Settings → Disciples can sign in** (admin): off by default. Turn it on if you want disciples to sign in to see their own progress. They'll need a PIN; reset one from their page under **Manage**.
+
+## Picture updates for disciples
+
+After saving a session the app opens **Send [name] an update**. It draws a picture on the phone with:
+
+- the disciple's photo and progress ring, and the lesson path
+- the lesson studied (with the session photo, if one was added)
+- the memory verse, once the lesson is finished
+- a question to start a conversation (“Something to think about”)
+- the next meeting date
+
+Choose **Session update**, **Meeting reminder** or **Progress / Congratulations**. Edit the question or the message, then tap **Share picture**: on a phone this opens the share menu (Messenger, Viber, SMS, save to gallery). On a computer it saves the picture and copies the message. Private notes never appear. You can send an update any time from the disciple's page (**Send update**, or under each session).
+
+Each lesson has a ready-made question. The admin can change it in **More → Lessons → Edit**.
+
+## Header, refresh and save status
+
+Every screen shows the save status at the top: **All changes saved · updated 2 min ago**, **Saving 1 change…**, or **Offline · 2 changes waiting**. The round **refresh** button gets the latest data from the Sheet right away.
+
+## Report PDF
+
+**Reports** (or **Report PDF** on the dashboard): choose a congregation, status and discipler, then tap **Download PDF**. You get summary boxes (people, completed, in progress, ready to graduate, not met recently, not started, expired) and a table of everyone matching, with status, lessons, last and next meeting, and validity. CSV copy and download are still there for spreadsheets.
+
+## Trying it with sample data
+
+**More → Sample data → Load sample data** (admin only). It adds 2 sample congregations and 11 test people at every stage: in progress, ready to graduate, not met recently, completed with a certificate, expired, waiting for approval, and without a discipler. They're marked **Sample** everywhere and don't appear on the sign-up form.
+
+- Sign in as any of them with their number (shown on that screen) and PIN **1234**.
+- When you're done, **Clear sample data** removes them and everything recorded for them while testing: sessions, certificates, photos and activity. Your real data isn't touched.
 
 ## Who can do what
 
-| | Disciple | Discipler | Moderator | Admin |
+| | Disciple | Discipler | Coordinator | Admin |
 | --- | :-: | :-: | :-: | :-: |
-| See own progress, lesson checklist, next meeting | ✓ | ✓ | ✓ | ✓ |
-| Confirm meetings, read memory verses, view certificates | ✓ | ✓ | ✓ | ✓ |
-| Record sessions for their disciples, add private notes | | ✓ | ✓ | ✓ |
-| Mark a disciple fit to graduate, reset their PIN | | ✓ | ✓ | ✓ |
-| Approve registrations, assign disciplers | | | ✓ | ✓ |
-| Promote a disciple to discipler, deactivate accounts | | | ✓ | ✓ |
-| Dashboard, reports (CSV), issue certificates | | | own congregations | all |
-| Congregations, lesson checklist, settings, moderators | | | | ✓ |
+| Own progress, checklist, next meeting, memory verses, certificates (only if disciple sign-in is on) | ✓ | ✓ | if taking lessons | |
+| Add or change own profile photo | ✓ | ✓ | ✓ | ✓ |
+| Record sessions (with up to 3 photos), private notes, send picture updates | | ✓ | ✓ | ✓ |
+| “My disciples” list | | ✓ | if switched on | |
+| Mark fit to graduate, reset a disciple's PIN | | ✓ | ✓ | ✓ |
+| Add disciples, approve sign-ups and set their role, assign disciplers | | | ✓ | ✓ |
+| Dashboard, report PDF, issue certificates, presentation PDF | | | own congregations | all |
+| Make coordinators or admins, congregations, preacher photos, lessons, settings, sample data | | | | ✓ |
+
+**Coordinator options** (in their Profile, or set by the admin): *I also disciple people* and *I'm taking the lessons this year*. Each one adds or hides the matching menu items.
+
+## Signing in
+
+- **Mobile number or full name**, plus PIN. If two members share a name, the app asks for the mobile number.
+- **Suggestions:** after typing 3 letters of a name, up to 5 matches appear as first name, last initial and a hidden number (for example *Ana C. · 0917•••4567*). Only approved members are suggested, and searches are limited to slow down anyone trying to browse names.
+- **Remember me on this phone:** next time the app shows “Welcome back, Ana” and only asks for the PIN. “Not you?” switches account.
+
+## Speed and working offline
+
+When someone signs in or opens the app, it downloads everything that person is allowed to see in one go. After that every screen opens instantly from the phone's copy.
+
+- Changes (recording a session, adding a disciple, marking fit to graduate) show immediately and are sent in the background. The header shows **Saving…** or **Offline · 2 changes waiting**.
+- With no signal, people can still browse and record sessions. Waiting changes are sent automatically when the phone is back online.
+- If the server can't accept a waiting change (for example the disciple was reassigned in the meantime), the app says so and refreshes.
+- The copy refreshes itself every few minutes and whenever the app is reopened. The **refresh** button in the header does it on demand.
+- Photos need a connection to upload.
+
+## Photos
+
+- **Profile photos** are optional; without one a silhouette is shown. They're cropped square and shrunk on the phone before upload.
+- **Who sees them:** admin, coordinators (their congregations) and the person's discipler. A disciple sees only their own.
+- **Session photos:** up to 3 per session, seen by their discipler, coordinators and the admin (and the disciple, if disciple sign-in is on). The first one appears on the picture update.
+- **Preacher photos:** **More → Congregations**, open a congregation, then add a photo next to each preacher in charge.
+- All photos are kept in a private Drive folder, **MBBE Discipleship Photos (private)**, and are only shown through the app. Don't share that folder.
+
+## Certificate presentation (PDF)
+
+**Certificates → Certificate presentation** (or **More → Certificate presentation**):
+
+1. Choose the program year and tick the certificates to include. Each congregation has a tick box to select all of its people.
+2. Tap **Create PDF**. The file has a cover slide for each congregation, showing its preachers in charge side by side, then one certificate slide per person with their photo.
+3. The PDF downloads to the phone or computer, ready for a projector.
 
 ## The yearly cycle
 
-1. A member registers. A moderator approves them and assigns a discipler.
+1. A coordinator adds the disciple and assigns a discipler.
 2. Discipler and disciple meet and go through the printed booklet.
-3. After each meeting the discipler records it: the date, the lesson covered, whether it was finished, private notes, and the next meeting date. The first session of the year starts the member's lessons automatically.
-4. The disciple sees the lesson ticked off and taps **Yes, we met** to confirm.
-5. When every lesson is finished, the discipler taps **Mark fit to graduate**. The status becomes **Completed**, valid for 365 days.
-6. A moderator issues the certificate. The member can view and print it.
-7. After a year the status turns **Expired**. The next session the discipler records starts a new year.
-
-The dashboard flags members with no meeting in 30 days (change this under Settings), members ready to graduate, and completions expiring within 60 days.
-
-## Adding or changing lessons
-
-**More → Lessons**. Each lesson is a title, its place in the order, and an optional memory verse. **Hide** removes a lesson from the checklist without deleting its history. A new level (for example Level Two) is just lessons with Level set to 2.
-
-## Updating the server code later
-
-Paste the new `Code.gs`, save, then **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy**. The URL stays the same, so the app needs no change.
+3. After each meeting the discipler records it (tap the **+** button) and sends the picture update. The first session of the year starts the member's lessons automatically.
+4. When every lesson is finished, the discipler taps **Mark fit to graduate**. The status becomes **Completed**, valid for 365 days.
+5. A coordinator issues the certificate and can include it in the presentation PDF.
+6. After a year the status turns **Expired**. The next session recorded starts a new year.
 
 ## Good to know
 
-- **Don't rename the tabs or the header row** in the Sheet. Reading the Sheet is fine; editing cells by hand is possible but use the app where you can.
-- PINs are stored as salted hashes, so nobody can read them in the Sheet. Five wrong PINs lock the account for 15 minutes.
-- Keep the Sheet shared only with yourself (and a backup admin). **File → Version history** lets you restore an earlier copy.
-- This setup comfortably handles a few thousand members. Each tap takes about one to two seconds, because Apps Script is not instant.
-- Only lesson titles and memory verses (KJV) are stored in the app. The booklet content stays on paper.
+- **Don't rename the tabs or header row** in the Sheet. Reading it is fine.
+- PINs are stored as salted hashes, never in the phone's copy. Five wrong PINs lock the account for 15 minutes.
+- Keep the Sheet and the photo folder shared only with yourself (and a backup admin). **File → Version history** restores an earlier copy of the Sheet.
+- The app checks for a newer version each time it opens and reloads itself, so members get updates automatically.
+- Only lesson titles and memory verses (KJV) are stored. The booklet content stays on paper.
