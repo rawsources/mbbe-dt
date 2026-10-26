@@ -748,7 +748,7 @@ window.addEventListener('error', function (e) {
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* Self-update: GitHub Pages lets browsers keep a page for 10 minutes. On open, check for a newer copy and reload once if found. */
-window.APP_BUILD = '20261026200052';
+window.APP_BUILD = '20261026201119';
 (function () {
   if (!/^https?:/.test(location.protocol) || !window.fetch || window.APP_CONFIG_IS_ARTIFACT) return;
   try { if (sessionStorage.getItem('dt-upd') === window.APP_BUILD) return; } catch (e) {}
@@ -951,8 +951,10 @@ var CORE = (function () {
   function allLevels() {
     var m = {};
     rows('Lessons').filter(isPub).forEach(function (l) { var k = str(l.Level); m[k] = m[k] || { Level: k, LevelName: l.LevelName || 'Level ' + k, Lessons: 0 }; m[k].Lessons++; });
-    return Object.keys(m).map(function (k) { return m[k]; }).sort(function (a, b) { return (+a.Level) - (+b.Level); });
+    return Object.keys(m).map(function (k) { m[k].Title = levelTitle(k); return m[k]; }).sort(function (a, b) { return (+a.Level) - (+b.Level); });
   }
+  // A level that is a single book: its lesson title ("The Foundation"); otherwise blank
+  function levelTitle(level) { var ls = lessonsFor(level); return ls.length === 1 ? str(ls[0].Title) : ''; }
   // Levels this person has completed and are still valid
   function doneLevels(userId) {
     var d = {}; (idx('Enrollments', 'UserID')[userId] || []).forEach(function (e) { if (status(e) === 'Completed') d[str(e.Level)] = e; }); return d;
@@ -1389,7 +1391,7 @@ var CORE = (function () {
     var have = {}; issued.forEach(function (c) { have[c.EnrollmentID] = 1; });
     var ready = rows('Enrollments').filter(function (e) { return ids[e.UserID] && status(e) === 'Completed' && !have[e.EnrollmentID]; })
       .map(function (e) { var v = enrView(e); v.Name = ids[e.UserID].Name; v.Congregation = congName(ids[e.UserID].CongregationID); v.UserID = e.UserID; v.PhotoID = personPhoto(e.UserID); v.CongregationID = ids[e.UserID].CongregationID; v.Discipler = userName(ledBy(e)) || userName(ids[e.UserID].DisciplerID); return v; });
-    return { ready: ready, issued: issued.map(function (c) { var o = {}; Object.keys(c).forEach(function (k) { o[k] = c[k]; }); var p = ids[c.UserID]; o.Name = p.Name; o.CongregationID = p.CongregationID; o.Congregation = congName(p.CongregationID); o.PhotoID = personPhoto(p.UserID); o.IsSample = isTrue(c.IsSample); var en = find('Enrollments', 'EnrollmentID', c.EnrollmentID); o.CompletedDate = en ? en.CompletedDate : ''; o.Discipler = userName(ledBy(en)) || userName(p.DisciplerID) || userName(en && en.ApprovedBy); return o; }).reverse() };
+    return { ready: ready, issued: issued.map(function (c) { var o = {}; Object.keys(c).forEach(function (k) { o[k] = c[k]; }); var p = ids[c.UserID]; o.Name = p.Name; o.CongregationID = p.CongregationID; o.Congregation = congName(p.CongregationID); o.PhotoID = personPhoto(p.UserID); o.IsSample = isTrue(c.IsSample); var en = find('Enrollments', 'EnrollmentID', c.EnrollmentID); o.CompletedDate = en ? en.CompletedDate : ''; o.Discipler = userName(ledBy(en)) || userName(p.DisciplerID) || userName(en && en.ApprovedBy); o.LevelTitle = levelTitle(c.Level); return o; }).reverse() };
   };
   A.issueCertificate = function (q, u) {
     need(u, 'Coordinator');
@@ -2512,7 +2514,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       all.filter(function (x) { return lvState[String(x.Level)] !== 'done'; })[0] || null;
     var multi = levels.length > 1, o = { all: all, levels: levels, multi: multi, next: next, lvState: lvState, open: open };
     if (multi) {
-      o.path = levels.map(function (x) { return { LessonID: 'LV' + x.Level, Short: String(x.Level), Number: 'Level ' + x.Level, Title: x.LevelName, State: x.State === 'done' ? 'Finished' : x.State === 'current' ? 'Started' : 'Not started' }; });
+      o.path = levels.map(function (x) { return { LessonID: 'LV' + x.Level, Short: String(x.Level), Number: 'Level ' + x.Level, Title: x.Title || x.LevelName, State: x.State === 'done' ? 'Finished' : x.State === 'current' ? 'Started' : 'Not started' }; });
       o.curId = next ? 'LV' + next.Level : ''; o.done = levels.filter(function (x) { return x.State === 'done'; }).length; o.total = levels.length; o.unit = 'levels';
     } else {
       o.path = open || !d.canLog ? pr.lessons : all.filter(function (x) { return !next || String(x.Level) === String(next.Level); });
@@ -2524,7 +2526,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     return '<ol class="tl">' + levels.map(function (x) {
       var st = x.State === 'done' ? 'done' : x.State === 'current' ? 'cur' : '';
       var sub = st === 'done' ? 'Completed ' + fmtDay(x.CompletedDate) : st === 'cur' ? (pr.total > 1 ? pr.finished + ' of ' + pr.total + ' lessons finished' : 'In progress') : 'Not started';
-      return '<li class="' + st + '"><span class="tl-dot">' + (st === 'done' ? CHECK : '') + '</span><span class="tl-b"><span class="cl-num">Level ' + esc(x.Level) + '</span><span class="cl-title">' + esc(x.LevelName) + '</span><span class="cl-sub">' + sub + '</span>' +
+      return '<li class="' + st + '"><span class="tl-dot">' + (st === 'done' ? CHECK : '') + '</span><span class="tl-b"><span class="cl-num">Level ' + esc(x.Level) + '</span><span class="cl-title">' + esc(x.Title || x.LevelName) + '</span><span class="cl-sub">' + sub + '</span>' +
         (st === 'cur' && pr.nextMeeting ? '<span class="nextchip">' + icon('cal') + 'Next meeting ' + esc(fmtDayShort(pr.nextMeeting)) + '</span>' : '') + '</span></li>';
     }).join('') + '</ol>';
   }
@@ -2669,11 +2671,11 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     var groups = [], by = {};
     all.forEach(function (l) { var k = String(l.Level); if (!by[k]) { by[k] = []; groups.push(k); } by[k].push(l); });
     return groups.map(function (k) {
-      var ls = by[k], done = PM.lvState[k] === 'done', cur = PM.lvState[k] === 'current', name = ls[0].LevelName || 'Level ' + k;
+      var ls = by[k], done = PM.lvState[k] === 'done', cur = PM.lvState[k] === 'current', lvName = ls[0].LevelName || 'Level ' + k, name = ls.length === 1 ? ls[0].Title || lvName : lvName;
       var tag = done ? '<span class="lg-tag ok">Completed</span>' : cur ? '<span class="lg-tag">In progress</span>' : '';
       if (ls.length === 1) {
         var l = ls[0];
-        return '<button type="button" class="lt wide' + (done ? ' done' : '') + '" data-l="' + esc(l.LessonID) + '"' + (done ? ' disabled' : '') + '><span class="lt-b">' + (PM.multi ? esc(k) : '1') + '</span><span class="lt-t"><b>' + esc(PM.multi ? name : l.Title) + '</b><small>' + esc(PM.multi ? (l.Title !== name ? l.Title : 'Level ' + k) : l.Number) + '</small></span>' + tag + '</button>';
+        return '<button type="button" class="lt wide' + (done ? ' done' : '') + '" data-l="' + esc(l.LessonID) + '"' + (done ? ' disabled' : '') + '><span class="lt-b">' + (PM.multi ? esc(k) : '1') + '</span><span class="lt-t"><b>' + esc(name) + '</b><small>' + esc(PM.multi ? 'Level ' + k : l.Number) + '</small></span>' + tag + '</button>';
       }
       return '<div class="lgroup"><div class="lg-h"><b>' + (PM.multi ? 'Level ' + esc(k) + ' · ' : '') + esc(name) + '</b>' + tag + '</div><div class="ltiles">' + ls.map(function (l, i) {
         return '<button type="button" class="lt' + (l.State === 'Finished' ? ' done' : '') + '" data-l="' + esc(l.LessonID) + '"' + (done ? ' disabled' : '') + ' aria-label="' + esc(l.Number + ' · ' + l.Title) + '">' + esc(shortNum(l, i)) + '<small>' + (l.State === 'Finished' ? 'done' : l.State === 'Started' ? 'started' : '') + '</small></button>';
@@ -2707,7 +2709,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         var newYear = fresh;
         var dchip = function (k, label) { return '<button type="button" class="dchip" data-day="' + k + '"' + (k === '0' ? ' aria-pressed="true"' : ' aria-pressed="false"') + '>' + label + '</button>'; };
         html += '<form class="card rec" id="logf" novalidate><div class="rec-h"><h2>Record a session</h2>' +
-            (newYear ? '<p class="small muted">' + (e && next ? 'Next up: ' + (PM.multi ? 'Level ' + esc(next.Level) + ' · ' : '') + esc(next.LevelName || 'the next level') + '.' : 'This starts ' + esc(first) + '’s lessons for this year.') + '</p>' : '') + '</div>' +
+            (newYear ? '<p class="small muted">' + (e && next ? 'Next up: ' + (PM.multi ? 'Level ' + esc(next.Level) + ' · ' : '') + esc((all.filter(function (x) { return String(x.Level) === String(next.Level); }).length === 1 ? next.Title : next.LevelName) || 'the next level') + '.' : 'This starts ' + esc(first) + '’s lessons for this year.') + '</p>' : '') + '</div>' +
           '<section class="step"><span class="sn">1</span><div class="sb"><span class="sl">Today’s lesson</span>' +
             '<div class="lnow" id="lnow"></div><button type="button" class="linkbtn" id="chg">' + (PM.multi ? 'Change level or lesson' : 'Change lesson') + '</button>' +
             '<div class="lpick" id="ltiles" hidden>' + pickerHTML(all, PM) + '</div></div></section>' +
@@ -2792,12 +2794,13 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       function drawSave() {
         var b = $('#lsave'); if (!b) return;
         var l = lessonById(sel), canDone = finished && lastOfLevel(), cw = $('#cmpw');
-        cw.hidden = !canDone; $('#cmpn').textContent = 'Complete ' + (PM.multi ? 'Level ' + l.Level + ' · ' : '') + (l.LevelName || 'this level') + ' now';
+        cw.hidden = !canDone; var oneBook = all.filter(function (x) { return String(x.Level) === String(l.Level); }).length === 1;
+        $('#cmpn').textContent = 'Complete ' + (PM.multi ? 'Level ' + l.Level + ' · ' : '') + ((oneBook ? l.Title : l.LevelName) || 'this level') + ' now';
         b.innerHTML = !finished ? 'Save session' : canDone && $('#cmp').checked ? 'Save &amp; complete ' + (PM.multi ? 'Level ' + esc(l.Level) : 'the level') + ' ' + icon('check') : 'Save &amp; move ' + esc(first) + ' forward ' + icon('arrow');
       }
       function drawLesson() {
         var l = lessonById(sel), sameLv = all.filter(function (x) { return String(x.Level) === String(l.Level); });
-        $('#lnow').innerHTML = '<span class="ln-badge">' + esc(PM.multi && sameLv.length === 1 ? 'L' + l.Level : shortNum(l, sameLv.indexOf(l))) + '</span><span><span class="ln-num">' + (PM.multi ? 'Level ' + esc(l.Level) + (sameLv.length > 1 ? ' · ' + esc(l.Number) : '') : esc(l.Number)) + (l.State === 'Finished' ? ' · finished before' : l.State === 'Started' ? ' · started' : '') + '</span><span class="ln-title">' + esc(sameLv.length === 1 && l.LevelName ? l.LevelName : l.Title) + '</span>' + (sameLv.length === 1 && l.LevelName && l.Title && l.Title !== l.LevelName ? '<span class="small muted">' + esc(l.Title) + '</span>' : '') + '</span>';
+        $('#lnow').innerHTML = '<span class="ln-badge">' + esc(PM.multi && sameLv.length === 1 ? 'L' + l.Level : shortNum(l, sameLv.indexOf(l))) + '</span><span><span class="ln-num">' + (PM.multi ? 'Level ' + esc(l.Level) + (sameLv.length > 1 ? ' · ' + esc(l.Number) : '') : esc(l.Number)) + (l.State === 'Finished' ? ' · finished before' : l.State === 'Started' ? ' · started' : '') + '</span><span class="ln-title">' + esc(l.Title || l.LevelName) + '</span></span>';
         $$('.lt', lf).forEach(function (t) { t.setAttribute('aria-pressed', String(t.dataset.l === sel)); });
         drawSave();
       }
@@ -2834,7 +2837,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
           var complete = finished && lastOfLevel() && $('#cmp').checked;
           api('logSession', { userId: uid, date: $('#ld').value, lessonId: sel, finished: finished, notes: $('#ln').value, nextMeeting: $('#lnm').value, complete: complete })
             .then(function (r) {
-              toast(r && r.completed ? 'Session saved. ' + first + ' completed ' + (lessonById(sel).LevelName || 'the level') + '.' : 'Session saved.');
+              toast(r && r.completed ? 'Session saved. ' + first + ' completed ' + (PM.multi ? 'Level ' + lessonById(sel).Level + ' · ' + lessonById(sel).Title : lessonById(sel).LevelName || 'the level') + '.' : 'Session saved.');
               var pics = chosen.slice(), sid = r && r.session && r.session.SessionID;
               viewPerson(uid);
               setTimeout(function () { openUpdate(uid, 'session', { sessionId: sid, pic: pics[0] }); }, 250);
@@ -2956,7 +2959,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       if (o.kind === 'session') {
         if (o.sessionImg) { if (paint) coverImg(ctx, o.sessionImg, X, y, IW, 470, 28); y += 500; }
         T(spaced(o.sessionFinished ? 'Today we studied' : 'Today we started'), X, y + 24, '800 22px ' + SANS, MUTED); y += 46;
-        T(o.unit === 'levels' ? 'Level ' + o.lesson.Level + (o.lesson.LevelName && o.lesson.LevelName !== o.lesson.Title ? ' · ' + o.lesson.LevelName : '') : o.lesson.Number, X, y + 30, '800 30px ' + SANS, FL); y += 44;
+        T(o.unit === 'levels' ? 'Level ' + o.lesson.Level : o.lesson.Number, X, y + 30, '800 30px ' + SANS, FL); y += 44;
         para(o.lesson.Title, '700 52px ' + SERIF, INK, 64); y += 18;
         if (paint) { var lab = o.sessionFinished ? '✓  Finished' : 'To be continued next time'; ctx.font = '800 26px ' + SANS; var tw = ctx.measureText(lab).width; ctx.fillStyle = o.sessionFinished ? '#e6f3ec' : '#e8ebf4'; rrect(ctx, X, y, tw + 48, 52, 26); ctx.fill(); T(lab, X + 24, y + 35, '800 26px ' + SANS, o.sessionFinished ? '#2c7a4b' : '#2e4a9a'); }
         y += 86;
@@ -3560,7 +3563,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     textC(ctx, 'THIS CERTIFICATE IS AWARDED TO', cx, y + 238, '500 25px ' + SERIF, '#1b2236');
     ctx.font = '500 60px ' + SANS; textC(ctx, c.Name.toUpperCase(), cx, y + 336, '500 60px ' + SANS, NAVY, r.w - 100);
     var nw = Math.min(r.w - 100, ctx.measureText(c.Name.toUpperCase()).width + 60); ctx.fillStyle = '#1b2236'; ctx.fillRect(cx - nw / 2, y + 356, nw, 2.5);
-    var n = wrapC(ctx, ('For successfully completing the ' + o.program + ' on ' + c.LevelName).toUpperCase(), cx, y + 418, r.w - 120, 32, '700 23px ' + SERIF, '#1b2236');
+    var n = wrapC(ctx, ('For successfully completing the ' + o.program + ' on ' + (c.LevelTitle ? c.LevelTitle + ' (' + c.LevelName + ')' : c.LevelName)).toUpperCase(), cx, y + 418, r.w - 120, 32, '700 23px ' + SERIF, '#1b2236');
     var gy = y + 418 + n * 32 + 24;
     wrapC(ctx, 'Given this ' + o.dateText + (o.venue ? ' at ' + o.venue : '') + '.', cx, gy, r.w - 120, 30, '500 23px ' + SERIF, '#1b2236');
     var sy = r.y + r.h - 96;
@@ -3657,7 +3660,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         var slides = [], church, doc, page = 0, total = 0;
         var src = function (id) { return id && (FULL[id] || THUMBS[id]) ? 'data:image/jpeg;base64,' + (FULL[id] || THUMBS[id]) : null; };
         var add = function () { if (page++) doc.addPage([W * 0.6, H * 0.6], 'landscape'); doc.addImage(cv.toDataURL('image/jpeg', 0.88), 'JPEG', 0, 0, W * 0.6, H * 0.6); if (slides.length < 16) slides.push(cv.toDataURL('image/jpeg', 0.5)); prog.textContent = 'Making slide ' + page + ' of ' + total + '…'; };
-        var levelsOf = function (list) { var lv = {}; list.forEach(function (c) { var k = c.Level + '|' + c.LevelName; (lv[k] = lv[k] || []).push(c); }); return Object.keys(lv).sort(function (a, b) { return (+a.split('|')[0]) - (+b.split('|')[0]); }).map(function (k) { return { level: k.split('|')[0], name: k.split('|').slice(1).join('|'), list: lv[k] }; }); };
+        var levelsOf = function (list) { var lv = {}; list.forEach(function (c) { var k = c.Level + '|' + (c.LevelTitle ? c.LevelTitle + ' · ' + c.LevelName : c.LevelName); (lv[k] = lv[k] || []).push(c); }); return Object.keys(lv).sort(function (a, b) { return (+a.split('|')[0]) - (+b.split('|')[0]); }).map(function (k) { return { level: k.split('|')[0], name: k.split('|').slice(1).join('|'), list: lv[k] }; }); };
         var lvName = function (n) { var p = String(n).split('·'); return p[0].trim().replace(/^The\s+/i, ''); };
         Promise.all([fullPhotos(ids).catch(function () {}), loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'), fontsReady, loadImg(CHURCH_URI).then(function (im) { church = im; })])
           .then(function () {
