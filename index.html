@@ -39,6 +39,7 @@
   --ok: #7fcb98; --warn: #e6b45e; --miss: #f08a7a; --info: #92b2f0; --scrim: rgba(0, 0, 0, .6); color-scheme: dark }
 
 * { box-sizing: border-box }
+[hidden] { display: none !important }
 html, body { min-height: 100% }
 body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.5; margin: 0 }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface) }
@@ -320,6 +321,62 @@ body::before { background: var(--nav) }
 .cert .c-title { color: #243049 }
 .cert .c-rule { width: 80px; height: 3px; margin: 2px auto; background: linear-gradient(90deg, #f6b13a, #e64a26); border-radius: 3px }
 
+/* ---------- photos, sync, sign-in extras ---------- */
+.av { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; background: var(--blank); display: block }
+.av.sm { width: 28px; height: 28px }
+.av.lg { width: 64px; height: 64px }
+.av.xl { width: 96px; height: 96px }
+.who { display: flex; align-items: center; gap: 8px; text-decoration: none }
+.who .av { border: 2px solid rgba(255, 255, 255, .5) }
+.sync { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: rgba(255, 255, 255, .16); color: var(--nav-ink); white-space: nowrap; flex: none }
+.sync.off { background: var(--warn); color: #fff }
+.person-item { grid-template-columns: 40px 1fr; align-items: start }
+.person-item .pi { display: grid; gap: 4px; min-width: 0 }
+.person-head { display: flex; gap: 14px; align-items: flex-start }
+.person-head h2 { margin-bottom: 4px }
+.profile-card { display: flex; gap: 16px; align-items: center; flex-wrap: wrap }
+.pill.sample { background: var(--flame-soft); color: var(--flame) }
+.shots { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px }
+.shot { position: relative; display: inline-block }
+.av.shot-img { width: 72px; height: 72px; border-radius: 10px; cursor: zoom-in }
+.shot .x { position: absolute; top: -6px; right: -6px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: var(--ink); color: var(--bg); font-size: 14px; line-height: 1; cursor: pointer }
+.addshot { width: 72px; height: 72px; border-radius: 10px; border: 2px dashed var(--line); background: none; color: var(--muted); font-size: 28px; cursor: pointer }
+.lightbox { position: fixed; inset: 0; z-index: 60; background: rgba(10, 14, 24, .88); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)) }
+.lightbox img { max-width: 100%; max-height: 86vh; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, .5) }
+.lightbox .close { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); background: rgba(255, 255, 255, .15); color: #fff; width: 40px; height: 40px; border-radius: 50%; border: 0; font-size: 22px }
+.switch { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: center; cursor: pointer }
+.switch input { position: absolute; opacity: 0; pointer-events: none }
+.switch .sw { width: 44px; height: 26px; border-radius: 99px; background: var(--line); position: relative; transition: background .2s }
+.switch .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: transform .2s }
+.switch input:checked + .sw { background: var(--flame) }
+.switch input:checked + .sw::after { transform: translateX(18px) }
+.switch input:focus-visible + .sw { outline: 2px solid var(--accent); outline-offset: 2px }
+.switch > span:last-child { display: grid; gap: 2px }
+.welcome { display: flex; gap: 12px; align-items: center }
+.wname { font-family: var(--serif); font-size: 22px; font-weight: 700 }
+.suggest-wrap { position: relative }
+.suggest { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 20; list-style: none; margin: 0; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, .12) }
+.suggest li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 8px; cursor: pointer }
+.suggest li:hover, .suggest li:focus { background: var(--accent-soft); outline: none }
+.suggest li span { color: var(--muted); font-variant-numeric: tabular-nums }
+.picked { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: 1px solid var(--accent); background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; min-height: 46px }
+.picked button { border: 0; background: none; font-size: 20px; cursor: pointer; color: var(--muted) }
+.faces { display: inline-flex; margin-right: 6px; vertical-align: middle }
+.faces .av { border: 2px solid var(--surface); margin-right: -8px }
+.faces .av:last-child { margin-right: 4px }
+.preacher { display: flex; gap: 12px; align-items: center; flex-wrap: wrap }
+.preacher b { flex: 1; min-width: 120px }
+.pick { padding: 6px 0; gap: 10px }
+.previews { display: grid; gap: 10px }
+.previews img { width: 100%; border-radius: 8px; border: 1px solid var(--line) }
+.present-cta { gap: 4px; border-color: var(--flame); background: var(--flame-soft) }
+.cert .c-photo { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 4px auto 0; border: 4px solid #243049 }
+.top { position: sticky }
+.top .sync { position: absolute; top: calc(100% + 6px); right: max(16px, env(safe-area-inset-right, 0px)); box-shadow: 0 2px 8px rgba(0, 0, 0, .15); background: var(--nav) }
+.top .sync.off { background: var(--warn) }
+label.pick { flex-wrap: nowrap; align-items: center }
+label.pick > span { min-width: 0 }
+
 </style>
 </head>
 <body>
@@ -335,7 +392,7 @@ window.addEventListener('error', function (e) {
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* Self-update: GitHub Pages lets browsers keep a page for 10 minutes. On open, check for a newer copy and reload once if found. */
-window.APP_BUILD = '20261026091143';
+window.APP_BUILD = '20261026115910';
 (function () {
   if (!/^https?:/.test(location.protocol) || !window.fetch || window.APP_CONFIG_IS_ARTIFACT) return;
   try { if (sessionStorage.getItem('dt-upd') === window.APP_BUILD) return; } catch (e) {}
@@ -366,12 +423,13 @@ window.APP_CONFIG = { API_URL: API_URL, IS_ARTIFACT: false };
    ============================================================ */
 var CORE = (function () {
   var SCHEMA = {
-    Users: ['UserID', 'Name', 'Mobile', 'PinHash', 'Role', 'CongregationID', 'Status', 'DisciplerID', 'ModCongregations', 'AppointedBy', 'AppointedAt', 'FailCount', 'LockUntil', 'CreatedAt', 'LastLogin'],
-    Congregations: ['CongregationID', 'Name', 'Location', 'Preachers', 'Status'],
+    Users: ['UserID', 'Name', 'Mobile', 'PinHash', 'Role', 'CongregationID', 'Status', 'DisciplerID', 'ModCongregations', 'AppointedBy', 'AppointedAt', 'FailCount', 'LockUntil', 'CreatedAt', 'LastLogin', 'Disciples', 'TakesLessons', 'IsSample'],
+    Congregations: ['CongregationID', 'Name', 'Location', 'Preachers', 'Status', 'IsSample'],
     Lessons: ['LessonID', 'Level', 'LevelName', 'Order', 'Number', 'Title', 'MemoryRef', 'MemoryText', 'Published', 'UpdatedAt'],
-    Enrollments: ['EnrollmentID', 'UserID', 'ProgramYear', 'Level', 'Status', 'StartDate', 'CompletedDate', 'ExpiryDate', 'ApprovedBy'],
-    Sessions: ['SessionID', 'EnrollmentID', 'UserID', 'DisciplerID', 'LessonID', 'Date', 'Finished', 'Notes', 'NextMeeting', 'Confirmed', 'ConfirmedAt', 'CreatedAt'],
-    Certificates: ['CertNo', 'UserID', 'EnrollmentID', 'ProgramYear', 'Level', 'LevelName', 'IssuedDate', 'IssuedBy', 'ValidUntil'],
+    Enrollments: ['EnrollmentID', 'UserID', 'ProgramYear', 'Level', 'Status', 'StartDate', 'CompletedDate', 'ExpiryDate', 'ApprovedBy', 'IsSample'],
+    Sessions: ['SessionID', 'EnrollmentID', 'UserID', 'DisciplerID', 'LessonID', 'Date', 'Finished', 'Notes', 'NextMeeting', 'Confirmed', 'ConfirmedAt', 'CreatedAt', 'IsSample'],
+    Certificates: ['CertNo', 'UserID', 'EnrollmentID', 'ProgramYear', 'Level', 'LevelName', 'IssuedDate', 'IssuedBy', 'ValidUntil', 'IsSample'],
+    Photos: ['PhotoID', 'Kind', 'OwnerID', 'FileID', 'Thumb', 'CreatedAt', 'CreatedBy', 'IsSample'],
     AuditLog: ['Timestamp', 'UserID', 'Action', 'Target', 'Details'],
     Settings: ['Key', 'Value']
   };
@@ -445,14 +503,21 @@ var CORE = (function () {
   }
   function inScope(u, target) { var s = scope(u); return s === null || s.indexOf(target.CongregationID) >= 0; }
   function canGuide(u, target) {
-    if (target.UserID === u.UserID) return false;
-    if (RANK[u.Role] >= 2) return inScope(u, target);
-    return u.Role === 'Discipler' && target.DisciplerID === u.UserID;
+    if (!target || target.UserID === u.UserID) return false;
+    if (RANK[u.Role] >= 2 && inScope(u, target)) return true;
+    return disciplesOthers(u) && target.DisciplerID === u.UserID;
   }
   function roleName(r) { return r === 'Moderator' ? 'Coordinator' : r; }
+  function isTrue(v) { return str(v).toUpperCase() === 'TRUE'; }
+  function tf(v) { return v === true || v === 'true' || v === 'TRUE' ? 'TRUE' : 'FALSE'; }
+  // Can this person have disciples of their own? Disciplers always; coordinators only with the switch on.
+  function disciplesOthers(u) { return u.Role === 'Discipler' || (RANK[u.Role] === 2 && isTrue(u.Disciples)); }
+  function isDisciplerOf(u, t) { return !!t && t.DisciplerID === u.UserID; }
+  function personPhoto(id) { var a = (idx('Photos', 'OwnerID')[id] || []).filter(function (p) { return p.Kind === 'person'; }); return a.length ? a[a.length - 1].PhotoID : ''; }
+  function sessionPhotos(id) { return (idx('Photos', 'OwnerID')[id] || []).filter(function (p) { return p.Kind === 'session'; }).map(function (p) { return p.PhotoID; }); }
   function pub(u) {
     if (!u) return null;
-    return { UserID: u.UserID, Name: u.Name, Mobile: u.Mobile, Role: roleName(u.Role), CongregationID: u.CongregationID, Status: u.Status, DisciplerID: u.DisciplerID, ModCongregations: u.ModCongregations, CreatedAt: u.CreatedAt, LastLogin: u.LastLogin };
+    return { UserID: u.UserID, Name: u.Name, Mobile: u.Mobile, Role: roleName(u.Role), CongregationID: u.CongregationID, Status: u.Status, DisciplerID: u.DisciplerID, ModCongregations: u.ModCongregations, CreatedAt: u.CreatedAt, LastLogin: u.LastLogin, Disciples: isTrue(u.Disciples), TakesLessons: isTrue(u.TakesLessons), PhotoID: personPhoto(u.UserID), IsSample: isTrue(u.IsSample) };
   }
   function congName(id) { var c = find('Congregations', 'CongregationID', id); return c ? c.Name : ''; }
   function userName(id) { var u = find('Users', 'UserID', id); return u ? u.Name : ''; }
@@ -483,7 +548,7 @@ var CORE = (function () {
   }
   function sessionView(s) {
     var l = find('Lessons', 'LessonID', s.LessonID);
-    return { SessionID: s.SessionID, Date: s.Date, LessonID: s.LessonID, Lesson: l ? l.Number : s.LessonID, LessonTitle: l ? l.Title : '', Finished: s.Finished === 'TRUE', Notes: s.Notes, NextMeeting: s.NextMeeting, Confirmed: s.Confirmed === 'TRUE', ConfirmedAt: s.ConfirmedAt, Discipler: userName(s.DisciplerID), DisciplerID: s.DisciplerID };
+    return { SessionID: s.SessionID, Date: s.Date, LessonID: s.LessonID, Lesson: l ? l.Number : s.LessonID, LessonTitle: l ? l.Title : '', Finished: s.Finished === 'TRUE', Notes: s.Notes, NextMeeting: s.NextMeeting, Confirmed: s.Confirmed === 'TRUE', ConfirmedAt: s.ConfirmedAt, Discipler: userName(s.DisciplerID), DisciplerID: s.DisciplerID, Photos: sessionPhotos(s.SessionID) };
   }
   function progress(e) {
     var out = { lessons: [], total: 0, finished: 0, sessions: [], lastSession: '', nextMeeting: '', unconfirmed: 0 };
@@ -552,7 +617,7 @@ var CORE = (function () {
       ReadyToGraduate: st === 'In progress' && p.total > 0 && p.finished === p.total,
       Stale: !!stale, Expiring: !!expiring, ExpiryDate: e ? e.ExpiryDate : '',
       HasCert: e ? !!find('Certificates', 'EnrollmentID', e.EnrollmentID) : false,
-      CreatedAt: x.CreatedAt
+      CreatedAt: x.CreatedAt, PhotoID: personPhoto(x.UserID), Disciples: isTrue(x.Disciples), TakesLessons: isTrue(x.TakesLessons), IsSample: isTrue(x.IsSample)
     };
   }
   function target(u, id, mustScope) {
@@ -567,7 +632,7 @@ var CORE = (function () {
   A.ping = function () { return { ok: true, time: nowIso() }; };
   A.publicInfo = function () {
     var s = settings();
-    return { churchName: s.ChurchName, programName: s.ProgramName, congregations: rows('Congregations').filter(function (c) { return c.Status !== 'Inactive'; }).map(function (c) { return { CongregationID: c.CongregationID, Name: c.Name, Location: c.Location }; }) };
+    return { churchName: s.ChurchName, programName: s.ProgramName, congregations: rows('Congregations').filter(function (c) { return c.Status !== 'Inactive' && !isTrue(c.IsSample); }).map(function (c) { return { CongregationID: c.CongregationID, Name: c.Name, Location: c.Location }; }) };
   };
   A.register = function (q) {
     var name = str(q.name).trim(), mobile = normMobile(q.mobile);
@@ -581,9 +646,43 @@ var CORE = (function () {
     audit(u, 'Registered', u.UserID, congName(u.CongregationID));
     return { pending: true };
   };
-  A.login = function (q) {
-    var u = find('Users', 'Mobile', normMobile(q.mobile));
+  function normName(s) { return str(s).toLowerCase().replace(/[^a-z0-9ñ ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+  function findForLogin(q) {
+    if (q.key) {
+      var k = str(q.key).split('.');
+      if (k.length !== 4 || k[0] !== 'L' || db.sign('L.' + k[1] + '.' + k[2]) !== k[3] || +k[2] < db.now().getTime()) fail('Please choose your name again.');
+      return find('Users', 'UserID', k[1]);
+    }
+    var raw = str(q.mobile).trim();
+    if (/[a-z]/i.test(raw)) {
+      var nn = normName(raw), hits = rows('Users').filter(function (x) { return normName(x.Name) === nn && x.Status !== 'Stub'; });
+      if (hits.length > 1) fail('More than one member has this name. Please sign in with your mobile number.');
+      if (!hits.length) fail('No account has that name. Check the spelling, or use your mobile number.');
+      return hits[0];
+    }
+    var u = find('Users', 'Mobile', normMobile(raw));
     if (!u) fail('No account uses that mobile number.');
+    return u;
+  }
+  function maskMobile(m) { m = str(m); return m.length >= 8 ? m.slice(0, 4) + '•••' + m.slice(-4) : '•••'; }
+  A.lookup = function (q) {
+    var words = normName(q.q).split(' ').filter(String);
+    if (normName(q.q).replace(/ /g, '').length < 3) return { matches: [] };
+    if (db.rate && !db.rate('lookup', 120, 60)) fail('Too many searches right now. Please type your mobile number instead.');
+    var hits = rows('Users').filter(function (x) {
+      if (x.Status !== 'Active') return false;
+      var parts = normName(x.Name).split(' ');
+      return words.every(function (w) { return parts.some(function (p) { return p.indexOf(w) === 0; }); });
+    }).slice(0, 5);
+    var exp = db.now().getTime() + 10 * 6e4;
+    return { matches: hits.map(function (x) {
+      var parts = str(x.Name).trim().split(/\s+/), label = parts[0] + (parts.length > 1 ? ' ' + parts[parts.length - 1].charAt(0) + '.' : '');
+      var body = 'L.' + x.UserID + '.' + exp;
+      return { key: body + '.' + db.sign(body), label: label, hint: maskMobile(x.Mobile) };
+    }) };
+  };
+  A.login = function (q) {
+    var u = findForLogin(q);
     if (u.LockUntil && new Date(u.LockUntil) > db.now()) fail('Too many wrong PINs. Try again in 15 minutes, or ask your coordinator to reset it.');
     if (!pinOk(str(q.pin), u.PinHash)) {
       var n = (+u.FailCount || 0) + 1;
@@ -593,9 +692,9 @@ var CORE = (function () {
     if (u.Status === 'Pending') fail('Your registration is waiting for approval by your coordinator.');
     if (u.Status !== 'Active') fail('Your account is inactive. Ask your coordinator.');
     upd('Users', 'UserID', u.UserID, { FailCount: '0', LockUntil: '', LastLogin: nowIso() });
-    var first = { Disciple: 'home', Discipler: 'myDisciples' }[u.Role] || 'dashboard', start = null;
-    try { start = { action: first, data: A[first]({}, u) }; } catch (e) { start = null; }
-    return { token: makeToken(u), user: pub(u), me: A.me(q, u), start: start };
+    var snap = null;
+    try { snap = A.snapshot({}, u); } catch (e) { snap = null; }
+    return { token: makeToken(u), user: pub(u), me: A.me(q, u), snapshot: snap, remember: { name: u.Name, mobile: u.Mobile } };
   };
   A.me = function (q, u) {
     return { user: pub(u), congregation: congName(u.CongregationID), settings: settings(), congregations: rows('Congregations'), scope: scope(u) };
@@ -627,12 +726,12 @@ var CORE = (function () {
     if (!c) fail('Certificate not found.');
     var owner = find('Users', 'UserID', c.UserID);
     if (c.UserID !== u.UserID && !(RANK[u.Role] >= 1 && (canGuide(u, owner) || u.UserID === owner.DisciplerID))) fail('You cannot view this certificate.');
-    return { cert: c, name: owner.Name, congregation: congName(owner.CongregationID), settings: settings(), issuedBy: userName(c.IssuedBy) };
+    return { cert: c, name: owner.Name, congregation: congName(owner.CongregationID), settings: settings(), issuedBy: userName(c.IssuedBy), photoId: personPhoto(owner.UserID) };
   };
 
   /* discipler */
   A.myDisciples = function (q, u) {
-    need(u, 'Discipler');
+    if (!disciplesOthers(u)) fail('Turn on “I also disciple people” in your profile to have disciples.');
     return { people: rows('Users').filter(function (x) { return x.DisciplerID === u.UserID && x.Status === 'Active'; }).map(personRow) };
   };
   A.person = function (q, u) {
@@ -649,6 +748,8 @@ var CORE = (function () {
     need(u, 'Discipler');
     var t = target(u, q.userId);
     if (!canGuide(u, t)) fail('You can only log sessions for your own disciples.');
+    var sid = /^S-[a-z0-9]{6,24}$/.test(str(q.sessionId)) ? str(q.sessionId) : '';
+    if (sid) { var dup = find('Sessions', 'SessionID', sid); if (dup) { if (dup.UserID === t.UserID) return { ok: true, session: sessionView(dup) }; fail('Please try again.'); } }
     if (t.Status !== 'Active') fail('This account is not active.');
     var l = find('Lessons', 'LessonID', q.lessonId);
     if (!l || !isPub(l)) fail('Choose the lesson you covered.');
@@ -661,11 +762,12 @@ var CORE = (function () {
     if (!lv) fail(t.Name + ' has completed every level for this year.');
     if (str(l.Level) !== String(lv)) fail('This lesson isn’t part of ' + t.Name.split(' ')[0] + '’s current level (' + levelName(lv) + ').');
     if (!e || status(e) !== 'In progress') {
-      e = { EnrollmentID: 'E-' + db.uid().slice(0, 8), UserID: t.UserID, ProgramYear: d.slice(0, 4), Level: String(lv), Status: 'In progress', StartDate: d + 'T00:00:00.000Z', CompletedDate: '', ExpiryDate: '', ApprovedBy: '' };
+      var eid = /^E-[a-z0-9]{6,24}$/.test(str(q.enrollmentId)) && !find('Enrollments', 'EnrollmentID', q.enrollmentId) ? str(q.enrollmentId) : 'E-' + db.uid().slice(0, 8);
+      e = { EnrollmentID: eid, UserID: t.UserID, ProgramYear: d.slice(0, 4), Level: String(lv), Status: 'In progress', StartDate: d + 'T00:00:00.000Z', CompletedDate: '', ExpiryDate: '', ApprovedBy: '' };
       ins('Enrollments', e);
       audit(u, 'Started lessons', t.UserID, levelName(lv) + ' ' + e.ProgramYear);
     }
-    var s = { SessionID: 'S-' + db.uid().slice(0, 8), EnrollmentID: e.EnrollmentID, UserID: t.UserID, DisciplerID: u.UserID, LessonID: l.LessonID, Date: d, Finished: q.finished === false || q.finished === 'false' ? 'FALSE' : 'TRUE', Notes: str(q.notes).slice(0, 1000), NextMeeting: nm, Confirmed: 'FALSE', ConfirmedAt: '', CreatedAt: nowIso() };
+    var s = { SessionID: sid || 'S-' + db.uid().slice(0, 8), EnrollmentID: e.EnrollmentID, UserID: t.UserID, DisciplerID: u.UserID, LessonID: l.LessonID, Date: d, Finished: q.finished === false || q.finished === 'false' ? 'FALSE' : 'TRUE', Notes: str(q.notes).slice(0, 1000), NextMeeting: nm, Confirmed: 'FALSE', ConfirmedAt: '', CreatedAt: nowIso() };
     ins('Sessions', s);
     audit(u, 'Logged session', t.UserID, l.Number + (s.Finished === 'TRUE' ? ' finished' : ' continued') + ' · ' + d);
     return { ok: true, session: sessionView(s) };
@@ -688,6 +790,7 @@ var CORE = (function () {
     if (!e) fail('Enrollment not found.');
     var t = target(u, e.UserID);
     if (!canGuide(u, t)) fail('You can only approve your own disciples.');
+    if (e.Status === 'Completed' && e.ApprovedBy === u.UserID) return { ok: true };
     if (status(e) !== 'In progress') fail('This level is already ' + status(e).toLowerCase() + '.');
     var p = progress(e);
     if (!p.total || p.finished < p.total) fail('All ' + p.total + ' lessons must be finished first (' + p.finished + ' finished).');
@@ -713,10 +816,10 @@ var CORE = (function () {
       if (p.Role === 'Disciple' && !p.DisciplerID) counts.unassigned++;
     });
     var monthAgo = new Date(dayMs(today()) - 30 * DAY).toISOString().slice(0, 10);
-    var disciplers = all.filter(function (x) { return x.Role === 'Discipler' && x.Status === 'Active'; }).map(function (d) {
+    var disciplers = all.filter(function (x) { return disciplesOthers(x) && x.Status === 'Active'; }).map(function (d) {
       var mine = people.filter(function (p) { return p.DisciplerID === d.UserID; });
       var recent = rows('Sessions').filter(function (s) { return s.DisciplerID === d.UserID && s.Date >= monthAgo && str(s.UserID).indexOf('deleted:') !== 0; }).length;
-      return { UserID: d.UserID, Name: d.Name, Congregation: congName(d.CongregationID), Disciples: mine.length, Completed: mine.filter(function (p) { return p.LessonStatus === 'Completed'; }).length, InProgress: mine.filter(function (p) { return p.LessonStatus === 'In progress'; }).length, Stale: mine.filter(function (p) { return p.Stale; }).length, Sessions30: recent };
+      return { UserID: d.UserID, Name: d.Name, PhotoID: personPhoto(d.UserID), Congregation: congName(d.CongregationID), Disciples: mine.length, Completed: mine.filter(function (p) { return p.LessonStatus === 'Completed'; }).length, InProgress: mine.filter(function (p) { return p.LessonStatus === 'In progress'; }).length, Stale: mine.filter(function (p) { return p.Stale; }).length, Sessions30: recent };
     });
     var byCong = {};
     people.forEach(function (p) { var c = byCong[p.Congregation] = byCong[p.Congregation] || { Congregation: p.Congregation, People: 0, Completed: 0 }; c.People++; if (p.LessonStatus === 'Completed') c.Completed++; });
@@ -724,18 +827,19 @@ var CORE = (function () {
   };
   A.people = function (q, u) {
     need(u, 'Coordinator');
-    return { people: scopedUsers(u).map(personRow), disciplers: scopedUsers(u).filter(function (x) { return RANK[x.Role] >= 1 && RANK[x.Role] <= 2 && x.Status === 'Active'; }).map(pub) };
+    return { people: scopedUsers(u).map(personRow), disciplers: scopedUsers(u).filter(function (x) { return disciplesOthers(x) && x.Status === 'Active'; }).map(pub) };
   };
   A.approveUser = function (q, u) {
     need(u, 'Coordinator');
     var t = target(u, q.userId, true), role = str(q.role || 'Disciple');
-    if (t.Status !== 'Pending') fail('This person is already approved.');
     if (ROLES.indexOf(role) < 0) fail('Unknown role.');
     if (u.Role !== 'Admin' && RANK[role] > 1) fail('Only the admin can approve someone as a coordinator or admin.');
-    if (q.disciplerId) { var d = target(u, q.disciplerId); if (RANK[d.Role] < 1 || d.Status !== 'Active') fail('Choose an active discipler.'); }
+    if (t.Status !== 'Pending' && !(t.Status === 'Active' && roleName(t.Role) === role)) fail('This person is already approved.');
+    if (t.Status === 'Active' && roleName(t.Role) === role) return { ok: true };
+    if (q.disciplerId) { var d = target(u, q.disciplerId); if (!disciplesOthers(d) || d.Status !== 'Active') fail('Choose an active discipler.'); }
     var patch = { Status: 'Active', Role: role, DisciplerID: str(q.disciplerId) };
     if (role !== 'Disciple') { patch.AppointedBy = u.UserID; patch.AppointedAt = nowIso(); }
-    if (role === 'Coordinator') patch.ModCongregations = str(q.modCongregations || t.CongregationID);
+    if (role === 'Coordinator') { patch.ModCongregations = str(q.modCongregations || t.CongregationID); patch.Disciples = tf(q.disciples); patch.TakesLessons = tf(q.takesLessons); }
     upd('Users', 'UserID', t.UserID, patch);
     audit(u, 'Approved registration', t.UserID, role + (q.disciplerId ? ' · discipler ' + userName(q.disciplerId) : ''));
     return { ok: true };
@@ -743,7 +847,7 @@ var CORE = (function () {
   A.assign = function (q, u) {
     need(u, 'Coordinator');
     var t = target(u, q.userId, true);
-    if (q.disciplerId) { var d = target(u, q.disciplerId); if (RANK[d.Role] < 1) fail('Choose a discipler.'); if (d.UserID === t.UserID) fail('A person cannot disciple themselves.'); }
+    if (q.disciplerId) { var d = target(u, q.disciplerId); if (!disciplesOthers(d)) fail('Choose a discipler.'); if (d.UserID === t.UserID) fail('A person cannot disciple themselves.'); }
     upd('Users', 'UserID', t.UserID, { DisciplerID: str(q.disciplerId) });
     audit(u, 'Assigned discipler', t.UserID, userName(q.disciplerId) || 'none');
     return { ok: true };
@@ -756,9 +860,13 @@ var CORE = (function () {
     if (u.Role !== 'Admin' && (RANK[role] > 1 || RANK[old] > 1)) fail('Only the admin can change coordinator or admin roles.');
     if (t.UserID === u.UserID) fail('You cannot change your own role.');
     var patch = { Role: role, AppointedBy: u.UserID, AppointedAt: nowIso() };
-    if (role === 'Coordinator') patch.ModCongregations = str(q.modCongregations || t.ModCongregations || t.CongregationID);
+    if (role === 'Coordinator') {
+      patch.ModCongregations = str(q.modCongregations || t.ModCongregations || t.CongregationID);
+      if (q.disciples != null) patch.Disciples = tf(q.disciples);
+      if (q.takesLessons != null) patch.TakesLessons = tf(q.takesLessons);
+    }
     upd('Users', 'UserID', t.UserID, patch);
-    if (RANK[old] >= 1 && RANK[role] < 1) {
+    if (!disciplesOthers(find('Users', 'UserID', t.UserID))) {
       rows('Users').filter(function (x) { return x.DisciplerID === t.UserID; }).forEach(function (x) { upd('Users', 'UserID', x.UserID, { DisciplerID: '' }); });
     }
     audit(u, role === 'Discipler' && old === 'Disciple' ? 'Promoted to discipler' : 'Changed role', t.UserID, old + ' → ' + role);
@@ -814,8 +922,8 @@ var CORE = (function () {
     var issued = rows('Certificates').filter(function (c) { return ids[c.UserID]; });
     var have = {}; issued.forEach(function (c) { have[c.EnrollmentID] = 1; });
     var ready = rows('Enrollments').filter(function (e) { return ids[e.UserID] && status(e) === 'Completed' && !have[e.EnrollmentID]; })
-      .map(function (e) { var v = enrView(e); v.Name = ids[e.UserID].Name; v.Congregation = congName(ids[e.UserID].CongregationID); v.UserID = e.UserID; return v; });
-    return { ready: ready, issued: issued.map(function (c) { var o = {}; Object.keys(c).forEach(function (k) { o[k] = c[k]; }); o.Name = ids[c.UserID].Name; return o; }).reverse() };
+      .map(function (e) { var v = enrView(e); v.Name = ids[e.UserID].Name; v.Congregation = congName(ids[e.UserID].CongregationID); v.UserID = e.UserID; v.PhotoID = personPhoto(e.UserID); return v; });
+    return { ready: ready, issued: issued.map(function (c) { var o = {}; Object.keys(c).forEach(function (k) { o[k] = c[k]; }); var p = ids[c.UserID]; o.Name = p.Name; o.CongregationID = p.CongregationID; o.Congregation = congName(p.CongregationID); o.PhotoID = personPhoto(p.UserID); o.IsSample = isTrue(c.IsSample); return o; }).reverse() };
   };
   A.issueCertificate = function (q, u) {
     need(u, 'Coordinator');
@@ -832,6 +940,218 @@ var CORE = (function () {
       out.push(c.CertNo);
     });
     return { issued: out };
+  };
+
+  /* coordinator switches */
+  A.setOptions = function (q, u) {
+    var t = q.userId && q.userId !== u.UserID ? target(u, q.userId) : u;
+    if (t.UserID !== u.UserID && u.Role !== 'Admin') fail('Only the admin can change another coordinator’s options.');
+    if (RANK[t.Role] !== 2) fail('These options are for coordinators.');
+    var patch = {};
+    if (q.disciples != null) patch.Disciples = tf(q.disciples);
+    if (q.takesLessons != null) patch.TakesLessons = tf(q.takesLessons);
+    upd('Users', 'UserID', t.UserID, patch);
+    if (patch.Disciples === 'FALSE') rows('Users').filter(function (x) { return x.DisciplerID === t.UserID; }).forEach(function (x) { upd('Users', 'UserID', x.UserID, { DisciplerID: '' }); });
+    audit(u, 'Changed options', t.UserID, (patch.Disciples ? 'disciples ' + patch.Disciples.toLowerCase() + ' ' : '') + (patch.TakesLessons ? 'lessons ' + patch.TakesLessons.toLowerCase() : ''));
+    return { user: pub(find('Users', 'UserID', t.UserID)) };
+  };
+
+  /* photos — stored privately; only people who may see them get them */
+  function canSeePhoto(u, p) {
+    if (!p) return false;
+    if (u.Role === 'Admin') return true;
+    if (p.Kind === 'person') { var o = find('Users', 'UserID', p.OwnerID); return p.OwnerID === u.UserID || canGuide(u, o) || isDisciplerOf(u, o); }
+    if (p.Kind === 'preacher') return RANK[u.Role] >= 1;
+    if (p.Kind === 'session') {
+      var s = find('Sessions', 'SessionID', p.OwnerID); if (!s) return false;
+      var own = find('Users', 'UserID', s.UserID);
+      return s.UserID === u.UserID || s.DisciplerID === u.UserID || canGuide(u, own) || isDisciplerOf(u, own);
+    }
+    return false;
+  }
+  function canChangePhoto(u, kind, ownerId) {
+    if (kind === 'person') { var o = find('Users', 'UserID', ownerId); if (!o) fail('Person not found.'); return ownerId === u.UserID || canGuide(u, o) || isDisciplerOf(u, o) || u.Role === 'Admin'; }
+    if (kind === 'preacher') return u.Role === 'Admin';
+    if (kind === 'session') {
+      var s = find('Sessions', 'SessionID', ownerId); if (!s) fail('Save the session first, then add photos.');
+      var own = find('Users', 'UserID', s.UserID);
+      return s.DisciplerID === u.UserID || (RANK[u.Role] >= 2 && own && inScope(u, own)) || u.Role === 'Admin';
+    }
+    return false;
+  }
+  function b64(s) { return str(s).replace(/^data:image\/\w+;base64,/, ''); }
+  A.uploadPhoto = function (q, u) {
+    var kind = str(q.kind), owner = str(q.ownerId), full = b64(q.full), thumb = b64(q.thumb);
+    if (['person', 'preacher', 'session'].indexOf(kind) < 0) fail('Unknown photo type.');
+    if (!canChangePhoto(u, kind, owner)) fail('You can’t change this photo.');
+    if (!/^[A-Za-z0-9+\/=]+$/.test(full) || full.length < 100 || full.length > 900000) fail('This photo couldn’t be read. Please try another one.');
+    if (!/^[A-Za-z0-9+\/=]+$/.test(thumb) || thumb.length > 45000) fail('This photo couldn’t be read. Please try another one.');
+    var existing = (idx('Photos', 'OwnerID')[owner] || []).filter(function (p) { return p.Kind === kind; });
+    if (kind === 'session' && existing.length >= 3) fail('A session can have up to 3 photos.');
+    if (kind !== 'session') existing.forEach(function (p) { removePhoto(p); });
+    var id = 'P-' + db.uid().slice(0, 10);
+    var fileId = db.saveFile ? db.saveFile(kind + '-' + owner.replace(/[^A-Za-z0-9-]/g, '_') + '-' + id + '.jpg', full) : '';
+    ins('Photos', { PhotoID: id, Kind: kind, OwnerID: owner, FileID: fileId, Thumb: thumb, CreatedAt: nowIso(), CreatedBy: u.UserID, IsSample: '' });
+    audit(u, 'Added photo', kind === 'person' ? owner : '', kind);
+    return { photoId: id, thumb: thumb };
+  };
+  function removePhoto(p) {
+    if (p.FileID && db.trashFile) { try { db.trashFile(p.FileID); } catch (e) {} }
+    if (db.removeWhere) db.removeWhere('Photos', function (r) { return r.PhotoID === p.PhotoID; });
+    IDX = {};
+  }
+  A.deletePhoto = function (q, u) {
+    var p = find('Photos', 'PhotoID', q.photoId);
+    if (!p) return { ok: true };
+    if (!canChangePhoto(u, p.Kind, p.OwnerID)) fail('You can’t remove this photo.');
+    removePhoto(p);
+    audit(u, 'Removed photo', p.Kind === 'person' ? p.OwnerID : '', p.Kind);
+    return { ok: true };
+  };
+  A.thumbs = function (q, u) {
+    var out = {};
+    [].concat(q.ids || []).slice(0, 300).forEach(function (id) { var p = find('Photos', 'PhotoID', id); if (canSeePhoto(u, p)) out[id] = p.Thumb; });
+    return { thumbs: out };
+  };
+  A.photo = function (q, u) {
+    var out = {};
+    [].concat(q.ids || q.id || []).slice(0, 60).forEach(function (id) {
+      var p = find('Photos', 'PhotoID', id);
+      if (!canSeePhoto(u, p)) return;
+      var data = '';
+      if (p.FileID && db.readFile) { try { data = db.readFile(p.FileID); } catch (e) { data = ''; } }
+      out[id] = data || p.Thumb;
+    });
+    return { photos: out };
+  };
+  A.preacherPhotos = function (q, u) {
+    need(u, 'Discipler');
+    var out = {};
+    rows('Photos').filter(function (p) { return p.Kind === 'preacher'; }).forEach(function (p) { out[p.OwnerID] = p.PhotoID; });
+    return { photos: out };
+  };
+
+  /* offline copy: everything this person may see, in one reply */
+  function packTable(list, cols) { return { h: cols, r: list.map(function (o) { return cols.map(function (k) { return o[k] == null ? '' : String(o[k]); }); }) }; }
+  A.snapshot = function (q, u) {
+    var inc = {}, add = function (x) { if (x) inc[x.UserID] = x; };
+    add(u);
+    if (u.Role === 'Admin') rows('Users').forEach(add);
+    else if (RANK[u.Role] === 2) scopedUsers(u).forEach(add);
+    if (disciplesOthers(u)) rows('Users').forEach(function (x) { if (x.DisciplerID === u.UserID) add(x); });
+    var enr = rows('Enrollments').filter(function (e) { return inc[e.UserID]; });
+    var enrIds = {}; enr.forEach(function (e) { enrIds[e.EnrollmentID] = 1; });
+    var ses = rows('Sessions').filter(function (s) { return enrIds[s.EnrollmentID]; }).map(function (s) {
+      if (s.UserID !== u.UserID) return s;
+      var c2 = {}; Object.keys(s).forEach(function (k) { c2[k] = s[k]; }); c2.Notes = ''; return c2; // notes about yourself stay private
+    });
+    var certs = rows('Certificates').filter(function (c) { return inc[c.UserID]; });
+    var log = RANK[u.Role] >= 2 ? A.auditLog({}, u).log : [];
+    var refs = {};
+    Object.keys(inc).forEach(function (k) { var x = inc[k]; [x.DisciplerID, x.AppointedBy].forEach(function (r) { if (r) refs[r] = 1; }); });
+    ses.forEach(function (s) { refs[s.DisciplerID] = 1; });
+    enr.forEach(function (e) { if (e.ApprovedBy) refs[e.ApprovedBy] = 1; });
+    certs.forEach(function (c) { refs[c.IssuedBy] = 1; });
+    var userCols = SCHEMA.Users.filter(function (k) { return ['PinHash', 'FailCount', 'LockUntil'].indexOf(k) < 0; });
+    var users = Object.keys(inc).map(function (k) { return inc[k]; });
+    Object.keys(refs).forEach(function (id) { if (!inc[id]) { var x = find('Users', 'UserID', id); if (x) users.push({ UserID: x.UserID, Name: x.Name, Role: x.Role, Status: 'Stub' }); } });
+    var photos = rows('Photos').filter(function (p) { return canSeePhoto(u, p); });
+    return {
+      at: nowIso(), me: u.UserID, log: log,
+      tables: {
+        Users: packTable(users, userCols),
+        Congregations: packTable(rows('Congregations'), SCHEMA.Congregations),
+        Lessons: packTable(rows('Lessons'), SCHEMA.Lessons),
+        Enrollments: packTable(enr, SCHEMA.Enrollments),
+        Sessions: packTable(ses, SCHEMA.Sessions),
+        Certificates: packTable(certs, SCHEMA.Certificates),
+        Settings: packTable(rows('Settings'), SCHEMA.Settings),
+        Photos: packTable(photos, ['PhotoID', 'Kind', 'OwnerID', 'CreatedAt', 'CreatedBy'])
+      }
+    };
+  };
+
+  /* sample data for testing — every row is marked IsSample and can be removed in one step */
+  A.sampleData = function (q, u) {
+    need(u, 'Admin');
+    var tables = ['Users', 'Congregations', 'Enrollments', 'Sessions', 'Certificates', 'Photos'];
+    var has = tables.some(function (t) { return rows(t).some(function (r) { return isTrue(r.IsSample); }); });
+    if (q.mode === 'clear') {
+      if (!db.removeWhere) fail('Clearing isn’t available here.');
+      var sampleUsers = {}; rows('Users').forEach(function (x) { if (isTrue(x.IsSample)) sampleUsers[x.UserID] = 1; });
+      var sampleSessions = {}; rows('Sessions').forEach(function (s) { var who = str(s.UserID).replace('deleted:', ''); if (isTrue(s.IsSample) || sampleUsers[who]) sampleSessions[s.SessionID] = 1; });
+      var gone = function (t, r) {
+        if (isTrue(r.IsSample)) return true;
+        if (t === 'Enrollments' || t === 'Certificates') return !!sampleUsers[r.UserID];
+        if (t === 'Sessions') return !!sampleSessions[r.SessionID];
+        if (t === 'Photos') return !!(sampleUsers[r.OwnerID] || sampleSessions[r.OwnerID]);
+        return false;
+      };
+      rows('Photos').filter(function (p) { return gone('Photos', p); }).forEach(function (p) { if (p.FileID && db.trashFile) { try { db.trashFile(p.FileID); } catch (e) {} } });
+      var n = 0;
+      tables.forEach(function (t) { n += db.removeWhere(t, function (r) { return gone(t, r); }) || 0; });
+      db.removeWhere('AuditLog', function (r) { return sampleUsers[r.UserID] || sampleUsers[r.Target]; });
+      rows('Users').filter(function (x) { return sampleUsers[x.DisciplerID]; }).forEach(function (x) { upd('Users', 'UserID', x.UserID, { DisciplerID: '' }); });
+      IDX = {};
+      audit(u, 'Cleared sample data', '', n + ' rows');
+      return { removed: n };
+    }
+    if (has) fail('Sample data is already loaded. Clear it first to load a fresh set.');
+    var day = DAY, now = db.now().getTime(), iso = function (ms) { return new Date(ms).toISOString(); };
+    var d = function (n2) { return new Date(now + 8 * 36e5 + n2 * day).toISOString().slice(0, 10); };
+    var yr = d(0).slice(0, 4), S = 'TRUE', pin = hashPin('1234');
+    var L = lessonsFor(1).map(function (l) { return l.LessonID; });
+    if (!L.length) fail('Add the Level One lessons first.');
+    ins('Congregations', { CongregationID: 'C-smpA', Name: 'Sample · Main', Location: 'Sample City', Preachers: 'Ptr. Sample Santos, Ptr. Sample Reyes', Status: 'Active', IsSample: S });
+    ins('Congregations', { CongregationID: 'C-smpB', Name: 'Sample · North', Location: 'Sample Town', Preachers: 'Ptr. Sample Cruz', Status: 'Active', IsSample: S });
+    var people = [
+      ['U-smp01', 'Sample Coordinator', '09000000001', 'Coordinator', 'C-smpA', 'Active', 'U-smp02', 'C-smpA,C-smpB', 'TRUE', 'TRUE'],
+      ['U-smp02', 'Sample Discipler Paolo', '09000000002', 'Discipler', 'C-smpA', 'Active', 'U-smp01'],
+      ['U-smp03', 'Sample Discipler Liza', '09000000003', 'Discipler', 'C-smpB', 'Active', 'U-smp01'],
+      ['U-smp04', 'Sample Ana Cruz', '09000000004', 'Disciple', 'C-smpA', 'Active', 'U-smp02'],
+      ['U-smp05', 'Sample Mark Villanueva', '09000000005', 'Disciple', 'C-smpA', 'Active', 'U-smp02'],
+      ['U-smp06', 'Sample Joy Santos', '09000000006', 'Disciple', 'C-smpA', 'Active', 'U-smp02'],
+      ['U-smp07', 'Sample Ben Ramos', '09000000007', 'Disciple', 'C-smpB', 'Active', 'U-smp03'],
+      ['U-smp08', 'Sample Rico Lim', '09000000008', 'Disciple', 'C-smpB', 'Active', 'U-smp03'],
+      ['U-smp09', 'Sample Noel Garcia', '09000000009', 'Disciple', 'C-smpA', 'Active', ''],
+      ['U-smp10', 'Sample Carla Dizon', '09000000010', 'Disciple', 'C-smpB', 'Pending', ''],
+      ['U-smp11', 'Sample Grace Tan', '09000000011', 'Disciple', 'C-smpB', 'Active', 'U-smp01']
+    ];
+    people.forEach(function (p) {
+      if (find('Users', 'Mobile', p[2])) fail('The sample mobile number ' + p[2] + ' is already used by a real account.');
+      ins('Users', { UserID: p[0], Name: p[1], Mobile: p[2], PinHash: pin, Role: p[3], CongregationID: p[4], Status: p[5], DisciplerID: p[6], ModCongregations: p[7] || '', AppointedBy: u.UserID, AppointedAt: iso(now - 90 * day), FailCount: '0', LockUntil: '', CreatedAt: iso(now - 100 * day), LastLogin: '', Disciples: p[8] || '', TakesLessons: p[9] || '', IsSample: S });
+    });
+    var sc = 0;
+    var E = function (id, user, year, st, startDay, doneDay, expDay, by) { ins('Enrollments', { EnrollmentID: id, UserID: user, ProgramYear: year, Level: '1', Status: st, StartDate: d(startDay) + 'T00:00:00.000Z', CompletedDate: doneDay != null ? iso(now + doneDay * day) : '', ExpiryDate: expDay != null ? iso(now + expDay * day) : '', ApprovedBy: by || '', IsSample: S }); };
+    var SS = function (enr, user, disc, lesson, dayN, fin, notes, next, conf) { ins('Sessions', { SessionID: 'S-smp' + ('00' + (++sc)).slice(-3), EnrollmentID: enr, UserID: user, DisciplerID: disc, LessonID: lesson, Date: d(dayN), Finished: fin ? 'TRUE' : 'FALSE', Notes: notes || '', NextMeeting: next != null ? d(next) : '', Confirmed: conf ? 'TRUE' : 'FALSE', ConfirmedAt: conf ? iso(now + (dayN + 1) * day) : '', CreatedAt: iso(now + dayN * day), IsSample: S }); };
+    var C = function (no, user, enr, year, issued, valid) { ins('Certificates', { CertNo: no, UserID: user, EnrollmentID: enr, ProgramYear: year, Level: '1', LevelName: levelName(1), IssuedDate: iso(now + issued * day), IssuedBy: 'U-smp01', ValidUntil: iso(now + valid * day), IsSample: S }); };
+    E('E-smp04', 'U-smp04', yr, 'In progress', -35);
+    SS('E-smp04', 'U-smp04', 'U-smp02', L[0], -35, true, 'Very attentive. Asked about assurance.', -28, true);
+    SS('E-smp04', 'U-smp04', 'U-smp02', L[1], -28, false, 'Covered the first half.', -21, true);
+    if (L[2]) SS('E-smp04', 'U-smp04', 'U-smp02', L[1], -21, true, '', -14, true);
+    if (L[2]) SS('E-smp04', 'U-smp04', 'U-smp02', L[2], -4, true, 'Wants to be baptized next month.', 3, false);
+    E('E-smp05', 'U-smp05', yr, 'In progress', -75);
+    L.forEach(function (id, i) { SS('E-smp05', 'U-smp05', 'U-smp02', id, -75 + i * 8, true, '', null, true); });
+    E('E-smp06', 'U-smp06', yr, 'Completed', -150, -60, 305, 'U-smp02');
+    L.forEach(function (id, i) { SS('E-smp06', 'U-smp06', 'U-smp02', id, -150 + i * 10, true, '', null, true); });
+    C('SMP-' + yr + '-0001', 'U-smp06', 'E-smp06', yr, -55, 305);
+    E('E-smp07', 'U-smp07', yr, 'In progress', -60);
+    SS('E-smp07', 'U-smp07', 'U-smp03', L[0], -60, true, '', -53, true);
+    if (L[1]) SS('E-smp07', 'U-smp07', 'U-smp03', L[1], -45, false, 'Busy with work; will reschedule.', null, false);
+    E('E-smp08', 'U-smp08', String(+yr - 1), 'Completed', -420, -380, -15, 'U-smp03');
+    L.forEach(function (id, i) { SS('E-smp08', 'U-smp08', 'U-smp03', id, -420 + i * 5, true, '', null, true); });
+    C('SMP-' + (+yr - 1) + '-0001', 'U-smp08', 'E-smp08', String(+yr - 1), -378, -15);
+    E('E-smp11', 'U-smp11', yr, 'Completed', -120, -40, 325, 'U-smp01');
+    L.forEach(function (id, i) { SS('E-smp11', 'U-smp11', 'U-smp01', id, -120 + i * 9, true, '', null, true); });
+    E('E-smp01', 'U-smp01', yr, 'In progress', -20);
+    SS('E-smp01', 'U-smp01', 'U-smp02', L[0], -20, true, '', 5, true);
+    audit(u, 'Loaded sample data', '', people.length + ' people');
+    return { added: people.length, logins: people.filter(function (p) { return p[5] === 'Active'; }).map(function (p) { return { name: p[1], role: p[3], mobile: p[2] }; }) };
+  };
+  A.sampleStatus = function (q, u) {
+    need(u, 'Admin');
+    var users = rows('Users').filter(function (x) { return isTrue(x.IsSample); });
+    return { loaded: users.length > 0, logins: users.filter(function (x) { return x.Status === 'Active'; }).map(function (x) { return { name: x.Name, role: roleName(x.Role), mobile: x.Mobile }; }) };
   };
 
   /* admin */
@@ -880,7 +1200,7 @@ var CORE = (function () {
     return { log: r.map(function (a) { return { Timestamp: a.Timestamp, Who: userName(a.UserID), Action: a.Action, Target: userName(a.Target) || a.Target, Details: a.Details }; }) };
   };
 
-  var PUBLIC = { ping: 1, publicInfo: 1, register: 1, login: 1 };
+  var PUBLIC = { ping: 1, publicInfo: 1, register: 1, login: 1, lookup: 1 };
 
   function handle(adapter, req) {
     db = adapter; IDX = {};
@@ -888,6 +1208,20 @@ var CORE = (function () {
       var fn = A[req.action];
       if (!fn) fail('Unknown action.');
       var u = PUBLIC[req.action] ? null : auth(req.token);
+      return { ok: true, data: fn(req, u) };
+    } catch (e) {
+      var m = String(e && e.message || e);
+      return { ok: false, auth: m.indexOf('AUTH: ') === 0, error: m.replace('AUTH: ', '') };
+    }
+  }
+  // Runs an action on the phone's own copy, for an already signed-in person.
+  function handleLocal(adapter, req, userId) {
+    db = adapter; IDX = {};
+    try {
+      var fn = A[req.action];
+      if (!fn) fail('Unknown action.');
+      var u = find('Users', 'UserID', userId);
+      if (!u || u.Status !== 'Active') fail('AUTH: Please sign in again.');
       return { ok: true, data: fn(req, u) };
     } catch (e) {
       var m = String(e && e.message || e);
@@ -906,7 +1240,7 @@ var CORE = (function () {
     rows('Enrollments').forEach(function (e) { if (e.Status === 'Completed' && status(e) === 'Expired') { upd('Enrollments', 'EnrollmentID', e.EnrollmentID, { Status: 'Expired' }); n++; } });
     return n;
   }
-  return { SCHEMA: SCHEMA, handle: handle, seedAdmin: seedAdmin, expireSweep: expireSweep, hashPinWith: function (a, pin) { db = a; return hashPin(pin); } };
+  return { SCHEMA: SCHEMA, handle: handle, handleLocal: handleLocal, seedAdmin: seedAdmin, expireSweep: expireSweep, hashPinWith: function (a, pin) { db = a; return hashPin(pin); } };
 })();
 if (typeof module !== 'undefined') module.exports = CORE;
 
@@ -1020,6 +1354,11 @@ var DEMO = (function () {
       all: function (t) { return tables[t] || (tables[t] = []); },
       insert: function (t, o) { (tables[t] || (tables[t] = [])).push(JSON.parse(JSON.stringify(o))); save && save(); },
       update: function (t, k, v, patch) { (tables[t] || []).forEach(function (r) { if (String(r[k]) === String(v)) Object.keys(patch).forEach(function (f) { r[f] = patch[f]; }); }); save && save(); },
+      removeWhere: function (t, fn) { var a = tables[t] || [], keep = a.filter(function (r) { return !fn(r); }), n = a.length - keep.length; tables[t] = keep; if (n) save && save(); return n; },
+      saveFile: function (name, data) { var id = 'f-' + Math.random().toString(16).slice(2, 12); (tables.Files || (tables.Files = [])).push({ id: id, data: data }); save && save(); return id; },
+      readFile: function (id) { var f = (tables.Files || []).filter(function (x) { return x.id === id; })[0]; return f ? f.data : ''; },
+      trashFile: function (id) { tables.Files = (tables.Files || []).filter(function (x) { return x.id !== id; }); },
+      rate: function () { return true; },
       hash: function (s) { return h53(s, 7) + h53(s, 11); },
       sign: function (s) { return h53('demo-secret|' + s, 3); },
       uid: function () { return Math.random().toString(16).slice(2, 10) + Date.now().toString(16).slice(-4); },
@@ -1039,6 +1378,7 @@ var DEMO = (function () {
     };
     U('U-admin', 'Admin (you)', '09170000001', 'Admin', 'C-main', 'Active', '', '', 120);
     U('U-mod1', 'Grace Mendoza', '09170000002', 'Coordinator', 'C-main', 'Active', '', 'C-main,C-qc', 110);
+    a.update('Users', 'UserID', 'U-mod1', { Disciples: 'TRUE', TakesLessons: 'FALSE' });
     U('U-dr1', 'Paolo Reyes', '09170000003', 'Discipler', 'C-main', 'Active', 'U-mod1', '', 100);
     U('U-dr2', 'Liza Bautista', '09170000004', 'Discipler', 'C-qc', 'Active', '', '', 100);
     U('U-d1', 'Ana Cruz', '09170000005', 'Disciple', 'C-main', 'Active', 'U-dr1', '', 40);
@@ -1081,7 +1421,7 @@ var DEMO = (function () {
     a.insert('Certificates', { CertNo: 'MBBE-DG-' + (+yr - 1) + '-0001', UserID: 'U-dr1', EnrollmentID: 'E-dr1', ProgramYear: String(+yr - 1), Level: '1', LevelName: 'The Foundation · Level One', IssuedDate: iso(now - 318 * day), IssuedBy: 'U-mod1', ValidUntil: iso(now + 45 * day) });
     [['Signatory1', 'Sample Senior Pastor'], ['Signatory2', 'Grace Mendoza']].forEach(function (s) { a.insert('Settings', { Key: s[0], Value: s[1] }); });
   }
-  var KEY = 'mbbe-disc-demo-v2', tables = null, adapter;
+  var KEY = 'mbbe-disc-demo-v3', tables = null, adapter;
   function load() {
     try { tables = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { tables = null; }
     var save = function () { try { localStorage.setItem(KEY, JSON.stringify(tables)); } catch (e) {} };
@@ -1143,65 +1483,251 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   }
   function busy(btn, on) { if (!btn) return; btn.disabled = on; }
 
-  /* ---------- api ---------- */
-  function api(action, params) {
+  /* ---------- talking to the server ---------- */
+  function remote(action, params) {
     var req = Object.assign({ action: action, token: S.token }, params || {});
-    var p = DEMO_MODE
-      ? new Promise(function (res) { setTimeout(function () { res(DEMO.call(req)); }, 120); })
-      : (function () {
-          var ctl = window.AbortController ? new AbortController() : null;
-          var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 30000);
-          return fetch(CFG.API_URL, { method: 'POST', redirect: 'follow', body: JSON.stringify(req), signal: ctl ? ctl.signal : undefined })
-            .then(function (r) { return r.text(); })
-            .then(function (t) {
-              clearTimeout(timer);
-              try { return JSON.parse(t); }
-              catch (e) { return { ok: false, error: 'The server sent an unexpected reply. In Apps Script, check that the deployment is a Web app with “Who has access” set to Anyone.' }; }
-            })
-            .catch(function (e) {
-              clearTimeout(timer);
-              return { ok: false, offline: true, error: e && e.name === 'AbortError' ? 'The server is taking too long to answer. Please try again.' : 'Can’t reach the server. Check your internet connection and try again.' };
-            });
-        })();
-    return p.then(function (res) {
-      if (!res.ok) { var e = new Error(res.error); e.auth = res.auth; e.offline = res.offline; if (res.auth) { signOut(); } throw e; }
-      if (READS[action]) LS.set(ckey(action, params), { t: Date.now(), d: res.data });
-      else if (S.token && action !== 'login' && action !== 'publicInfo') clearCache(false);
-      return res.data;
+    if (DEMO_MODE) return new Promise(function (res) { setTimeout(function () { res(DEMO.call(req)); }, 120); }).then(unwrap);
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 45000);
+    return fetch(CFG.API_URL, { method: 'POST', redirect: 'follow', body: JSON.stringify(req), signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { return r.text(); })
+      .then(function (t) {
+        clearTimeout(timer);
+        try { return JSON.parse(t); }
+        catch (e) { return { ok: false, error: 'The server sent an unexpected reply. In Apps Script, check that the deployment is a Web app with “Who has access” set to Anyone.' }; }
+      })
+      .catch(function (e) {
+        clearTimeout(timer);
+        return { ok: false, offline: true, error: e && e.name === 'AbortError' ? 'The server is taking too long to answer. Please try again.' : 'You’re offline. Check your internet connection and try again.' };
+      })
+      .then(unwrap);
+  }
+  function unwrap(res) {
+    if (!res.ok) { var e = new Error(res.error); e.auth = res.auth; e.offline = res.offline; if (res.auth) signOut(); throw e; }
+    return res.data;
+  }
+  function signOut() {
+    S.token = null; S.me = null; LS.del(TOKEN_KEY); LOCAL = null; SNAP = null; OUTBOX = [];
+    try { Object.keys(localStorage).forEach(function (k) { if (/^dt-(snap|outbox|th):/.test(k)) localStorage.removeItem(k); }); } catch (e) {}
+    location.hash = '#/login';
+  }
+
+  /* ---------- offline copy ----------
+     The server sends everything this person may see in one reply. Screens are worked out on the phone from that copy,
+     so they open instantly. Changes are applied to the copy at once and sent to the server in the background. */
+  var LOCAL = null, SNAP = null, OUTBOX = [], syncing = false, lastPull = 0, pulling = null;
+  var LOCAL_READS = { me: 1, home: 1, myDisciples: 1, person: 1, people: 1, dashboard: 1, report: 1, certQueue: 1, lessonList: 1, certificate: 1, preacherPhotos: 1 };
+  var QUEUED = { logSession: 1, deleteSession: 1, confirmSession: 1, graduate: 1, approveUser: 1, assign: 1, setRole: 1, setStatus: 1, updatePerson: 1, setOptions: 1, setPublished: 1, saveLesson: 1, saveSettings: 1 };
+  function uid() { return S.token ? String(S.token).split('.')[0] : ''; }
+  function snapKey() { return 'dt-snap:' + uid(); }
+  function boxKey() { return 'dt-outbox:' + uid(); }
+  function unpack(snap) {
+    var t = {};
+    Object.keys(snap.tables).forEach(function (k) { var x = snap.tables[k]; t[k] = x.r.map(function (row) { var o = {}; x.h.forEach(function (h, i) { o[h] = row[i]; }); return o; }); });
+    t.AuditLog = [];
+    return t;
+  }
+  function buildLocal() {
+    if (!SNAP) { LOCAL = null; return; }
+    LOCAL = DEMO.Adapter(unpack(SNAP), null);
+    var keep = [];
+    OUTBOX.forEach(function (op) { // replay changes the server hasn't confirmed yet
+      var r = CORE.handleLocal(LOCAL, Object.assign({ action: op.action }, op.params), uid());
+      if (r.ok) keep.push(op);
+    });
+    var me = CORE.handleLocal(LOCAL, { action: 'me' }, uid());
+    if (me.ok) S.me = me.data;
+  }
+  function setSnapshot(snap) {
+    SNAP = snap; lastPull = Date.now();
+    try { localStorage.setItem(snapKey(), JSON.stringify(snap)); } catch (e) { /* too big for this phone's storage: keep it in memory */ }
+    buildLocal();
+  }
+  function loadStored() {
+    if (DEMO_MODE || !S.token) return false;
+    var s = null; try { s = JSON.parse(localStorage.getItem(snapKey()) || 'null'); } catch (e) { s = null; }
+    OUTBOX = LS.get(boxKey()) || [];
+    if (!s || s.me !== uid()) return false;
+    SNAP = s; buildLocal(); return !!LOCAL;
+  }
+  function pull() {
+    if (DEMO_MODE) return Promise.resolve();
+    if (pulling) return pulling;
+    syncState();
+    pulling = remote('snapshot').then(function (snap) { setSnapshot(snap); pulling = null; syncState(); rerender(); })
+      .catch(function (e) { pulling = null; syncState(); throw e; });
+    return pulling;
+  }
+  function runLocal(action, params) {
+    if (DEMO_MODE) return DEMO.call(Object.assign({ action: action, token: S.token }, params || {}));
+    if (action === 'auditLog') return { ok: true, data: { log: SNAP ? SNAP.log : [] } };
+    return CORE.handleLocal(LOCAL, Object.assign({ action: action }, params || {}), uid());
+  }
+  function newId(p) { return p + '-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4); }
+
+  // Reads and changes go through here.
+  function api(action, params) {
+    params = Object.assign({}, params || {});
+    if (DEMO_MODE) return remote(action, params).then(function (d) { if (!LOCAL_READS[action] && action !== 'auditLog') setTimeout(rerender, 0); return d; });
+    if (LOCAL && (LOCAL_READS[action] || action === 'auditLog')) {
+      var r = runLocal(action, params);
+      return r.ok ? Promise.resolve(r.data) : Promise.reject(new Error(r.error));
+    }
+    if (LOCAL && QUEUED[action]) {
+      if (action === 'logSession') { params.sessionId = params.sessionId || newId('S'); params.enrollmentId = params.enrollmentId || newId('E'); }
+      var w = runLocal(action, params);
+      if (!w.ok) return Promise.reject(new Error(w.error));
+      OUTBOX.push({ id: newId('op'), action: action, params: params, at: Date.now() });
+      LS.set(boxKey(), OUTBOX);
+      var me = runLocal('me'); if (me.ok) S.me = me.data;
+      syncState(); setTimeout(flush, 50);
+      return Promise.resolve(w.data);
+    }
+    return remote(action, params).then(function (d) {
+      if (/^(issueCertificate|saveCongregation|resetPin|sampleData|uploadPhoto|deletePhoto)$/.test(action)) pull().catch(function () {});
+      return d;
     });
   }
-  function signOut() { S.token = null; S.me = null; LS.del(TOKEN_KEY); clearCache(true); location.hash = '#/login'; }
-
-  /* ---------- instant screens: show the last copy, then refresh ---------- */
-  var READS = { me: 1, home: 1, myDisciples: 1, person: 1, people: 1, dashboard: 1, report: 1, certQueue: 1, lessonList: 1, auditLog: 1, certificate: 1 };
-  var CPRE = DEMO_MODE ? 'dtc-demo:' : 'dtc:';
-  function ckey(action, params) { return CPRE + String(S.token || '').split('.')[0] + ':' + action + ':' + JSON.stringify(params || {}); }
-  function clearCache(all) {
-    try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf(CPRE) === 0 && (all || k.indexOf(':me:') < 0)) localStorage.removeItem(k); }); } catch (e) {}
+  // Send waiting changes, one at a time, in order.
+  function flush() {
+    if (DEMO_MODE || syncing || !OUTBOX.length || !S.token) return Promise.resolve();
+    syncing = true; syncState();
+    var op = OUTBOX[0];
+    return remote(op.action, op.params).then(function () {
+      OUTBOX.shift(); LS.set(boxKey(), OUTBOX); syncing = false;
+      if (OUTBOX.length) return flush();
+      syncState(); return pull().catch(function () {});
+    }, function (e) {
+      syncing = false;
+      if (e.offline) { syncState(); clearTimeout(flush.t); flush.t = setTimeout(flush, 20000); return; }
+      OUTBOX.shift(); LS.set(boxKey(), OUTBOX);
+      toast('Couldn’t save a change: ' + e.message + ' Your screen has been refreshed.');
+      return pull().catch(function () {}).then(function () { if (OUTBOX.length) return flush(); });
+    });
   }
+  function whenSynced() { // resolves once every waiting change has reached the server
+    return new Promise(function (res, rej) {
+      var tries = 0;
+      (function check() {
+        if (!OUTBOX.length && !syncing) return res();
+        if (++tries > 120) return rej(new Error('Still saving. Please try again in a moment.'));
+        if (!navigator.onLine) return rej(Object.assign(new Error('You’re offline.'), { offline: true }));
+        flush(); setTimeout(check, 500);
+      })();
+    });
+  }
+  function syncState() {
+    var el = $('#sync'); if (!el) return;
+    var n = OUTBOX.length;
+    if (!navigator.onLine && n) { el.textContent = 'Offline · ' + n + ' waiting'; el.className = 'sync off'; el.hidden = false; }
+    else if (!navigator.onLine) { el.textContent = 'Offline'; el.className = 'sync off'; el.hidden = false; }
+    else if (n || syncing) { el.textContent = 'Saving…'; el.className = 'sync'; el.hidden = false; }
+    else el.hidden = true;
+  }
+  window.addEventListener('online', function () { syncState(); flush(); pull().catch(function () {}); });
+  window.addEventListener('offline', syncState);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && S.token && !DEMO_MODE && Date.now() - lastPull > 60000) { flush(); pull().catch(function () {}); } });
+  setInterval(function () { if (!document.hidden && S.token && !DEMO_MODE && navigator.onLine && !OUTBOX.length && Date.now() - lastPull > 180000) pull().catch(function () {}); }, 30000);
+
+  /* ---------- screens read from the copy; they redraw when fresh data arrives ---------- */
+  var VIEW = null;
   function editing() { var a = document.activeElement, m = $('#main'); return !!(a && m && m.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); }
+  function rerender() { if (VIEW && S.hash === location.hash && !editing()) VIEW(); }
   function live(action, params, render) {
-    var c = LS.get(ckey(action, params)), shown = c ? JSON.stringify(c.d) : null;
-    if (c) render(c.d, true);
-    api(action, params).then(function (d) {
-      if (JSON.stringify(d) === shown || (shown && editing())) return;
-      render(d, false);
-    }).catch(function (e) { if (!shown) failView(e); else if (e.offline) toast('Offline. Showing the last saved copy.'); });
+    var last = null;
+    VIEW = function () {
+      var r = runLocal(action, params);
+      if (!r.ok) { if (last === null) failView(new Error(r.error)); return; }
+      var j = JSON.stringify(r.data); if (j === last) return; last = j;
+      render(r.data);
+    };
+    VIEW();
   }
   function liveAll(list, render) {
-    var cached = list.map(function (x) { return LS.get(ckey(x[0], x[1])); });
-    var have = cached.every(Boolean), shown = have ? JSON.stringify(cached.map(function (c) { return c.d; })) : null;
-    if (have) render(cached.map(function (c) { return c.d; }), true);
-    Promise.all(list.map(function (x) { return api(x[0], x[1]); })).then(function (res) {
-      if (JSON.stringify(res) === shown || (shown && editing())) return;
-      render(res, false);
-    }).catch(function (e) { if (!shown) failView(e); else if (e.offline) toast('Offline. Showing the last saved copy.'); });
+    var last = null;
+    VIEW = function () {
+      var out = [];
+      for (var i = 0; i < list.length; i++) { var r = runLocal(list[i][0], list[i][1]); if (!r.ok) { if (last === null) failView(new Error(r.error)); return; } out.push(r.data); }
+      var j = JSON.stringify(out); if (j === last) return; last = j;
+      render(out);
+    };
+    VIEW();
   }
   var slowTimer = null;
   function loadingHTML() {
     clearTimeout(slowTimer);
-    slowTimer = setTimeout(function () { var l = $('.loading'); if (l && !$('.slow', l)) l.insertAdjacentHTML('beforeend', '<span class="slow">Still loading. The server can take a few seconds to wake up the first time.</span>'); }, 4000);
+    slowTimer = setTimeout(function () { var l = $('.loading'); if (l && !$('.slow', l)) l.insertAdjacentHTML('beforeend', '<span class="slow">Getting your data. The first time each day can take a few seconds.</span>'); }, 4000);
     return '<div class="loading" role="status"><span class="spin" aria-hidden="true"></span><span>Loading…</span></div>';
+  }
+
+  /* ---------- photos ---------- */
+  var SIL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect width="96" height="96" fill="#dfe3ec"/><circle cx="48" cy="37" r="17" fill="#a7afc2"/><path d="M14 96c3-21 17-32 34-32s31 11 34 32z" fill="#a7afc2"/></svg>');
+  var THUMBS = LS.get('dt-th:' + (DEMO_MODE ? 'demo' : '')) || {}, FULL = {};
+  function avatar(photoId, cls, alt) { return '<img class="av ' + (cls || '') + '" src="' + (photoId && THUMBS[photoId] ? 'data:image/jpeg;base64,' + THUMBS[photoId] : SIL) + '"' + (photoId ? ' data-ph="' + esc(photoId) + '"' : '') + ' alt="' + esc(alt || '') + '">'; }
+  function hydrate(root) {
+    var imgs = $$('img[data-ph]', root || document), need = [];
+    imgs.forEach(function (im) { var id = im.dataset.ph; if (THUMBS[id]) im.src = 'data:image/jpeg;base64,' + THUMBS[id]; else if (need.indexOf(id) < 0) need.push(id); });
+    if (!need.length) return;
+    remote('thumbs', { ids: need.slice(0, 200) }).then(function (r) {
+      Object.keys(r.thumbs).forEach(function (k) { THUMBS[k] = r.thumbs[k]; });
+      var keys = Object.keys(THUMBS); if (keys.length > 250) keys.slice(0, keys.length - 250).forEach(function (k) { delete THUMBS[k]; });
+      LS.set('dt-th:' + (DEMO_MODE ? 'demo' : ''), THUMBS);
+      $$('img[data-ph]').forEach(function (im) { if (THUMBS[im.dataset.ph]) im.src = 'data:image/jpeg;base64,' + THUMBS[im.dataset.ph]; });
+    }).catch(function () {});
+  }
+  function fullPhotos(ids) {
+    ids = ids.filter(function (x) { return x && !FULL[x]; });
+    var chunks = []; for (var i = 0; i < ids.length; i += 15) chunks.push(ids.slice(i, i + 15));
+    return chunks.reduce(function (p, ch) { return p.then(function () { return remote('photo', { ids: ch }).then(function (r) { Object.keys(r.photos).forEach(function (k) { FULL[k] = r.photos[k]; }); }); }); }, Promise.resolve());
+  }
+  // Read a picture from the camera or gallery and shrink it on the phone before upload.
+  function pickImage(square, cb) {
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = function () {
+      var f = inp.files && inp.files[0]; if (!f) return;
+      var url = URL.createObjectURL(f), img = new Image();
+      img.onload = function () {
+        var w = img.naturalWidth, h = img.naturalHeight;
+        var shrink = function (maxSide, sq, q) {
+          var cv = document.createElement('canvas'), sx = 0, sy = 0, sw = w, sh = h;
+          if (sq) { var m = Math.min(w, h); sx = (w - m) / 2; sy = (h - m) / 2; sw = sh = m; cv.width = cv.height = Math.min(maxSide, m); }
+          else { var k = Math.min(1, maxSide / Math.max(w, h)); cv.width = Math.round(w * k); cv.height = Math.round(h * k); }
+          var ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+          ctx.drawImage(img, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+          return cv.toDataURL('image/jpeg', q).split(',')[1];
+        };
+        URL.revokeObjectURL(url);
+        cb({ full: square ? shrink(480, true, 0.85) : shrink(1200, false, 0.8), thumb: shrink(square ? 96 : 160, true, 0.78) });
+      };
+      img.onerror = function () { toast('That file isn’t a picture this phone can read.'); };
+      img.src = url;
+    };
+    inp.click();
+  }
+  function uploadPhoto(kind, ownerId, pic) {
+    if (!DEMO_MODE && !navigator.onLine) return Promise.reject(new Error('Photos need an internet connection. Try again when you’re online.'));
+    toast('Uploading photo…');
+    return api('uploadPhoto', { kind: kind, ownerId: ownerId, full: pic.full, thumb: pic.thumb }).then(function (r) {
+      THUMBS[r.photoId] = pic.thumb; FULL[r.photoId] = pic.full; LS.set('dt-th:' + (DEMO_MODE ? 'demo' : ''), THUMBS);
+      if (LOCAL) { if (kind !== 'session') LOCAL.removeWhere('Photos', function (p) { return p.Kind === kind && p.OwnerID === ownerId; }); LOCAL.insert('Photos', { PhotoID: r.photoId, Kind: kind, OwnerID: ownerId, CreatedAt: new Date().toISOString() }); var me = runLocal('me'); if (me.ok) S.me = me.data; }
+      toast('Photo saved.');
+      return r;
+    });
+  }
+  function deletePhoto(photoId) {
+    return api('deletePhoto', { photoId: photoId }).then(function () {
+      if (LOCAL) { LOCAL.removeWhere('Photos', function (p) { return p.PhotoID === photoId; }); var me = runLocal('me'); if (me.ok) S.me = me.data; }
+      toast('Photo removed.');
+    });
+  }
+  function lightbox(photoId) {
+    var box = document.createElement('div'); box.className = 'lightbox'; box.innerHTML = '<button type="button" class="close" aria-label="Close">×</button><img alt="Session photo" src="' + (THUMBS[photoId] ? 'data:image/jpeg;base64,' + THUMBS[photoId] : SIL) + '">';
+    document.body.appendChild(box);
+    var close = function () { box.remove(); document.removeEventListener('keydown', key); };
+    var key = function (e) { if (e.key === 'Escape') close(); };
+    box.onclick = function (e) { if (e.target === box || e.target.classList.contains('close')) close(); };
+    document.addEventListener('keydown', key);
+    fullPhotos([photoId]).then(function () { if (FULL[photoId]) $('img', box).src = 'data:image/jpeg;base64,' + FULL[photoId]; }).catch(function () {});
   }
 
   /* ---------- icons ---------- */
@@ -1226,6 +1752,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     if (r === 'Discipler') return [['disciples', 'Disciples', 'users'], ['home', 'My progress', 'home'], ['certs', 'Certificates', 'award'], ['profile', 'Profile', 'user']];
     return [['dash', 'Dashboard', 'chart'], ['people', 'People', 'users'], ['reports', 'Reports', 'table'], ['certadmin', 'Certificates', 'award'], ['more', 'More', 'more']];
   }
+  function mine() { var u = S.me ? S.me.user : {}; return { disciples: u.Role === 'Discipler' || (u.Role === 'Coordinator' && u.Disciples), lessons: u.Role === 'Disciple' || u.Role === 'Discipler' || (u.Role === 'Coordinator' && u.TakesLessons) };
+  }
   function homeRoute() { return { Disciple: 'home', Discipler: 'disciples' }[role()] || 'dash'; }
   function frame(o) {
     var cur = (location.hash.replace('#/', '').split('/')[0]) || homeRoute();
@@ -1234,7 +1762,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       '<header class="top"><div class="top-in">' +
         (o.back ? '<button type="button" class="back" id="back" aria-label="Back">‹</button>' : '<img class="mark" src="' + LOGO_URI + '" alt="">') +
         '<h1>' + esc(o.title) + '</h1>' +
-        '<div class="who"><b>' + esc(u.Name) + '</b>' + esc(u.Role) + (DEMO_MODE ? ' · demo' : '') + '</div>' +
+        '<span class="sync" id="sync" role="status" hidden></span>' +
+        '<a class="who" href="#/profile" aria-label="Your profile"><span><b>' + esc(u.Name) + '</b>' + esc(u.Role) + (DEMO_MODE ? ' · demo' : '') + '</span>' + avatar(u.PhotoID, 'sm', '') + '</a>' +
       '</div></header>' +
       '<main class="page' + (o.nav === false ? ' nonav' : '') + '" id="main">' + (o.body || loadingHTML()) + '</main>' +
       (o.nav === false ? '' : '<nav class="nav" aria-label="Main"><div class="nav-in">' + navItems().map(function (n) {
@@ -1245,13 +1774,14 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     S.hash = location.hash;
     if (o.tools) $('.top-in').insertAdjacentHTML('beforeend', o.tools);
     if (o.back) $('#back').onclick = function () { if (typeof o.back === 'string') location.hash = o.back; else history.back(); };
+    syncState(); hydrate($('.top'));
     window.scrollTo(0, 0);
     return $('#main');
   }
   function fill(html) {
     var m = $('#main');
     if (!m || S.hash !== location.hash) return document.createElement('div'); // a slower, older screen finished loading; ignore it
-    m.innerHTML = html; return m;
+    m.innerHTML = html; setTimeout(function () { hydrate(m); }, 0); return m;
   }
   function failView(e) { fill('<div class="card"><p class="err">' + esc(e.message) + '</p><button class="btn" type="button" onclick="location.reload()">Try again</button></div>'); }
 
@@ -1262,35 +1792,92 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   }
   function loadInfo() {
     if (S.info) return Promise.resolve(S.info);
-    var c = LS.get(CPRE + 'info');
-    var p = api('publicInfo').then(function (i) { S.info = i; LS.set(CPRE + 'info', i); return i; });
+    var c = LS.get('dt-info');
+    var p = remote('publicInfo').then(function (i) { S.info = i; LS.set('dt-info', i); return i; });
     if (c) { S.info = c; return Promise.resolve(c); }
     return p;
   }
 
+  var REM_KEY = DEMO_MODE ? 'dt-remember-demo' : 'dt-remember';
+  function afterLogin(r, remember) {
+    S.token = r.token; LS.set(TOKEN_KEY, r.token);
+    if (remember && r.remember) LS.set(REM_KEY, r.remember); else if (!remember) LS.del(REM_KEY);
+    if (!DEMO_MODE) { OUTBOX = LS.get(boxKey()) || []; if (r.snapshot) setSnapshot(r.snapshot); }
+    S.me = DEMO_MODE ? r.me : (S.me || r.me);
+    location.hash = '#/'; route();
+  }
   function viewLogin() {
     loadInfo().catch(function () {});
-    (function () {
-      authShell(
-        '<form id="f" class="card" novalidate>' +
-          '<label class="f">Mobile number<input class="i" id="mobile" inputmode="tel" autocomplete="tel" placeholder="0917 123 4567" required></label>' +
+    var rem = LS.get(REM_KEY), picked = null;
+    var form = rem
+      ? '<form id="f" class="card" novalidate>' +
+          '<div class="welcome">' + avatar('', 'lg', '') + '<div><div class="small muted">Welcome back</div><div class="wname">' + esc(rem.name) + '</div></div></div>' +
           '<label class="f">PIN<input class="i" id="pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="6" placeholder="4 to 6 digits" required></label>' +
           '<p class="err" id="err" hidden></p>' +
           '<button class="btn primary block" id="go">Sign in</button>' +
-        '</form>' +
-        '<p class="muted small">New to the discipleship lessons? <a href="#/register">Register here</a>. Forgot your PIN? Ask your discipler or coordinator to reset it.</p>' +
-        (DEMO_MODE ? '<div class="demo"><div><b>Demo mode.</b> Sample people and data, saved only on this device. Every demo PIN is <b>1234</b>. Sign in as:</div><div class="row">' +
-          [['Admin', '09170000001'], ['Coordinator', '09170000002'], ['Discipler', '09170000003'], ['Disciple', '09170000005']].map(function (d) { return '<button type="button" class="btn sm" data-demo="' + d[1] + '">' + d[0] + '</button>'; }).join('') +
-          '</div></div>' : ''));
-      var f = $('#f');
-      f.onsubmit = function (e) {
-        e.preventDefault(); var b = $('#go'); busy(b, true); $('#err').hidden = true;
-        api('login', { mobile: $('#mobile').value, pin: $('#pin').value }).then(function (r) {
-          S.token = r.token; LS.set(TOKEN_KEY, r.token); S.me = r.me || null; if (r.me) LS.set(ckey('me', null), { t: Date.now(), d: r.me }); if (r.start) LS.set(ckey(r.start.action, null), { t: Date.now(), d: r.start.data }); location.hash = '#/'; route();
-        }).catch(function (e2) { $('#err').textContent = e2.message; $('#err').hidden = false; busy(b, false); });
-      };
-      $$('[data-demo]').forEach(function (b) { b.onclick = function () { $('#mobile').value = b.dataset.demo; $('#pin').value = '1234'; f.requestSubmit ? f.requestSubmit() : f.onsubmit(new Event('submit')); }; });
-    })();
+          '<button type="button" class="btn quiet block" id="notme">Not ' + esc(rem.name.split(' ')[0]) + '? Use another account</button>' +
+        '</form>'
+      : '<form id="f" class="card" novalidate autocomplete="off">' +
+          '<label class="f" for="who">Mobile number or full name</label>' +
+          '<div class="suggest-wrap"><input class="i" id="who" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="0917 123 4567 or Juan Dela Cruz" required aria-autocomplete="list" aria-controls="sugg">' +
+          '<div class="picked" id="picked" hidden></div><ul class="suggest" id="sugg" role="listbox" hidden></ul></div>' +
+          '<label class="f">PIN<input class="i" id="pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="6" placeholder="4 to 6 digits" required></label>' +
+          '<label class="row small"><input type="checkbox" id="rem" checked> Remember me on this phone</label>' +
+          '<p class="err" id="err" hidden></p>' +
+          '<button class="btn primary block" id="go">Sign in</button>' +
+        '</form>';
+    authShell(form +
+      '<p class="muted small">New here? <a href="#/register">Create your account</a>. Forgot your PIN? Ask your discipler or coordinator to reset it.</p>' +
+      (DEMO_MODE ? '<div class="demo"><div><b>Demo mode.</b> Sample people and data, saved only on this device. Every demo PIN is <b>1234</b>. Sign in as:</div><div class="row">' +
+        [['Admin', '09170000001'], ['Coordinator', '09170000002'], ['Discipler', '09170000003'], ['Disciple', '09170000005']].map(function (d) { return '<button type="button" class="btn sm" data-demo="' + d[1] + '">' + d[0] + '</button>'; }).join('') +
+        '</div></div>' : ''));
+    var f = $('#f'), who = $('#who'), sugg = $('#sugg'), timer = null, seq = 0;
+    function showErr(m) { $('#err').textContent = m; $('#err').hidden = false; }
+    function choose(m) {
+      picked = m; sugg.hidden = true; who.hidden = true;
+      var p = $('#picked'); p.hidden = false;
+      p.innerHTML = '<span><b>' + esc(m.label) + '</b> <span class="muted">' + esc(m.hint) + '</span></span><button type="button" aria-label="Change">×</button>';
+      $('button', p).onclick = function () { picked = null; p.hidden = true; who.hidden = false; who.value = ''; who.focus(); };
+      $('#pin').focus();
+    }
+    if (who) {
+      who.addEventListener('input', function () {
+        clearTimeout(timer); var v = who.value.trim();
+        if (/\d/.test(v) || v.replace(/[^a-z]/gi, '').length < 3) { sugg.hidden = true; return; }
+        timer = setTimeout(function () {
+          var my = ++seq;
+          remote('lookup', { q: v }).then(function (r) {
+            if (my !== seq || who.hidden) return;
+            if (!r.matches.length) { sugg.hidden = true; return; }
+            sugg.innerHTML = r.matches.map(function (m, i) { return '<li role="option" tabindex="-1" data-i="' + i + '"><b>' + esc(m.label) + '</b><span>' + esc(m.hint) + '</span></li>'; }).join('');
+            sugg.hidden = false;
+            $$('li', sugg).forEach(function (li) { li.onmousedown = function (e) { e.preventDefault(); choose(r.matches[+li.dataset.i]); }; });
+          }).catch(function () { sugg.hidden = true; });
+        }, 350);
+      });
+      who.addEventListener('keydown', function (e) {
+        var items = $$('li', sugg); if (sugg.hidden || !items.length) return;
+        var cur = items.indexOf(document.activeElement);
+        if (e.key === 'ArrowDown') { e.preventDefault(); items[Math.min(items.length - 1, cur + 1)].focus(); }
+      });
+      sugg.addEventListener('keydown', function (e) {
+        var items = $$('li', sugg), cur = items.indexOf(document.activeElement);
+        if (e.key === 'ArrowDown') { e.preventDefault(); items[Math.min(items.length - 1, cur + 1)].focus(); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); if (cur <= 0) who.focus(); else items[cur - 1].focus(); }
+        if (e.key === 'Enter' && cur >= 0) { e.preventDefault(); items[cur].dispatchEvent(new MouseEvent('mousedown')); }
+      });
+      who.addEventListener('blur', function () { setTimeout(function () { if (!sugg.contains(document.activeElement)) sugg.hidden = true; }, 150); });
+    }
+    var nm = $('#notme'); if (nm) nm.onclick = function () { LS.del(REM_KEY); viewLogin(); };
+    f.onsubmit = function (e) {
+      e.preventDefault(); var b = $('#go'); busy(b, true); $('#err').hidden = true;
+      var q = { pin: $('#pin').value };
+      if (rem) q.mobile = rem.mobile; else if (picked) q.key = picked.key; else q.mobile = who.value;
+      if (!q.key && !String(q.mobile || '').trim()) { showErr('Enter your mobile number or full name.'); busy(b, false); return; }
+      remote('login', q).then(function (r) { afterLogin(r, rem ? true : $('#rem').checked); })
+        .catch(function (e2) { showErr(e2.message); busy(b, false); });
+    };
+    $$('[data-demo]').forEach(function (b) { b.onclick = function () { remote('login', { mobile: b.dataset.demo, pin: '1234' }).then(function (r) { afterLogin(r, false); }).catch(function (x) { showErr(x.message); }); }; });
   }
   function viewRegister() {
     loadInfo().then(function (info) {
@@ -1309,7 +1896,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         e.preventDefault(); var err = $('#err'); err.hidden = true;
         if ($('#pin').value !== $('#pin2').value) { err.textContent = 'The two PINs don’t match.'; err.hidden = false; return; }
         busy($('#go'), true);
-        api('register', { name: $('#name').value, mobile: $('#mobile').value, pin: $('#pin').value, congregationId: $('#cong').value }).then(function () {
+        remote('register', { name: $('#name').value, mobile: $('#mobile').value, pin: $('#pin').value, congregationId: $('#cong').value }).then(function () {
           authShell('<div class="card"><h2>Thank you for registering</h2><p>Your coordinator will approve your account and assign a discipler. You can sign in once you’re approved.</p><a class="btn primary" href="#/login">Back to sign in</a></div>');
         }).catch(function (e2) { err.textContent = e2.message; err.hidden = false; busy($('#go'), false); });
       };
@@ -1382,10 +1969,12 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       if (p.sessions.length) {
         html += '<h3>Meetings</h3><div class="list">' + p.sessions.map(function (s) {
           return '<div class="item" style="cursor:default"><div class="t">' + esc(fmtDay(s.Date)) + '</div>' + (s.Confirmed ? '<span class="small muted">Confirmed</span>' : pill('Pending', 'To confirm')) +
-            '<div class="s">' + esc(s.Lesson) + ' · ' + esc(s.LessonTitle) + (s.Finished ? '' : ' (continued next time)') + ' · with ' + esc(s.Discipler) + '</div></div>';
+            '<div class="s">' + esc(s.Lesson) + ' · ' + esc(s.LessonTitle) + (s.Finished ? '' : ' (continued next time)') + ' · with ' + esc(s.Discipler) +
+            ((s.Photos || []).length ? '<div class="shots">' + s.Photos.map(function (id) { return '<span class="shot">' + avatar(id, 'shot-img', 'Session photo').replace('<img ', '<img data-open="' + esc(id) + '" ') + '</span>'; }).join('') + '</div>' : '') + '</div></div>';
         }).join('') + '</div>';
       }
       var m = fill(html);
+      $$('[data-open]', m).forEach(function (im) { im.onclick = function () { lightbox(im.dataset.open); }; });
       $$('[data-confirm]', m).forEach(function (b) {
         b.onclick = function () {
           var c = b.closest('[data-sid]'); busy(b, true);
@@ -1413,6 +2002,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         '<div class="c-church">' + esc(s.ChurchName) + '</div>' +
         '<div class="c-title">Certificate of Completion</div><div class="c-rule"></div>' +
         '<div class="c-sub">This certifies that</div>' +
+        (r.photoId ? '<img class="c-photo" id="cph" src="' + (THUMBS[r.photoId] ? 'data:image/jpeg;base64,' + THUMBS[r.photoId] : SIL) + '" alt="">' : '') +
         '<div class="c-name">' + esc(r.name) + '</div>' +
         '<div class="c-sub">has faithfully completed the ' + esc(s.ProgramName) + '<br><b>' + esc(c.LevelName) + '</b><br>' + esc(r.congregation) + ' · Program year ' + esc(c.ProgramYear) + '</div>' +
         '<div class="c-sign"><div>' + esc(s.Signatory1 || ' ') + '<small>' + esc(s.Signatory1Title) + '</small></div><div>' + esc(s.Signatory2 || r.issuedBy) + '<small>' + esc(s.Signatory2Title) + '</small></div></div>' +
@@ -1420,6 +2010,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         '</div>' +
         (IS_ARTIFACT ? '<p class="small muted">In the live app this page has a Print / Save as PDF button.</p>' : '<button type="button" class="btn primary" id="print">Print or save as PDF</button>'));
       var p = $('#print'); if (p) p.onclick = function () { window.print(); };
+      if (r.photoId) fullPhotos([r.photoId]).then(function () { var im = $('#cph'); if (im && FULL[r.photoId]) im.src = 'data:image/jpeg;base64,' + FULL[r.photoId]; }).catch(function () {});
     });
   }
 
@@ -1439,9 +2030,9 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     if (p.LastSession) sub.push('last met ' + agoText(p.LastSession));
     if (p.NextMeeting) sub.push('next ' + fmtDayShort(p.NextMeeting));
     if (p.Discipler && extra !== 'nodisc') sub.push('Discipler: ' + p.Discipler);
-    return '<a class="item person-item" href="#/person/' + esc(p.UserID) + '"><div class="t">' + esc(p.Name) + (p.Role !== 'Disciple' ? ' <span class="pill plain">' + esc(p.Role) + '</span>' : '') + '</div>' +
+    return '<a class="item person-item" href="#/person/' + esc(p.UserID) + '">' + avatar(p.PhotoID, '', '') + '<div class="pi"><div class="t">' + esc(p.Name) + (p.Role !== 'Disciple' ? ' <span class="pill plain">' + esc(p.Role) + '</span>' : '') + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</div>' +
       '<div class="row">' + flags(p) + '</div>' +
-      '<div class="s">' + esc(sub.filter(Boolean).join(' · ')) + '</div></a>';
+      '<div class="s">' + esc(sub.filter(Boolean).join(' · ')) + '</div></div></a>';
   }
   function priority(p) { return p.ReadyToGraduate ? 0 : p.Stale ? 1 : p.LessonStatus === 'In progress' ? 2 : p.LessonStatus === 'Not started' || p.LessonStatus === 'Expired' ? 3 : 4; }
   function viewDisciples() {
@@ -1464,7 +2055,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     liveAll(reqs, function (res) {
       var d = res[0], p = d.person, e = d.enrollment, pr = d.progress, ppl = res[1], first = p.Name.split(' ')[0];
       $('.top h1').textContent = p.Name;
-      var html = '<div class="card"><div class="spread"><h2>' + esc(p.Name) + '</h2><div class="row">' + flags(p) + '</div></div>' +
+      var html = '<div class="card"><div class="person-head">' + avatar(p.PhotoID, 'lg', p.Name) + '<div><h2>' + esc(p.Name) + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</h2><div class="row">' + flags(p) + '</div>' +
+          '<div class="row" style="margin-top:6px"><button type="button" class="btn quiet sm" id="pph" style="padding-left:0">' + (p.PhotoID ? 'Change photo' : 'Add a photo') + '</button>' + (p.PhotoID ? '<button type="button" class="btn quiet sm" id="pphx">Remove photo</button>' : '') + '</div></div></div>' +
         '<p class="small muted">' + esc(p.Role) + ' · ' + esc(p.Congregation) + ' · <span style="user-select:all">' + esc(p.Mobile) + '</span></p>' +
         '<p class="small">' + (p.Discipler ? 'Discipler: <b>' + esc(p.Discipler) + '</b>' : 'No discipler assigned') + '</p>' +
         (e ? progressBar(pr) + '<p class="small"><b>' + pr.finished + ' of ' + pr.total + '</b> lessons finished · ' + esc(e.LevelName) + ' · ' + esc(e.ProgramYear) +
@@ -1487,6 +2079,7 @@ if (typeof module !== 'undefined') module.exports = DEMO;
           '<label class="row small" style="font-weight:700"><input type="checkbox" id="lf" checked> Finished this lesson</label>' +
           '<label class="f">Notes for yourself and the coordinator <span style="font-weight:500">(optional, not shown to ' + esc(first) + ')</span><textarea class="i" id="ln" style="min-height:70px" placeholder="Prayer points, questions, follow-up"></textarea></label>' +
           '<label class="f">Next meeting <span style="font-weight:500">(optional)</span><input class="i" type="date" id="lnm" min="' + todayStr() + '"></label>' +
+          '<div class="f">Photos of the session <span style="font-weight:500">(optional, up to 3)</span><div class="shots" id="lpics"></div><div><button type="button" class="btn sm" id="laddpic">Add photo</button></div></div>' +
           '<p class="err" id="lerr" hidden></p><button class="btn primary">Save session</button></form>';
       } else if (e && e.Status === 'Completed') {
         html += '<div class="card"><p class="small">' + esc(first) + ' has completed this year’s lessons. Sessions can be recorded again after the status expires on ' + fmtDate(e.ExpiryDate) + '.</p></div>';
@@ -1495,11 +2088,14 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       if (pr.sessions.length) {
         html += '<h3>Sessions</h3><div class="list">' + pr.sessions.map(function (s) {
           var canDel = e && e.Status === 'In progress' && (s.DisciplerID === S.me.user.UserID || rank() >= 2);
+          var canPic = s.DisciplerID === S.me.user.UserID || rank() >= 2;
+          var pics = (s.Photos || []).map(function (id) { return '<span class="shot">' + avatar(id, 'shot-img', 'Session photo').replace('<img ', '<img data-open="' + esc(id) + '" ') + (canPic ? '<button type="button" class="x" data-rmpic="' + esc(id) + '" aria-label="Remove photo">×</button>' : '') + '</span>'; }).join('');
+          var picRow = (pics || canPic) ? '<div class="shots">' + pics + (canPic && (s.Photos || []).length < 3 ? '<button type="button" class="addshot" data-addpic="' + esc(s.SessionID) + '" aria-label="Add a photo">+</button>' : '') + '</div>' : '';
           return '<div class="item" style="cursor:default" data-sid="' + esc(s.SessionID) + '"><div class="t">' + esc(fmtDay(s.Date)) + ' · ' + esc(s.Lesson) + '</div>' +
             (s.Confirmed ? '<span class="small" style="color:var(--ok);font-weight:700">Confirmed</span>' : '<span class="small muted">Not confirmed</span>') +
             '<div class="s">' + esc(s.LessonTitle) + (s.Finished ? ' · finished' : ' · continued') + ' · by ' + esc(s.Discipler) + (s.NextMeeting ? ' · next ' + esc(fmtDayShort(s.NextMeeting)) : '') +
-            (s.Notes ? '<br><span style="color:var(--ink)">' + esc(s.Notes) + '</span>' : '') +
-            (canDel ? '<br><button type="button" class="btn quiet sm" data-del style="padding-left:0">Remove this session</button>' : '') + '</div></div>';
+            (s.Notes ? '<br><span style="color:var(--ink)">' + esc(s.Notes) + '</span>' : '') + picRow +
+            (canDel ? '<button type="button" class="btn quiet sm" data-del style="padding-left:0">Remove this session</button>' : '') + '</div></div>';
         }).join('') + '</div>';
       }
       if (d.certificates.length) html += '<h3>Certificates</h3><div class="list">' + d.certificates.map(function (c) { return '<a class="item" href="#/cert/' + esc(c.CertNo) + '"><div class="t">' + esc(c.LevelName) + ' · ' + esc(c.ProgramYear) + '</div><span class="pill plain">' + esc(c.CertNo) + '</span></a>'; }).join('') + '</div>';
@@ -1517,6 +2113,9 @@ if (typeof module !== 'undefined') module.exports = DEMO;
           html += '<fieldset class="stack" id="modc" style="border:1px solid var(--line);border-radius:10px;padding:10px 12px"' + (p.Role === 'Coordinator' ? '' : ' hidden') + '><legend class="small muted" style="font-weight:700">Coordinator of</legend>' +
             S.me.congregations.map(function (c) { return '<label class="row small"><input type="checkbox" value="' + esc(c.CongregationID) + '"' + (mods.indexOf(c.CongregationID) >= 0 ? ' checked' : '') + '> ' + esc(c.Name) + '</label>'; }).join('') +
             '<button type="button" class="btn sm" id="savemods">Save congregations</button></fieldset>';
+          html += '<fieldset class="stack" id="copts" style="border:1px solid var(--line);border-radius:10px;padding:10px 12px"' + (p.Role === 'Coordinator' ? '' : ' hidden') + '><legend class="small muted" style="font-weight:700">Coordinator options</legend>' +
+            switchRow('co-d', 'Also disciples people', 'Shows “My disciples” and lists them as a discipler.', p.Disciples) +
+            switchRow('co-l', 'Taking the lessons this year', 'Shows “My progress” and “My certificates”.', p.TakesLessons) + '</fieldset>';
         }
       }
       html += '<div class="row"><button type="button" class="btn sm" id="pin">Reset PIN</button>' +
@@ -1524,13 +2123,34 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         '<p class="small" id="pinout" hidden></p></div>';
       var m = fill(html);
 
-      var lf = $('#logf', m);
+      var lf = $('#logf', m), chosen = [];
+      function drawChosen() {
+        $('#lpics').innerHTML = chosen.map(function (c, i) { return '<span class="shot"><img class="av shot-img" src="data:image/jpeg;base64,' + c.thumb + '" alt=""><button type="button" class="x" data-ci="' + i + '" aria-label="Remove">×</button></span>'; }).join('');
+        $$('[data-ci]', lf).forEach(function (x) { x.onclick = function () { chosen.splice(+x.dataset.ci, 1); drawChosen(); }; });
+        $('#laddpic').hidden = chosen.length >= 3;
+      }
+      if (lf) $('#laddpic').onclick = function () { pickImage(false, function (pic) { chosen.push(pic); drawChosen(); }); };
       if (lf) lf.onsubmit = function (ev) {
-        ev.preventDefault(); var err = $('#lerr'), b = $('button', lf); err.hidden = true; busy(b, true);
+        ev.preventDefault(); var err = $('#lerr'), b = $('button.primary', lf); err.hidden = true; busy(b, true);
         api('logSession', { userId: uid, date: $('#ld').value, lessonId: $('#ll').value, finished: $('#lf').checked, notes: $('#ln').value, nextMeeting: $('#lnm').value })
-          .then(function () { toast('Session saved.'); viewPerson(uid); })
+          .then(function (r) {
+            toast('Session saved.');
+            var pics = chosen.slice(), sid = r && r.session && r.session.SessionID;
+            viewPerson(uid);
+            if (pics.length && sid) whenSynced().then(function () {
+              return pics.reduce(function (pr2, pic) { return pr2.then(function () { return uploadPhoto('session', sid, pic); }); }, Promise.resolve());
+            }).then(function () { rerender(); }).catch(function (x) { toast('Session saved. ' + (x.offline ? 'Photos need an internet connection; add them from the session when you’re online.' : x.message)); });
+          })
           .catch(function (x) { err.textContent = x.message; err.hidden = false; busy(b, false); });
       };
+      var pph = $('#pph', m); if (pph) pph.onclick = function () { pickImage(true, function (pic) { uploadPhoto('person', uid, pic).then(function () { viewPerson(uid); }).catch(function (x) { toast(x.message); }); }); };
+      var pphx = $('#pphx', m); if (pphx) confirmTap(pphx, 'Tap again to remove', function () { deletePhoto(p.PhotoID).then(function () { viewPerson(uid); }).catch(function (x) { toast(x.message); }); });
+      $$('[data-open]', m).forEach(function (im) { im.onclick = function () { lightbox(im.dataset.open); }; });
+      $$('[data-addpic]', m).forEach(function (b2) { b2.onclick = function () { pickImage(false, function (pic) { whenSynced().then(function () { return uploadPhoto('session', b2.dataset.addpic, pic); }).then(function () { viewPerson(uid); }).catch(function (x) { toast(x.message); }); }); }; });
+      $$('[data-rmpic]', m).forEach(function (b2) { confirmTap(b2, '?', function () { deletePhoto(b2.dataset.rmpic).then(function () { viewPerson(uid); }).catch(function (x) { toast(x.message); }); }); });
+      ['co-d', 'co-l'].forEach(function (id) { var el = $('#' + id, m); if (el) el.onchange = function () {
+        api('setOptions', id === 'co-d' ? { userId: uid, disciples: el.checked } : { userId: uid, takesLessons: el.checked }).then(function () { toast('Saved.'); }).catch(function (x) { toast(x.message); el.checked = !el.checked; });
+      }; });
       $$('[data-del]', m).forEach(function (b) {
         confirmTap(b, 'Tap again to remove', function () { api('deleteSession', { sessionId: b.closest('[data-sid]').dataset.sid }).then(function () { toast('Session removed.'); viewPerson(uid); }).catch(function (x) { toast(x.message); }); });
       });
@@ -1543,10 +2163,11 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         $('#assign').onclick = function () { api('assign', { userId: uid, disciplerId: $('#disc').value }).then(function () { toast('Discipler saved.'); }).catch(function (x) { toast(x.message); }); };
         var sr = $('#setrole');
         if (sr) {
-          $('#role').onchange = function () { var mc = $('#modc'); if (mc) mc.hidden = this.value !== 'Coordinator'; };
+          $('#role').onchange = function () { var mc = $('#modc'), co = $('#copts'); if (mc) mc.hidden = this.value !== 'Coordinator'; if (co) co.hidden = this.value !== 'Coordinator'; };
           sr.onclick = function () {
             var mc = $('#modc'), mods2 = mc ? $$('input:checked', mc).map(function (x) { return x.value; }).join(',') : '';
-            api('setRole', { userId: uid, role: $('#role').value, modCongregations: mods2 }).then(function () { toast('Role saved.'); viewPerson(uid); }).catch(function (x) { toast(x.message); });
+            var co = $('#copts');
+            api('setRole', { userId: uid, role: $('#role').value, modCongregations: mods2, disciples: co ? $('#co-d').checked : undefined, takesLessons: co ? $('#co-l').checked : undefined }).then(function () { toast('Role saved.'); viewPerson(uid); }).catch(function (x) { toast(x.message); });
           };
         }
         var sm = $('#savemods'); if (sm) sm.onclick = function () { api('updatePerson', { userId: uid, modCongregations: $$('#modc input:checked').map(function (x) { return x.value; }).join(',') }).then(function () { toast('Congregations saved.'); }).catch(function (x) { toast(x.message); }); };
@@ -1581,9 +2202,9 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         '<ul class="legend">' + seg.map(function (x) { return '<li><i class="' + x[1] + '"></i><b>' + (x[2] || 0) + '</b><span>' + x[0] + ' · ' + pct(x[2] || 0) + '%</span></li>'; }).join('') + '</ul></div>';
 
       html += '<h3>Disciplers</h3>' + (d.disciplers.length ? '<div class="list">' + d.disciplers.map(function (x) {
-        return '<a class="item person-item" href="#/reports//' + esc(x.UserID) + '"><div class="t">' + esc(x.Name) + '</div>' +
+        return '<a class="item person-item" href="#/reports//' + esc(x.UserID) + '">' + avatar(x.PhotoID, '', '') + '<div class="pi"><div class="t">' + esc(x.Name) + '</div>' +
           (x.Stale ? '<div class="row">' + pill('Returned', x.Stale + ' not met recently') + '</div>' : '') +
-          '<div class="s">' + esc(x.Congregation) + ' · ' + n(x.Disciples, 'disciple', 'disciples') + ' · ' + x.Completed + ' completed · ' + n(x.Sessions30, 'session', 'sessions') + ' in the last 30 days</div></a>';
+          '<div class="s">' + esc(x.Congregation) + ' · ' + n(x.Disciples, 'disciple', 'disciples') + ' · ' + x.Completed + ' completed · ' + n(x.Sessions30, 'session', 'sessions') + ' in the last 30 days</div></div></a>';
       }).join('') + '</div>' : '<p class="muted">No disciplers yet. Promote a disciple from the People tab.</p>');
       if (d.congregations.length > 1) html += '<h3>Completion by congregation</h3><div class="list">' + d.congregations.map(function (x) {
         var p = x.People ? Math.round(x.Completed / x.People * 100) : 0;
@@ -1615,16 +2236,17 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         var list = d.people.filter(groups[f]).filter(function (p) { return !q || (p.Name + ' ' + p.Mobile).toLowerCase().indexOf(q) >= 0; }).sort(function (a, b) { return a.Name.localeCompare(b.Name); });
         $('#plist').innerHTML = list.length ? list.map(function (p) {
           if (p.Status !== 'Pending') return personItem(p);
-          return '<div class="card" data-uid="' + esc(p.UserID) + '"><div class="spread"><b>' + esc(p.Name) + '</b>' + pill('Pending') + '</div><p class="small muted">' + esc(p.Congregation) + ' · ' + esc(p.Mobile) + ' · registered ' + rel(p.CreatedAt || '') + '</p>' +
+          return '<div class="card" data-uid="' + esc(p.UserID) + '"><div class="spread"><span class="row">' + avatar(p.PhotoID, 'sm', '') + '<b>' + esc(p.Name) + '</b></span>' + pill('Pending') + '</div><p class="small muted">' + esc(p.Congregation) + ' · ' + esc(p.Mobile) + ' · registered ' + rel(p.CreatedAt || '') + '</p>' +
             '<div class="row"><label class="f" style="flex:1 1 130px">Role<select class="i" data-role>' + roleOpts + '</select></label>' +
             '<label class="f" style="flex:2 1 170px">Discipler<select class="i" data-disc>' + discOpts + '</select></label></div>' +
-            '<fieldset class="stack" data-congs hidden style="border:1px solid var(--line);border-radius:10px;padding:10px 12px"><legend class="small muted" style="font-weight:700">Coordinator of</legend>' + congChecks(p.CongregationID) + '</fieldset>' +
+            '<fieldset class="stack" data-congs hidden style="border:1px solid var(--line);border-radius:10px;padding:10px 12px"><legend class="small muted" style="font-weight:700">Coordinator of</legend>' + congChecks(p.CongregationID) +
+            '<label class="row small"><input type="checkbox" data-opt-d> Also disciples people</label><label class="row small"><input type="checkbox" data-opt-l> Taking the lessons this year</label></fieldset>' +
             '<div class="row"><button type="button" class="btn primary sm" data-approve>Approve</button><button type="button" class="btn quiet sm" data-reject>Decline</button></div></div>';
         }).join('') : '<p class="muted">No one here.</p>';
         $$('[data-role]').forEach(function (s) { s.onchange = function () { var fs = $('[data-congs]', s.closest('[data-uid]')); if (fs) fs.hidden = s.value !== 'Coordinator'; }; });
         $$('[data-approve]').forEach(function (b) { b.onclick = function () {
           var c = b.closest('[data-uid]'), role = $('[data-role]', c).value; busy(b, true);
-          api('approveUser', { userId: c.dataset.uid, role: role, disciplerId: $('[data-disc]', c).value, modCongregations: $$('[data-congs] input:checked', c).map(function (x) { return x.value; }).join(',') })
+          api('approveUser', { userId: c.dataset.uid, role: role, disciplerId: $('[data-disc]', c).value, modCongregations: $$('[data-congs] input[value]:checked', c).map(function (x) { return x.value; }).join(','), disciples: !!($('[data-opt-d]', c) || {}).checked, takesLessons: !!($('[data-opt-l]', c) || {}).checked })
             .then(function () { toast('Approved as ' + role.toLowerCase() + '.'); viewPeople(f); }).catch(function (x) { toast(x.message); busy(b, false); });
         }; });
         $$('[data-reject]').forEach(function (b) { confirmTap(b, 'Tap again', function () { var c = b.closest('[data-uid]'); api('setStatus', { userId: c.dataset.uid, status: 'Inactive' }).then(function () { toast('Registration declined.'); viewPeople(f); }).catch(function (x) { toast(x.message); }); }); });
@@ -1675,7 +2297,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   function viewCertAdmin() {
     frame({ title: 'Certificates' });
     live('certQueue', null, function (d) {
-      var m = fill('<h3>Ready to issue</h3>' + (d.ready.length ? '<div class="card stack">' + d.ready.map(function (r) {
+      var m = fill('<a class="card present-cta" href="#/present"><b>Certificate presentation</b><span class="small muted">Make a PDF with a cover slide per congregation and each graduate’s certificate with their photo.</span></a>' +
+        '<h3>Ready to issue</h3>' + (d.ready.length ? '<div class="card stack">' + d.ready.map(function (r) {
         return '<label class="row"><input type="checkbox" value="' + esc(r.EnrollmentID) + '" checked> <span><b>' + esc(r.Name) + '</b><br><span class="small muted">' + esc(r.Congregation) + ' · ' + esc(r.LevelName) + ' · completed ' + fmtDate(r.CompletedDate) + '</span></span></label>';
       }).join('') + '<button type="button" class="btn primary" id="issue">Issue selected certificates</button></div>' : '<p class="muted">No one is waiting for a certificate. People appear here after their discipler marks them fit to graduate.</p>') +
         '<h3>Issued</h3>' + (d.issued.length ? '<div class="list">' + d.issued.map(function (c) { return '<a class="item" href="#/cert/' + esc(c.CertNo) + '"><div class="t">' + esc(c.Name) + '</div><span class="pill plain">' + esc(c.ProgramYear) + '</span><div class="s">' + esc(c.CertNo) + ' · ' + esc(c.LevelName) + ' · issued ' + fmtDate(c.IssuedDate) + '</div></a>'; }).join('') + '</div>' : '<p class="muted">None yet.</p>'));
@@ -1684,15 +2307,166 @@ if (typeof module !== 'undefined') module.exports = DEMO;
         var ids = $$('input:checked', m).map(function (x) { return x.value; });
         if (!ids.length) { toast('Choose at least one person.'); return; }
         busy(b, true);
-        api('issueCertificate', { enrollmentIds: ids }).then(function (r) { toast(r.issued.length + ' certificate' + (r.issued.length === 1 ? '' : 's') + ' issued.'); viewCertAdmin(); }).catch(function (x) { toast(x.message); busy(b, false); });
+        api('issueCertificate', { enrollmentIds: ids }).then(function (r) { toast(r.issued.length + ' certificate' + (r.issued.length === 1 ? '' : 's') + ' issued.'); return pull().catch(function () {}); }).then(function () { viewCertAdmin(); }).catch(function (x) { toast(x.message); busy(b, false); });
       };
     });
   }
+  /* ---------- certificate presentation (PDF) ---------- */
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      if (window.jspdf) return res();
+      var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = function () { rej(new Error('Couldn’t load the PDF tool. Check your internet connection.')); };
+      document.head.appendChild(s);
+    });
+  }
+  function loadImg(src) { return new Promise(function (res) { if (!src) return res(null); var im = new Image(); im.onload = function () { res(im); }; im.onerror = function () { res(null); }; im.src = src; }); }
+  function fitText(ctx, text, maxW, size, font) { var s = size; ctx.font = font.replace('{s}', s); while (ctx.measureText(text).width > maxW && s > 18) { s -= 2; ctx.font = font.replace('{s}', s); } return s; }
+  function circleImg(ctx, im, cx, cy, r, ring) {
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+    if (im) { var m = Math.min(im.width, im.height); ctx.drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, cx - r, cy - r, r * 2, r * 2); }
+    else { ctx.fillStyle = '#dfe3ec'; ctx.fillRect(cx - r, cy - r, r * 2, r * 2); ctx.fillStyle = '#a7afc2'; ctx.beginPath(); ctx.arc(cx, cy - r * 0.22, r * 0.36, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(cx, cy + r * 0.78, r * 0.72, r * 0.55, 0, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+    ctx.lineWidth = ring.w; ctx.strokeStyle = ring.c; ctx.beginPath(); ctx.arc(cx, cy, r + ring.w / 2, 0, Math.PI * 2); ctx.stroke();
+  }
+  var SERIF = '"Source Serif 4", Georgia, serif', SANS = 'Manrope, "Segoe UI", Arial, sans-serif';
+  function drawCover(ctx, W, H, g, church) {
+    ctx.fillStyle = '#243049'; ctx.fillRect(0, 0, W, H);
+    var gr = ctx.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, '#f6b13a'); gr.addColorStop(1, '#e64a26');
+    ctx.fillStyle = gr; ctx.fillRect(0, H - 14, W, 14);
+    if (church) { ctx.save(); ctx.beginPath(); ctx.arc(W / 2, 92, 42, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(church, W / 2 - 42, 50, 84, 84); ctx.restore(); }
+    ctx.textAlign = 'center'; ctx.fillStyle = '#f6b13a'; ctx.font = '700 22px ' + SANS;
+    ctx.fillText(g.church.toUpperCase().split('').join(String.fromCharCode(8202)), W / 2, 172);
+    ctx.fillStyle = '#ffffff'; ctx.font = '600 34px ' + SERIF; ctx.fillText('Certificates of Completion · ' + g.program + ' · ' + g.year, W / 2, 228);
+    var s = fitText(ctx, g.name, W - 200, 76, '700 {s}px ' + SERIF); ctx.fillText(g.name, W / 2, 318);
+    var n = g.preachers.length, r = n <= 2 ? 120 : n === 3 ? 104 : 86, gap = r * 2 + 90, x0 = W / 2 - (n - 1) * gap / 2, cy = 360 + r + 40;
+    g.preachers.forEach(function (p, i) {
+      var cx = x0 + i * gap; circleImg(ctx, p.img, cx, cy, r, { w: 8, c: '#ffffff' });
+      ctx.fillStyle = '#ffffff'; fitText(ctx, p.name, gap - 20, 30, '700 {s}px ' + SANS); ctx.fillText(p.name, cx, cy + r + 56);
+    });
+    if (n) { ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.font = '600 24px ' + SANS; ctx.fillText(n === 1 ? 'Preacher in charge' : 'Preachers in charge', W / 2, cy + r + 100); }
+    ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.font = '600 22px ' + SANS; ctx.fillText(g.count + (g.count === 1 ? ' graduate' : ' graduates'), W / 2, H - 46);
+  }
+  function drawCert(ctx, W, H, c, st, church, photo) {
+    ctx.fillStyle = '#fbfcf9'; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#243049'; ctx.lineWidth = 6; ctx.strokeRect(34, 34, W - 68, H - 68); ctx.lineWidth = 2; ctx.strokeRect(50, 50, W - 100, H - 100);
+    var gr = ctx.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#f6b13a'); gr.addColorStop(1, '#e64a26');
+    ctx.fillStyle = gr; ctx.fillRect(50, 50, 10, H - 100);
+    circleImg(ctx, photo, 360, H / 2 - 20, 190, { w: 10, c: '#243049' });
+    ctx.textAlign = 'center'; ctx.fillStyle = '#5a6278'; ctx.font = '600 24px ' + SANS; ctx.fillText(c.Congregation || '', 360, H / 2 + 230);
+    var X = 1040;
+    if (church) { ctx.save(); ctx.beginPath(); ctx.arc(X, 132, 40, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(church, X - 40, 92, 80, 80); ctx.restore(); }
+    ctx.fillStyle = '#243049'; ctx.font = '700 20px ' + SANS; ctx.fillText(st.ChurchName.toUpperCase().split('').join(String.fromCharCode(8202)), X, 204);
+    ctx.font = '700 60px ' + SERIF; ctx.fillText('Certificate of Completion', X, 278);
+    var rg = ctx.createLinearGradient(X - 60, 0, X + 60, 0); rg.addColorStop(0, '#f6b13a'); rg.addColorStop(1, '#e64a26'); ctx.fillStyle = rg; ctx.fillRect(X - 60, 298, 120, 5);
+    ctx.fillStyle = '#45524a'; ctx.font = '400 28px ' + SERIF; ctx.fillText('This certifies that', X, 356);
+    ctx.fillStyle = '#1b2236'; fitText(ctx, c.Name, 900, 72, 'italic 600 {s}px ' + SERIF); ctx.fillText(c.Name, X, 446);
+    ctx.strokeStyle = '#9aa3b8'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X - 400, 470); ctx.lineTo(X + 400, 470); ctx.stroke();
+    ctx.fillStyle = '#45524a'; ctx.font = '400 28px ' + SERIF; ctx.fillText('has faithfully completed the ' + st.ProgramName, X, 524);
+    ctx.fillStyle = '#1b2236'; ctx.font = '700 30px ' + SERIF; ctx.fillText(c.LevelName, X, 566);
+    ctx.fillStyle = '#45524a'; ctx.font = '400 26px ' + SERIF; ctx.fillText('Program year ' + c.ProgramYear, X, 606);
+    [[st.Signatory1, st.Signatory1Title, X - 220], [st.Signatory2 || '', st.Signatory2Title, X + 220]].forEach(function (sg) {
+      ctx.strokeStyle = '#45524a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(sg[2] - 170, 712); ctx.lineTo(sg[2] + 170, 712); ctx.stroke();
+      ctx.fillStyle = '#1b2236'; ctx.font = '600 24px ' + SERIF; ctx.fillText(sg[0] || ' ', sg[2], 700);
+      ctx.fillStyle = '#5a6278'; ctx.font = '700 16px ' + SANS; ctx.fillText(String(sg[1] || '').toUpperCase(), sg[2], 740);
+    });
+    ctx.fillStyle = '#5a6278'; ctx.font = '500 18px ' + SANS; ctx.fillText('No. ' + c.CertNo + ' · Issued ' + fmtDate(c.IssuedDate) + ' · Valid until ' + fmtDate(c.ValidUntil), X, 800);
+  }
+  function viewPresent() {
+    frame({ title: 'Presentation', back: '#/certadmin', section: 'certadmin' });
+    live('certQueue', null, function (d) {
+      var certs = d.issued.slice(), years = [];
+      certs.forEach(function (c) { if (years.indexOf(c.ProgramYear) < 0) years.push(c.ProgramYear); });
+      years.sort().reverse();
+      if (!certs.length) { fill('<div class="card"><h2>No certificates yet</h2><p>Issue certificates first. Then you can choose who to include in the presentation.</p><a class="btn" href="#/certadmin">Go to certificates</a></div>'); return; }
+      var year = years[0], picked = {};
+      certs.forEach(function (c) { if (c.ProgramYear === year) picked[c.CertNo] = 1; });
+      var m = fill('<p class="muted small">Pick the certificates to include. The PDF has a cover slide for each congregation, with its preachers in charge, followed by each person’s certificate with their photo.</p>' +
+        '<div class="filters"><select class="i" id="yr" aria-label="Program year">' + years.map(function (y) { return '<option>' + esc(y) + '</option>'; }).join('') + '</select></div>' +
+        '<div id="groups" class="stack"></div>' +
+        '<div class="dock"><div class="spread"><span class="small" id="cnt"></span><button type="button" class="btn primary sm" id="mk">Create PDF</button></div><div class="small muted" id="prog" hidden></div></div>' +
+        '<div id="pv" class="previews"></div>');
+      function draw() {
+        var list = certs.filter(function (c) { return c.ProgramYear === year; }), groups = {};
+        list.forEach(function (c) { (groups[c.Congregation || 'No congregation'] = groups[c.Congregation || 'No congregation'] || []).push(c); });
+        $('#groups').innerHTML = Object.keys(groups).sort().map(function (g, gi) {
+          var items = groups[g].sort(function (a, b) { return a.Name.localeCompare(b.Name); });
+          return '<div class="card"><label class="row"><input type="checkbox" data-g="' + gi + '"' + (items.every(function (c) { return picked[c.CertNo]; }) ? ' checked' : '') + '> <b>' + esc(g) + '</b> <span class="small muted">' + items.length + '</span></label>' +
+            items.map(function (c) { return '<label class="row pick"><input type="checkbox" data-c="' + esc(c.CertNo) + '" data-gi="' + gi + '"' + (picked[c.CertNo] ? ' checked' : '') + '>' + avatar(c.PhotoID, 'sm', '') + '<span><b>' + esc(c.Name) + '</b><br><span class="small muted">' + esc(c.LevelName) + ' · ' + esc(c.CertNo) + '</span></span></label>'; }).join('') + '</div>';
+        }).join('');
+        hydrate($('#groups'));
+        $$('[data-c]', m).forEach(function (x) { x.onchange = function () { if (x.checked) picked[x.dataset.c] = 1; else delete picked[x.dataset.c]; draw(); }; });
+        $$('[data-g]', m).forEach(function (x) { x.onchange = function () { $$('[data-gi="' + x.dataset.g + '"]', m).forEach(function (y) { if (x.checked) picked[y.dataset.c] = 1; else delete picked[y.dataset.c]; }); draw(); }; });
+        var sel = list.filter(function (c) { return picked[c.CertNo]; }), gs = {}; sel.forEach(function (c) { gs[c.Congregation] = 1; });
+        $('#cnt').innerHTML = '<b>' + sel.length + '</b> certificate' + (sel.length === 1 ? '' : 's') + ' · ' + Object.keys(gs).length + ' congregation' + (Object.keys(gs).length === 1 ? '' : 's');
+        $('#mk').disabled = !sel.length;
+      }
+      $('#yr').onchange = function () { year = this.value; picked = {}; certs.forEach(function (c) { if (c.ProgramYear === year) picked[c.CertNo] = 1; }); draw(); };
+      draw();
+      $('#mk').onclick = function () {
+        var btn = this, prog = $('#prog'), st = S.me.settings, congs = {};
+        S.me.congregations.forEach(function (c) { congs[c.CongregationID] = c; });
+        var sel = certs.filter(function (c) { return c.ProgramYear === year && picked[c.CertNo]; });
+        var byG = {}; sel.forEach(function (c) { (byG[c.CongregationID] = byG[c.CongregationID] || []).push(c); });
+        var order = Object.keys(byG).sort(function (a, b) { return String((congs[a] || {}).Name).localeCompare(String((congs[b] || {}).Name)); });
+        var pp = runLocal('preacherPhotos'), PH = pp.ok ? pp.data.photos : {};
+        var ids = sel.map(function (c) { return c.PhotoID; }).filter(String);
+        order.forEach(function (cid) { preachersOf(congs[cid] || {}).forEach(function (n) { if (PH[cid + '|' + n]) ids.push(PH[cid + '|' + n]); }); });
+        busy(btn, true); prog.hidden = false; prog.textContent = 'Getting photos…';
+        var W = 1600, H = 900, cv = document.createElement('canvas'); cv.width = W; cv.height = H; var ctx = cv.getContext('2d');
+        var FONTS = ['700 40px "Source Serif 4"', 'italic 600 40px "Source Serif 4"', '400 40px "Source Serif 4"', '700 20px Manrope', '600 20px Manrope'];
+        var fontsReady = document.fonts && document.fonts.load ? Promise.all(FONTS.map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve();
+        var slides = [], church;
+        Promise.all([fullPhotos(ids).catch(function () {}), loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'), fontsReady, loadImg(CHURCH_URI).then(function (im) { church = im; })])
+          .then(function () {
+            var doc = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'pt', format: [W * 0.6, H * 0.6], compress: true }), page = 0, total = sel.length + order.length;
+            var src = function (id) { return id && (FULL[id] || THUMBS[id]) ? 'data:image/jpeg;base64,' + (FULL[id] || THUMBS[id]) : null; };
+            var add = function () { if (page++) doc.addPage([W * 0.6, H * 0.6], 'landscape'); var url = cv.toDataURL('image/jpeg', 0.88); doc.addImage(url, 'JPEG', 0, 0, W * 0.6, H * 0.6); if (slides.length < 12) slides.push(cv.toDataURL('image/jpeg', 0.5)); prog.textContent = 'Making slide ' + page + ' of ' + total + '…'; };
+            return order.reduce(function (p, cid) {
+              return p.then(function () {
+                var c0 = congs[cid] || { Name: byG[cid][0].Congregation }, names = preachersOf(c0);
+                return Promise.all(names.map(function (n) { return loadImg(src(PH[cid + '|' + n])); })).then(function (imgs) {
+                  drawCover(ctx, W, H, { church: st.ChurchName, program: st.ProgramName, year: year, name: c0.Name, count: byG[cid].length, preachers: names.map(function (n, i) { return { name: n, img: imgs[i] }; }) }, church); add();
+                  return byG[cid].sort(function (a, b) { return a.Name.localeCompare(b.Name); }).reduce(function (p2, c) {
+                    return p2.then(function () { return loadImg(src(c.PhotoID)).then(function (im) { drawCert(ctx, W, H, c, st, church, im); add(); }); });
+                  }, Promise.resolve());
+                });
+              });
+            }, Promise.resolve()).then(function () {
+              $('#pv').innerHTML = '<h3>Preview</h3>' + slides.map(function (u) { return '<img src="' + u + '" alt="Slide preview">'; }).join('') + (total > slides.length ? '<p class="small muted">and ' + (total - slides.length) + ' more slides in the PDF.</p>' : '');
+              var name = 'Certificates ' + year + '.pdf';
+              if (IS_ARTIFACT) { prog.textContent = 'Made ' + total + ' slides. Downloading works in the live app; here you can see the preview.'; }
+              else { doc.save(name); prog.textContent = 'Done. “' + name + '” has ' + total + ' slides and was saved to your downloads.'; }
+              busy(btn, false);
+            });
+          }).catch(function (x) { prog.textContent = x.message; busy(btn, false); });
+      };
+    });
+  }
+  function viewSample() {
+    frame({ title: 'Sample data', back: '#/more', section: 'more' });
+    var m = fill(loadingHTML());
+    var show = function (st) {
+      var logins = st.logins || [];
+      m = fill('<div class="card stack"><h2>' + (st.loaded ? 'Sample data is loaded' : 'Try the app with sample data') + '</h2>' +
+        '<p>' + (st.loaded ? 'These test people are marked “Sample” everywhere. Clear them when you’re done; your real data isn’t touched.' : 'Adds 2 sample congregations and 11 test people at different stages: in progress, ready to graduate, not met recently, completed with a certificate, expired, waiting for approval, and no discipler.') + '</p>' +
+        '<p class="small muted">Sample congregations don’t appear on the “Create your account” form. Everything added is marked so it can be removed in one step.</p>' +
+        (st.loaded ? '<button type="button" class="btn danger" id="clear">Clear sample data</button>' : '<button type="button" class="btn primary" id="add">Load sample data</button>') + '</div>' +
+        (logins.length ? '<h3>Sign in as a sample person</h3><p class="small muted">Every sample PIN is <b>1234</b>. Sign out first, then sign in with the number.</p><div class="tablewrap"><table><thead><tr><th>Name</th><th>Role</th><th>Mobile</th></tr></thead><tbody>' +
+          logins.map(function (l) { return '<tr><td>' + esc(l.name) + '</td><td>' + esc(l.role) + '</td><td style="user-select:all">' + esc(l.mobile) + '</td></tr>'; }).join('') + '</tbody></table></div>' : ''));
+      var add = $('#add', m), clr = $('#clear', m);
+      if (add) add.onclick = function () { busy(add, true); add.textContent = 'Loading…'; api('sampleData', { mode: 'add' }).then(function (r) { toast('Sample data loaded.'); return (DEMO_MODE ? Promise.resolve() : pull().catch(function () {})).then(function () { show({ loaded: true, logins: r.logins }); }); }).catch(function (x) { toast(x.message); busy(add, false); add.textContent = 'Load sample data'; }); };
+      if (clr) confirmTap(clr, 'Tap again to remove all sample data', function () { busy(clr, true); clr.textContent = 'Clearing…'; api('sampleData', { mode: 'clear' }).then(function (r) { toast('Removed ' + r.removed + ' sample rows.'); return (DEMO_MODE ? Promise.resolve() : pull().catch(function () {})).then(function () { show({ loaded: false }); }); }).catch(function (x) { toast(x.message); busy(clr, false); }); });
+    };
+    remote('sampleStatus').then(show).catch(function (x) { failView(x); });
+  }
   function viewMore() {
     frame({ title: 'More' });
-    var items = [['#/disciples', 'My disciples', 'Record sessions for people you disciple personally'], ['#/home', 'My progress', 'Your own yearly lessons and status'], ['#/certs', 'My certificates', 'Certificates issued to you'], ['#/audit', 'Activity log', 'Approvals, promotions, PIN resets and certificates']];
-    if (rank() === 3) items = items.concat([['#/setup/congregations', 'Congregations', 'Add or edit congregations and preachers'], ['#/setup/lessons', 'Lessons', 'Lesson checklist and memory verses'], ['#/setup/settings', 'Settings', 'Church name, certificate signatories, validity']]);
-    items.push(['#/profile', 'Profile', 'Change your PIN, sign out']);
+    var my = mine(), items = [];
+    if (my.disciples) items.push(['#/disciples', 'My disciples', 'Record sessions for people you disciple personally']);
+    if (my.lessons) items.push(['#/home', 'My progress', 'Your own yearly lessons and status'], ['#/certs', 'My certificates', 'Certificates issued to you']);
+    items.push(['#/present', 'Certificate presentation', 'Make a PDF of certificates, grouped by congregation'], ['#/audit', 'Activity log', 'Approvals, promotions, PIN resets and certificates']);
+    if (rank() === 3) items = items.concat([['#/setup/congregations', 'Congregations', 'Congregations, preachers and their photos'], ['#/setup/lessons', 'Lessons', 'Lesson checklist and memory verses'], ['#/setup/settings', 'Settings', 'Church name, certificate signatories, validity'], ['#/setup/sample', 'Sample data', 'Load test people and sessions, then clear them']]);
+    items.push(['#/profile', 'Profile', rank() === 2 ? 'Photo, your options, PIN, sign out' : 'Photo, PIN, sign out']);
     fill('<div class="list">' + items.map(function (i) { return '<a class="item" href="' + i[0] + '"><div class="t">' + i[1] + '</div><span class="muted">›</span><div class="s">' + i[2] + '</div></a>'; }).join('') + '</div>');
   }
   function viewAudit() {
@@ -1705,20 +2479,38 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   }
 
   /* ---------- admin setup ---------- */
+  function preachersOf(c) { return String(c.Preachers || '').split(',').map(function (x) { return x.trim(); }).filter(String); }
   function viewCongs() {
     frame({ title: 'Congregations', back: '#/more', section: 'more' });
     live('me', null, function (me) {
       S.me.congregations = me.congregations;
-      var m = fill('<div class="list">' + me.congregations.map(function (c) { return '<button type="button" class="item" data-id="' + esc(c.CongregationID) + '"><div class="t">' + esc(c.Name) + '</div>' + pill(c.Status || 'Active') + '<div class="s">' + esc(c.Location) + (c.Preachers ? ' · Preacher in charge: ' + esc(c.Preachers) : '') + '</div></button>'; }).join('') + '</div>' +
+      var pp = runLocal('preacherPhotos'), PH = pp.ok ? pp.data.photos : {};
+      var m = fill('<div class="list">' + me.congregations.map(function (c) {
+          var pr = preachersOf(c);
+          return '<button type="button" class="item" data-id="' + esc(c.CongregationID) + '"><div class="t">' + esc(c.Name) + (String(c.IsSample).toUpperCase() === 'TRUE' ? ' <span class="pill plain sample">Sample</span>' : '') + '</div>' + pill(c.Status || 'Active') +
+            '<div class="s">' + (pr.length ? '<span class="faces">' + pr.map(function (n) { return avatar(PH[c.CongregationID + '|' + n], 'sm', n); }).join('') + '</span>' : '') + esc(c.Location) + (pr.length ? ' · Preacher in charge: ' + esc(pr.join(', ')) : '') + '</div></button>';
+        }).join('') + '</div>' +
         '<form class="card" id="f"><h2 id="ft">Add a congregation</h2><input type="hidden" id="cid">' +
         '<label class="f">Name<input class="i" id="cn" required></label><label class="f">Location<input class="i" id="cl"></label>' +
         '<label class="f">Preacher(s) in charge<input class="i" id="cp" placeholder="Separate names with commas"></label>' +
         '<label class="f">Status<select class="i" id="cs"><option>Active</option><option>Inactive</option></select></label>' +
+        '<div id="pphotos" class="stack" hidden></div>' +
         '<div class="row"><button class="btn primary">Save congregation</button><button type="button" class="btn quiet" id="clr">Clear</button></div></form>');
-      function edit(c) { $('#ft').textContent = c ? 'Edit ' + c.Name : 'Add a congregation'; $('#cid').value = c ? c.CongregationID : ''; $('#cn').value = c ? c.Name : ''; $('#cl').value = c ? c.Location : ''; $('#cp').value = c ? c.Preachers : ''; $('#cs').value = c ? (c.Status || 'Active') : 'Active'; }
+      function drawPhotos(c) {
+        var box = $('#pphotos'), pr = c ? preachersOf(c) : [];
+        box.hidden = !pr.length;
+        box.innerHTML = '<h3 style="margin:0">Preacher photos</h3><p class="small muted">Shown side by side on this congregation’s cover slide in the certificate presentation.</p>' +
+          pr.map(function (n, i) { var id = PH[c.CongregationID + '|' + n]; return '<div class="preacher">' + avatar(id, 'lg', n) + '<b>' + esc(n) + '</b><button type="button" class="btn sm" data-pp="' + i + '">' + (id ? 'Change photo' : 'Add photo') + '</button></div>'; }).join('');
+        hydrate(box);
+        $$('[data-pp]', box).forEach(function (bt) { bt.onclick = function () {
+          var n = pr[+bt.dataset.pp];
+          pickImage(true, function (pic) { uploadPhoto('preacher', c.CongregationID + '|' + n, pic).then(function (r) { PH[c.CongregationID + '|' + n] = r.photoId; drawPhotos(c); }).catch(function (x) { toast(x.message); }); });
+        }; });
+      }
+      function edit(c) { $('#ft').textContent = c ? 'Edit ' + c.Name : 'Add a congregation'; $('#cid').value = c ? c.CongregationID : ''; $('#cn').value = c ? c.Name : ''; $('#cl').value = c ? c.Location : ''; $('#cp').value = c ? c.Preachers : ''; $('#cs').value = c ? (c.Status || 'Active') : 'Active'; drawPhotos(c); }
       $$('[data-id]', m).forEach(function (b) { b.onclick = function () { edit(me.congregations.filter(function (c) { return c.CongregationID === b.dataset.id; })[0]); $('#f').scrollIntoView({ behavior: 'smooth' }); }; });
       $('#clr').onclick = function () { edit(null); };
-      $('#f').onsubmit = function (e) { e.preventDefault(); api('saveCongregation', { CongregationID: $('#cid').value, Name: $('#cn').value, Location: $('#cl').value, Preachers: $('#cp').value, Status: $('#cs').value }).then(function () { toast('Congregation saved.'); S.info = null; viewCongs(); }).catch(function (x) { toast(x.message); }); };
+      $('#f').onsubmit = function (e) { e.preventDefault(); var bt = $('#f button.primary'); busy(bt, true); api('saveCongregation', { CongregationID: $('#cid').value, Name: $('#cn').value, Location: $('#cl').value, Preachers: $('#cp').value, Status: $('#cs').value }).then(function () { toast('Congregation saved. Open it again to add preacher photos.'); S.info = null; busy(bt, false); }).catch(function (x) { toast(x.message); busy(bt, false); }); };
     });
   }
   function viewLessonsAdmin() {
@@ -1775,17 +2567,39 @@ if (typeof module !== 'undefined') module.exports = DEMO;
   }
 
   /* ---------- profile ---------- */
+  function switchRow(id, label, sub, on) { return '<label class="switch"><input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + '><span class="sw" aria-hidden="true"></span><span><b>' + label + '</b><span class="small muted">' + sub + '</span></span></label>'; }
   function viewProfile() {
     frame({ title: 'Profile', section: rank() >= 2 ? 'more' : 'profile', back: rank() >= 2 ? '#/more' : null });
     var u = S.me.user;
-    var m = fill('<div class="card"><h2>' + esc(u.Name) + '</h2><p class="small muted">' + esc(u.Role) + ' · ' + esc(S.me.congregation) + ' · ' + esc(u.Mobile) + '</p></div>' +
+    var m = fill('<div class="card profile-card">' + avatar(u.PhotoID, 'xl', 'Your photo') + '<div><h2>' + esc(u.Name) + '</h2><p class="small muted">' + esc(u.Role) + ' · ' + esc(S.me.congregation) + ' · ' + esc(u.Mobile) + '</p>' +
+        '<div class="row"><button type="button" class="btn sm" id="ph">' + (u.PhotoID ? 'Change photo' : 'Add a photo') + '</button>' + (u.PhotoID ? '<button type="button" class="btn quiet sm" id="phx">Remove</button>' : '') + '</div></div></div>' +
+      (u.Role === 'Coordinator' ? '<div class="card stack"><h3>Your options</h3>' +
+        switchRow('opt-d', 'I also disciple people', 'Shows “My disciples” and lists you as a discipler.', u.Disciples) +
+        switchRow('opt-l', 'I’m taking the lessons this year', 'Shows “My progress” and “My certificates”.', u.TakesLessons) + '</div>' : '') +
       '<form class="card" id="f"><h3>Change PIN</h3><label class="f">Current PIN<input class="i" id="op" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password"></label>' +
       '<label class="f">New PIN<input class="i" id="np" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label><button class="btn">Change PIN</button></form>' +
+      (!DEMO_MODE && SNAP ? '<p class="small muted">Data last updated ' + esc(rel(SNAP.at)) + (OUTBOX.length ? ' · ' + OUTBOX.length + ' change(s) waiting to be sent' : '') + '. <button type="button" class="btn quiet sm" id="refresh">Refresh now</button></p>' : '') +
       '<button type="button" class="btn" id="out">Sign out</button>' +
       (DEMO_MODE ? '<div class="demo"><div><b>Demo mode.</b> Reset brings back the original sample people and progress.</div><div><button type="button" class="btn sm" id="reset">Reset demo data</button></div></div>' : ''));
-    $('#f').onsubmit = function (e) { e.preventDefault(); api('changePin', { oldPin: $('#op').value, newPin: $('#np').value }).then(function () { toast('PIN changed.'); $('#f').reset(); }).catch(function (x) { toast(x.message); }); };
+    $('#ph', m).onclick = function () { pickImage(true, function (pic) { uploadPhoto('person', u.UserID, pic).then(function () { viewProfile(); }).catch(function (x) { toast(x.message); }); }); };
+    var px = $('#phx', m); if (px) confirmTap(px, 'Tap again to remove', function () { deletePhoto(u.PhotoID).then(viewProfile).catch(function (x) { toast(x.message); }); });
+    ['opt-d', 'opt-l'].forEach(function (id) { var el = $('#' + id, m); if (el) el.onchange = function () {
+      var q = id === 'opt-d' ? { disciples: el.checked } : { takesLessons: el.checked };
+      if (id === 'opt-d' && !el.checked && !confirm2(el)) return;
+      api('setOptions', q).then(function (r) { if (r && r.user) S.me.user = Object.assign(S.me.user, r.user); toast('Saved.'); }).catch(function (x) { toast(x.message); el.checked = !el.checked; });
+    }; });
+    $('#f').onsubmit = function (e) { e.preventDefault(); remote('changePin', { oldPin: $('#op').value, newPin: $('#np').value }).then(function () { toast('PIN changed.'); $('#f').reset(); }).catch(function (x) { toast(x.message); }); };
+    var rf = $('#refresh', m); if (rf) rf.onclick = function () { busy(rf, true); flush(); pull().then(function () { toast('Up to date.'); viewProfile(); }).catch(function (x) { toast(x.message); busy(rf, false); }); };
     $('#out').onclick = signOut;
     var r = $('#reset', m); if (r) confirmTap(r, 'Tap again to reset', function () { DEMO.reset(); signOut(); toast('Demo data reset.'); });
+  }
+  // Turning off "I also disciple people" releases your disciples; make sure that's intended.
+  function confirm2(el) {
+    if (el.dataset.ok) { delete el.dataset.ok; return true; }
+    el.checked = true; el.dataset.ok = '1';
+    toast('Your disciples will need a new discipler. Tap the switch again to confirm.');
+    setTimeout(function () { delete el.dataset.ok; }, 4000);
+    return false;
   }
 
   /* ---------- router ---------- */
@@ -1793,11 +2607,12 @@ if (typeof module !== 'undefined') module.exports = DEMO;
     var parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent), v = parts[0];
     if (!S.token) { return v === 'register' ? viewRegister() : viewLogin(); }
     if (!S.me) {
-      var cm = LS.get(ckey('me', null));
-      if (cm) { S.me = cm.d; api('me').then(function (me) { S.me = me; }).catch(function () {}); return route(); }
-      app.innerHTML = loadingHTML();
-      return api('me').then(function (me) { S.me = me; route(); }).catch(function (e) { if (!e.auth) authShell('<div class="card"><p class="err">' + esc(e.message) + '</p><button class="btn" onclick="location.reload()">Try again</button></div>'); });
+      if (DEMO_MODE) { var dm = runLocal('me'); if (dm.ok) { S.me = dm.data; return route(); } return signOut(); }
+      if (loadStored()) { lastPull = 0; flush(); pull().catch(function () {}); return route(); }
+      app.innerHTML = '<div class="auth"><div class="auth-in">' + loadingHTML() + '</div></div>';
+      return pull().then(function () { route(); }).catch(function (e) { if (!e.auth) authShell('<div class="card"><p class="err">' + esc(e.message) + '</p><button class="btn" onclick="location.reload()">Try again</button></div>'); });
     }
+    VIEW = null;
     var R = rank();
     var routes = {
       '': function () { location.replace('#/' + homeRoute()); },
@@ -1806,8 +2621,8 @@ if (typeof module !== 'undefined') module.exports = DEMO;
       home: viewHome, certs: viewMyCerts, cert: function () { viewCert(parts[1]); }, profile: viewProfile,
       disciples: R >= 1 && viewDisciples, person: R >= 1 && function () { viewPerson(parts[1]); },
       dash: R >= 2 && viewDash, people: R >= 2 && function () { viewPeople(parts[1]); }, reports: R >= 2 && function () { viewReports(parts[1], parts[2]); },
-      certadmin: R >= 2 && viewCertAdmin, more: R >= 2 && viewMore, audit: R >= 2 && viewAudit,
-      setup: R >= 3 && function () { ({ congregations: viewCongs, lessons: viewLessonsAdmin, lesson: function () { viewLessonEdit(parts[2]); }, settings: viewSettings }[parts[1]] || viewMore)(); }
+      certadmin: R >= 2 && viewCertAdmin, present: R >= 2 && viewPresent, more: R >= 2 && viewMore, audit: R >= 2 && viewAudit,
+      setup: R >= 3 && function () { ({ congregations: viewCongs, lessons: viewLessonsAdmin, lesson: function () { viewLessonEdit(parts[2]); }, settings: viewSettings, sample: viewSample }[parts[1]] || viewMore)(); }
     };
     (routes[v] || function () { location.replace('#/' + homeRoute()); })();
   }
