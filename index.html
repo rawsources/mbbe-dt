@@ -796,6 +796,20 @@ label.row > input[type="checkbox"] { flex: none; margin: 3px 0 0; width: 18px; h
 .rl small { color: var(--muted); font-size: 12px }
 .rl.off { opacity: .6; cursor: default }
 
+/* ---------- lessons admin: a level is a heading with its lessons under it ---------- */
+.lvcard { display: grid; gap: 12px; margin-bottom: 14px }
+.lv-h { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center }
+.lv-n { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--nav); color: var(--gold); font-weight: 800; font-size: 18px }
+.lv-t { display: grid; gap: 2px; min-width: 0 }
+.lv-t b { font-family: var(--serif); font-size: 19px; line-height: 1.25 }
+.eyebrow-s { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+.lv-a { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap }
+.lv-a .btn svg { width: 16px; height: 16px }
+.lvcard .spsw { margin: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--bg) }
+.lvcard > p { margin: 0 }
+.lv-warn { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--flame-soft); border: 1px solid color-mix(in srgb, var(--flame) 35%, transparent) }
+@media (min-width: 700px) { .lv-h { grid-template-columns: auto minmax(0, 1fr) auto } .lv-a { grid-column: auto } }
+
 </style>
 </head>
 <body>
@@ -811,7 +825,7 @@ window.addEventListener('error', function (e) {
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* Self-update: GitHub Pages lets browsers keep a page for 10 minutes. On open, check for a newer copy and reload once if found. */
-window.APP_BUILD = '20261027001243';
+window.APP_BUILD = '20261027002756';
 (function () {
   if (!/^https?:/.test(location.protocol) || !window.fetch || window.APP_CONFIG_IS_ARTIFACT) return;
   try { if (sessionStorage.getItem('dt-upd') === window.APP_BUILD) return; } catch (e) {}
@@ -844,7 +858,7 @@ var CORE = (function () {
   var SCHEMA = {
     Users: ['UserID', 'Name', 'Mobile', 'PinHash', 'Role', 'CongregationID', 'Status', 'DisciplerID', 'ModCongregations', 'AppointedBy', 'AppointedAt', 'FailCount', 'LockUntil', 'CreatedAt', 'LastLogin', 'Disciples', 'TakesLessons', 'IsSample'],
     Congregations: ['CongregationID', 'Name', 'Location', 'Preachers', 'Status', 'IsSample'],
-    Lessons: ['LessonID', 'Level', 'LevelName', 'Order', 'Number', 'Title', 'MemoryRef', 'MemoryText', 'Published', 'UpdatedAt', 'Question', 'SelfPaced'],
+    Lessons: ['LessonID', 'Level', 'LevelName', 'Order', 'Number', 'Title', 'MemoryRef', 'MemoryText', 'Published', 'UpdatedAt', 'Question', 'SelfPaced', 'IsLevel'],
     Enrollments: ['EnrollmentID', 'UserID', 'ProgramYear', 'Level', 'Status', 'StartDate', 'CompletedDate', 'ExpiryDate', 'ApprovedBy', 'IsSample'],
     Sessions: ['SessionID', 'EnrollmentID', 'UserID', 'DisciplerID', 'LessonID', 'Date', 'Finished', 'Notes', 'NextMeeting', 'Confirmed', 'ConfirmedAt', 'CreatedAt', 'IsSample', 'GroupID', 'Kind', 'Reflection'],
     Reflections: ['ReflectionID', 'UserID', 'LessonIDs', 'Text', 'SubmittedAt', 'Status', 'ReviewedBy', 'ReviewedAt', 'SessionID', 'ReviewNote', 'IsSample'],
@@ -953,14 +967,18 @@ var CORE = (function () {
 
   /* ---------- lessons (titles + memory verses; content stays in the booklet) ---------- */
   function isPub(l) { return str(l.Published).toUpperCase() === 'TRUE'; }
+  // A level can have a heading row (IsLevel): the book's name and title. The lessons under it are what disciplers record.
+  function isHead(l) { return isTrue(l.IsLevel); }
+  function levelRows(level) { return rows('Lessons').filter(function (l) { return str(l.Level) === str(level); }).sort(function (a, b) { return (+a.Order) - (+b.Order); }); }
+  function levelHead(level) { return levelRows(level).filter(isHead)[0] || null; }
   function lessonsFor(level, all) {
-    return rows('Lessons').filter(function (l) { return str(l.Level) === str(level) && (all || isPub(l)); })
-      .sort(function (a, b) { return (+a.Order) - (+b.Order); });
+    var ls = levelRows(level).filter(function (l) { return all || isPub(l); }), real = ls.filter(function (l) { return !isHead(l); });
+    return real.length ? real : ls; // a heading with no lessons under it yet still counts as the level's one lesson
   }
-  function levelName(level) { var l = lessonsFor(level, true)[0]; return l && l.LevelName ? l.LevelName : 'Level ' + level; }
-  function lessonMeta(l) { return { LessonID: l.LessonID, Level: l.Level, LevelName: l.LevelName, Order: l.Order, Number: l.Number, Title: l.Title, MemoryRef: l.MemoryRef, MemoryText: l.MemoryText, Question: l.Question || '', SelfPaced: isTrue(l.SelfPaced), Published: isPub(l) }; }
+  function levelName(level) { var h = levelHead(level), l = h || lessonsFor(level, true)[0]; return l && l.LevelName ? l.LevelName : 'Level ' + level; }
+  function lessonMeta(l) { return { LessonID: l.LessonID, Level: l.Level, LevelName: l.LevelName, Order: l.Order, Number: l.Number, Title: l.Title, MemoryRef: l.MemoryRef, MemoryText: l.MemoryText, Question: l.Question || '', SelfPaced: isTrue(l.SelfPaced), IsLevel: isHead(l), Published: isPub(l) }; }
   // A self-paced level: the disciple studies alone and sends a reflection instead of meeting
-  function levelSelfPaced(level) { return lessonsFor(level, true).some(function (l) { return isTrue(l.SelfPaced); }); }
+  function levelSelfPaced(level) { return levelRows(level).some(function (l) { return isTrue(l.SelfPaced); }); }
   function discipleLogin() { return isTrue(settings().DiscipleLogin); }
 
   /* ---------- enrollments & sessions ---------- */
@@ -990,8 +1008,11 @@ var CORE = (function () {
     out.lastSession = ss.length ? ss[0].Date : '';
     out.unconfirmed = ss.filter(function (s) { return s.Confirmed !== 'TRUE'; }).length;
     for (var i = 0; i < ss.length; i++) if (ss[i].NextMeeting) { if (ss[i].NextMeeting >= t) out.nextMeeting = ss[i].NextMeeting; break; }
-    lessonsFor(e.Level).forEach(function (l) {
-      var mine = ss.filter(function (s) { return s.LessonID === l.LessonID; });
+    var head = levelHead(e.Level), ls = lessonsFor(e.Level);
+    // sessions recorded against the heading row (from before the level was split into lessons) count for every lesson
+    var whole = head && ls[0] !== head ? ss.filter(function (s) { return s.LessonID === head.LessonID; }) : [];
+    ls.forEach(function (l) {
+      var mine = ss.filter(function (s) { return s.LessonID === l.LessonID; }).concat(whole);
       var done = mine.filter(function (s) { return s.Finished === 'TRUE'; }).map(function (s) { return s.Date; }).sort();
       var m = lessonMeta(l);
       m.FinishedOn = done[0] || ''; m.Sessions = mine.length;
@@ -1020,11 +1041,11 @@ var CORE = (function () {
   // All levels that have lessons, in order: [{ Level, LevelName, Lessons }]
   function allLevels() {
     var m = {};
-    rows('Lessons').filter(isPub).forEach(function (l) { var k = str(l.Level); m[k] = m[k] || { Level: k, LevelName: l.LevelName || 'Level ' + k, Lessons: 0, SelfPaced: false }; m[k].Lessons++; if (isTrue(l.SelfPaced)) m[k].SelfPaced = true; });
-    return Object.keys(m).map(function (k) { m[k].Title = levelTitle(k); return m[k]; }).sort(function (a, b) { return (+a.Level) - (+b.Level); });
+    rows('Lessons').filter(isPub).forEach(function (l) { var k = str(l.Level); m[k] = 1; });
+    return Object.keys(m).map(function (k) { return { Level: k, LevelName: levelName(k), Lessons: lessonsFor(k).length, SelfPaced: levelSelfPaced(k), Title: levelTitle(k) }; }).sort(function (a, b) { return (+a.Level) - (+b.Level); });
   }
   // A level that is a single book: its lesson title ("The Foundation"); otherwise blank
-  function levelTitle(level) { var ls = lessonsFor(level); return ls.length === 1 ? str(ls[0].Title) : ''; }
+  function levelTitle(level) { var h = levelHead(level); if (h) return str(h.Title); var ls = lessonsFor(level); return ls.length === 1 ? str(ls[0].Title) : ''; }
   // Levels this person has completed and are still valid
   function doneLevels(userId) {
     var d = {}; (idx('Enrollments', 'UserID')[userId] || []).forEach(function (e) { if (status(e) === 'Completed') d[str(e.Level)] = e; }); return d;
@@ -1243,7 +1264,7 @@ var CORE = (function () {
     o.logLevel = lv;
     o.levels = levelsFor(t.UserID);
     // every lesson of every level, so the discipler can record whichever book they covered
-    o.logLessons = rows('Lessons').filter(isPub).sort(function (a, b) { return (+a.Level - +b.Level) || (+a.Order - +b.Order); }).map(lessonMeta);
+    o.logLessons = []; allLevels().forEach(function (x) { lessonsFor(x.Level).forEach(function (l) { o.logLessons.push(lessonMeta(l)); }); });
     o.tracked = tracked(t);
     o.canLog = o.tracked && o.levels.some(function (x) { return x.State !== 'done'; });
     o.reflections = waiting(t.UserID).map(reflectionView);
@@ -1261,6 +1282,7 @@ var CORE = (function () {
     var ids = [].concat(q.lessonIds && q.lessonIds.length ? q.lessonIds : q.lessonId).map(str).filter(String).filter(function (x, i, a) { return a.indexOf(x) === i; }).slice(0, 40);
     var lessons = ids.map(function (id) { return find('Lessons', 'LessonID', id); });
     if (!lessons.length || lessons.some(function (x) { return !x || !isPub(x); })) fail('Choose the lesson you covered.');
+    if (lessons.some(function (x) { return isHead(x) && lessonsFor(x.Level).indexOf(x) < 0; })) fail('Choose the lessons you covered in this level.');
     var l = lessons[0];
     if (lessons.some(function (x) { return str(x.Level) !== str(l.Level); })) fail('Choose lessons from one level at a time.');
     lessons.sort(function (a, b) { return (+a.Order) - (+b.Order); }); l = lessons[0];
@@ -1396,7 +1418,7 @@ var CORE = (function () {
     audit(u, 'Approved to graduate', t.UserID, levelName(e.Level) + ' ' + e.ProgramYear);
   }
   // Several waiting changes from a phone in one request, followed by a fresh copy: one trip to the server instead of many.
-  var BATCHABLE = { addPerson: 1, logSession: 1, reviewReflection: 1, setSelfPaced: 1, deleteSession: 1, confirmSession: 1, graduate: 1, approveUser: 1, assign: 1, setRole: 1, setStatus: 1, updatePerson: 1, setOptions: 1, setPublished: 1, saveLesson: 1, saveSettings: 1 };
+  var BATCHABLE = { addPerson: 1, logSession: 1, reviewReflection: 1, setSelfPaced: 1, setLevelHeading: 1, deleteSession: 1, confirmSession: 1, graduate: 1, approveUser: 1, assign: 1, setRole: 1, setStatus: 1, updatePerson: 1, setOptions: 1, setPublished: 1, saveLesson: 1, saveSettings: 1 };
   A.batch = function (q, u) {
     var out = [];
     [].concat(q.ops || []).slice(0, 50).forEach(function (op) {
@@ -1836,14 +1858,28 @@ var CORE = (function () {
     var rec = { Level: str(+q.Level || 1), LevelName: str(q.LevelName).trim(), Order: str(+q.Order || 1), Number: str(q.Number).trim(), Title: str(q.Title).trim(), MemoryRef: str(q.MemoryRef).trim(), MemoryText: str(q.MemoryText).trim(), Question: str(q.Question).trim().slice(0, 300), UpdatedAt: nowIso() };
     var ex = find('Lessons', 'LessonID', id);
     if (ex && q.isNew === true) fail('A lesson with the code ' + id + ' already exists.');
+    if (q.IsLevel != null) rec.IsLevel = tf(q.IsLevel);
+    if (rec.IsLevel === 'TRUE') levelRows(rec.Level).forEach(function (o) { if (o.LessonID !== id && isHead(o)) upd('Lessons', 'LessonID', o.LessonID, { IsLevel: 'FALSE' }); });
+    // adding the first real lesson to a level that was one row (the book): that row becomes the level's heading
+    if (!ex && q.headingId) { var hd = find('Lessons', 'LessonID', q.headingId); if (hd && str(hd.Level) === rec.Level && !levelHead(rec.Level)) upd('Lessons', 'LessonID', hd.LessonID, { IsLevel: 'TRUE' }); }
+    if (!ex && !rec.IsLevel) { var lh = levelHead(rec.Level); if (lh) { if (!rec.LevelName) rec.LevelName = lh.LevelName; if (isTrue(lh.SelfPaced)) rec.SelfPaced = 'TRUE'; } }
     if (ex) upd('Lessons', 'LessonID', id, rec);
     else { if (q.isNew === false) fail('Lesson not found.'); rec.LessonID = id; rec.Published = 'TRUE'; ins('Lessons', rec); }
     audit(u, 'Saved lesson', id, rec.Number + ' ' + rec.Title);
     return { ok: true };
   };
+  A.setLevelHeading = function (q, u) {
+    need(u, 'Admin');
+    var l = find('Lessons', 'LessonID', q.lessonId); if (!l) fail('Lesson not found.');
+    var on = tf(q.on);
+    if (on === 'TRUE') levelRows(l.Level).forEach(function (o) { if (o.LessonID !== l.LessonID && isHead(o)) upd('Lessons', 'LessonID', o.LessonID, { IsLevel: 'FALSE' }); });
+    upd('Lessons', 'LessonID', l.LessonID, { IsLevel: on, UpdatedAt: nowIso() });
+    audit(u, on === 'TRUE' ? 'Made level heading' : 'Made heading a lesson', l.LessonID, l.Title);
+    return { ok: true };
+  };
   A.setSelfPaced = function (q, u) {
     need(u, 'Admin');
-    var ls = lessonsFor(q.level, true); if (!ls.length) fail('Level not found.');
+    var ls = levelRows(q.level); if (!ls.length) fail('Level not found.');
     var on = tf(q.on);
     ls.forEach(function (l) { upd('Lessons', 'LessonID', l.LessonID, { SelfPaced: on, UpdatedAt: nowIso() }); });
     audit(u, on === 'TRUE' ? 'Made level self-paced' : 'Made level guided', '', levelName(q.level));
@@ -2203,7 +2239,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
      so they open instantly. Changes are applied to the copy at once and sent to the server in the background. */
   var LOCAL = null, SNAP = null, OUTBOX = [], syncing = false, lastPull = 0, pulling = null;
   var LOCAL_READS = { me: 1, home: 1, myDisciples: 1, person: 1, people: 1, dashboard: 1, report: 1, certQueue: 1, lessonList: 1, certificate: 1, preacherPhotos: 1 };
-  var QUEUED = { addPerson: 1, logSession: 1, reviewReflection: 1, setSelfPaced: 1, deleteSession: 1, confirmSession: 1, graduate: 1, approveUser: 1, assign: 1, setRole: 1, setStatus: 1, updatePerson: 1, setOptions: 1, setPublished: 1, saveLesson: 1, saveSettings: 1 };
+  var QUEUED = { addPerson: 1, logSession: 1, reviewReflection: 1, setSelfPaced: 1, setLevelHeading: 1, deleteSession: 1, confirmSession: 1, graduate: 1, approveUser: 1, assign: 1, setRole: 1, setStatus: 1, updatePerson: 1, setOptions: 1, setPublished: 1, saveLesson: 1, saveSettings: 1 };
   function uid() { return S.token ? String(S.token).split('.')[0] : ''; }
   function snapKey() { return 'dt-snap:' + uid(); }
   function boxKey() { return 'dt-outbox:' + uid(); }
@@ -2776,7 +2812,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }).join('') + '</ol>';
   }
 
-  function lvl1Count() { var r = runLocal('lessonList'); return r.ok ? r.data.lessons.filter(function (l) { return String(l.Level) === '1' && l.Published; }).length : 0; }
+  function lvl1Count() { var r = runLocal('lessonList'); return r.ok ? r.data.lessons.filter(function (l) { return String(l.Level) === '1' && l.Published && !l.IsLevel; }).length : 0; }
 
   /* ---------- disciple: my progress ---------- */
   function viewHome() {
@@ -2905,7 +2941,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var groups = [], by = {};
     all.forEach(function (l) { var k = String(l.Level); if (!by[k]) { by[k] = []; groups.push(k); } by[k].push(l); });
     return groups.map(function (k) {
-      var ls = by[k], done = PM.lvState[k] === 'done', cur = PM.lvState[k] === 'current', lvName = ls[0].LevelName || 'Level ' + k, name = ls.length === 1 ? ls[0].Title || lvName : lvName;
+      var ls = by[k], done = PM.lvState[k] === 'done', cur = PM.lvState[k] === 'current', lvRow = (PM.levels || []).filter(function (x) { return String(x.Level) === k; })[0], lvName = (lvRow && lvRow.Title) || ls[0].LevelName || 'Level ' + k, name = ls.length === 1 ? ls[0].Title || lvName : lvName;
       var tag = (done ? '<span class="lg-tag ok">Completed</span>' : cur ? '<span class="lg-tag">In progress</span>' : '') + (ls[0].SelfPaced && !done ? '<span class="lg-tag sp">Self-paced</span>' : '');
       if (ls.length === 1) {
         var l = ls[0];
@@ -4221,45 +4257,72 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function viewLessonsAdmin() {
     frame({ title: 'Lessons', back: '#/more', section: 'more' });
     live('lessonList', null, function (d) {
-      var by = {};
-      d.lessons.forEach(function (l) { var k = l.LevelName || 'Level ' + l.Level; (by[k] = by[k] || []).push(l); });
-      var m = fill('<p class="muted small">This is the checklist disciplers record against. The lesson content stays in the printed booklet. A memory verse shows on a disciple’s page once they finish that lesson.</p>' +
-        '<div class="row"><a class="btn primary sm" href="#/setup/lesson/new">Add a lesson</a></div>' +
-        Object.keys(by).map(function (k) {
-          var lvN = by[k][0].Level, spOn = by[k].some(function (l) { return l.SelfPaced; });
-          return '<h3>' + esc(k) + '</h3><label class="spsw card"><input type="checkbox" data-sp="' + esc(lvN) + '"' + (spOn ? ' checked' : '') + '><span><b>Self-paced</b><span class="small muted">Disciples study this level on their own and send their discipler a reflection instead of meeting. The discipler reads it and marks the lesson finished.</span></span></label><div class="list">' + by[k].map(function (l) {
-            return '<div class="item lesson-item" style="cursor:default' + (l.Published ? '' : ';opacity:.65') + '"><div><div class="num">' + esc(l.Number) + '</div><div class="t">' + esc(l.Title) + '</div></div>' +
-              (l.Published ? '' : '<span class="pill plain">Hidden</span>') +
-              '<div class="s">' + (l.MemoryRef ? 'Memory verse: ' + esc(l.MemoryRef) : '<span style="color:var(--warn)">No memory verse yet</span>') + '<br>Question: ' + esc(questionFor(l)) + (l.Question ? '' : ' <span class="muted">(default)</span>') +
-              '<div class="row" style="margin-top:6px"><a class="btn sm" href="#/setup/lesson/' + esc(l.LessonID) + '">Edit</a><button type="button" class="btn sm" data-pub="' + esc(l.LessonID) + '" data-on="' + (l.Published ? '' : '1') + '">' + (l.Published ? 'Hide' : 'Include') + '</button></div></div></div>';
-          }).join('') + '</div>';
+      var lv = {}, order = [];
+      d.lessons.forEach(function (l) { var k = String(l.Level); if (!lv[k]) { lv[k] = []; order.push(k); } lv[k].push(l); });
+      order.sort(function (a, b) { return +a - +b; });
+      var item = function (l, canHead) {
+        return '<div class="item lesson-item" style="cursor:default' + (l.Published ? '' : ';opacity:.65') + '"><div><div class="num">' + esc(l.Number || 'Lesson') + '</div><div class="t">' + esc(l.Title) + '</div></div>' +
+          (l.Published ? '' : '<span class="pill plain">Hidden</span>') +
+          '<div class="s">' + (l.MemoryRef ? 'Memory verse: ' + esc(l.MemoryRef) : '<span style="color:var(--warn)">No memory verse yet</span>') + '<br>Question: ' + esc(questionFor(l)) + (l.Question ? '' : ' <span class="muted">(default)</span>') +
+          '<div class="row" style="margin-top:6px"><a class="btn sm" href="#/setup/lesson/' + esc(l.LessonID) + '">Edit</a><button type="button" class="btn sm" data-pub="' + esc(l.LessonID) + '" data-on="' + (l.Published ? '' : '1') + '">' + (l.Published ? 'Hide' : 'Include') + '</button>' +
+          (canHead ? '<button type="button" class="btn quiet sm" data-head="' + esc(l.LessonID) + '">Make it the level heading</button>' : '') + '</div></div></div>';
+      };
+      var m = fill('<p class="muted small">Each level is a book. Its heading holds the book’s name; the lessons under it are what disciplers tick off when they record a session. The lesson content stays in the printed booklet.</p>' +
+        '<div class="row"><a class="btn primary sm" href="#/setup/lesson/new">' + icon('plus') + 'Add a level</a></div>' +
+        order.map(function (k) {
+          var rows = lv[k], head = rows.filter(function (l) { return l.IsLevel; })[0], ls = rows.filter(function (l) { return !l.IsLevel; });
+          var single = !head && ls.length === 1, title = head ? head.Title : single ? ls[0].Title : '', name = (head || rows[0]).LevelName || 'Level ' + k;
+          var spOn = rows.some(function (l) { return l.SelfPaced; });
+          var body;
+          if (single) body = '<p class="small muted">This level is one lesson: the whole book is recorded in one go. To break it into lessons, add a lesson; this row then becomes the level’s heading.</p><div class="row"><a class="btn sm" href="#/setup/lesson/' + esc(ls[0].LessonID) + '">Edit</a><button type="button" class="btn sm" data-pub="' + esc(ls[0].LessonID) + '" data-on="' + (ls[0].Published ? '' : '1') + '">' + (ls[0].Published ? 'Hide' : 'Include') + '</button></div>';
+          else body = (!head && ls.length > 1 ? '<p class="lv-warn small">If one of these is the book itself rather than a lesson, tap <b>Make it the level heading</b> on it, so disciplers only pick the real lessons.</p>' : '') +
+            (ls.length ? '<div class="list">' + ls.map(function (l) { return item(l, !head); }).join('') + '</div>' : '<p class="small muted">No lessons in this level yet.</p>');
+          return '<section class="card lvcard"><div class="lv-h"><span class="lv-n">' + esc(k) + '</span><div class="lv-t"><span class="eyebrow-s">Level ' + esc(k) + (spOn ? ' · self-paced' : '') + ' · ' + (single ? '1 lesson' : ls.length + (ls.length === 1 ? ' lesson' : ' lessons')) + '</span><b>' + esc(title || name) + '</b>' + (title && name !== title ? '<span class="small muted">' + esc(name) + '</span>' : '') + '</div>' +
+            '<div class="lv-a">' + (head ? '<a class="btn sm" href="#/setup/lesson/' + esc(head.LessonID) + '">Edit level</a>' : '') + '<a class="btn sm" href="#/setup/lesson/new/' + esc(k) + '">' + icon('plus') + 'Add a lesson</a></div></div>' +
+            '<label class="spsw"><input type="checkbox" data-sp="' + esc(k) + '"' + (spOn ? ' checked' : '') + '><span><b>Self-paced</b><span class="small muted">Disciples study this level on their own and send their discipler a reflection instead of meeting.</span></span></label>' +
+            body + '</section>';
         }).join(''));
       $$('[data-sp]', m).forEach(function (cb) { cb.onchange = function () { api('setSelfPaced', { level: cb.dataset.sp, on: cb.checked }).then(function () { toast(cb.checked ? 'Level ' + cb.dataset.sp + ' is now self-paced.' : 'Level ' + cb.dataset.sp + ' is now taught at meetings.'); }).catch(function (x) { toast(x.message); cb.checked = !cb.checked; }); }; });
       $$('[data-pub]', m).forEach(function (b) { b.onclick = function () { api('setPublished', { lessonId: b.dataset.pub, published: !!b.dataset.on }).then(function () { toast(b.dataset.on ? 'Lesson included in the checklist.' : 'Lesson hidden from the checklist.'); viewLessonsAdmin(); }).catch(function (x) { toast(x.message); }); }; });
+      $$('[data-head]', m).forEach(function (b) { confirmTap(b, 'Tap again to make it the heading', function () { api('setLevelHeading', { lessonId: b.dataset.head, on: true }).then(function () { toast('Saved. Disciplers now pick only the lessons under it.'); }).catch(function (x) { toast(x.message); }); }); });
     });
   }
-  function viewLessonEdit(id) {
+  function viewLessonEdit(id, forLevel) {
     var isNew = id === 'new';
-    frame({ title: isNew ? 'New lesson' : 'Edit lesson', back: '#/setup/lessons', section: 'more' });
+    frame({ title: isNew ? (forLevel ? 'New lesson' : 'New level') : 'Edit', back: '#/setup/lessons', section: 'more' });
     live('lessonList', null, function (r) {
       var l = r.lessons.filter(function (x) { return x.LessonID === id; })[0];
       if (!isNew && !l) throw new Error('Lesson not found.');
-      l = l || { Level: '1', LevelName: (r.lessons[0] || {}).LevelName || 'The Foundation · Level One', Order: r.lessons.length + 1 };
+      var levelOf = function (k) { return r.lessons.filter(function (x) { return String(x.Level) === String(k); }); };
+      var maxLv = r.lessons.reduce(function (a, x) { return Math.max(a, +x.Level || 0); }, 0), convert = null;
+      if (isNew) {
+        var k = forLevel || String(maxLv + 1), same = levelOf(k), hd = same.filter(function (x) { return x.IsLevel; })[0], real = same.filter(function (x) { return !x.IsLevel; });
+        if (forLevel && !hd && real.length === 1) convert = real[0];
+        var n = real.length + (convert ? 0 : 1), code = 'L' + k + '-' + ('0' + n).slice(-2);
+        while (r.lessons.some(function (x) { return x.LessonID === code; })) { n++; code = 'L' + k + '-' + ('0' + n).slice(-2); }
+        l = { Level: k, LevelName: (hd || same[0] || {}).LevelName || 'Level ' + k, Order: same.reduce(function (a, x) { return Math.max(a, +x.Order || 0); }, 0) + 1, Number: forLevel ? 'Lesson ' + (convert ? 1 : n) : '', suggest: code };
+      }
+      var others = isNew ? [] : levelOf(l.Level).filter(function (x) { return x.LessonID !== id; });
+      var showHead = !isNew && (l.IsLevel || others.length);
       fill('<form class="card" id="f">' +
-        '<div class="row"><label class="f" style="flex:2 1 140px">Lesson code<input class="i" id="lid" value="' + esc(isNew ? '' : id) + '"' + (isNew ? '' : ' readonly') + ' placeholder="e.g. L2-01" autocapitalize="characters"></label>' +
+        (convert ? '<label class="cmp"><input type="checkbox" id="conv" checked><span><b>Make “' + esc(convert.Title) + '” the heading of Level ' + esc(l.Level) + '</b><span class="small muted">It’s the book itself, not a lesson. Disciplers will pick from the lessons you add under it. Sessions already recorded on it still count.</span></span></label>' : '') +
+        (showHead ? '<label class="cmp"><input type="checkbox" id="ishead"' + (l.IsLevel ? ' checked' : '') + '><span><b>This is the level heading</b><span class="small muted">The book’s name and title. Disciplers don’t pick it; they pick the lessons under it.</span></span></label>' : '') +
+        '<div class="row"><label class="f" style="flex:2 1 140px">Code<input class="i" id="lid" value="' + esc(isNew ? l.suggest : id) + '"' + (isNew ? '' : ' readonly') + ' placeholder="e.g. L2-01" autocapitalize="characters"></label>' +
         '<label class="f" style="flex:1 1 70px">Level<input class="i" id="lv" inputmode="numeric" value="' + esc(l.Level) + '"></label><label class="f" style="flex:1 1 70px">Order<input class="i" id="lo" inputmode="numeric" value="' + esc(l.Order) + '"></label></div>' +
         '<label class="f">Level name<input class="i" id="ln" value="' + esc(l.LevelName) + '"></label>' +
-        '<label class="f">Lesson number<input class="i" id="lnum" value="' + esc(l.Number || '') + '" placeholder="Lesson Two"></label>' +
-        '<label class="f">Title<input class="i" id="lt" value="' + esc(l.Title || '') + '" required></label>' +
-        '<label class="f">Memory verse reference<input class="i" id="mr" value="' + esc(l.MemoryRef || '') + '" placeholder="John 3:16"></label>' +
-        '<label class="f">Memory verse text (KJV)<textarea class="i" id="mt" placeholder="Type the verse exactly as in the King James Version">' + esc(l.MemoryText || '') + '</textarea></label>' +
-        '<label class="f">Question for the disciple <span class="muted" style="font-weight:500">(goes on the picture update to start a conversation)</span><textarea class="i" id="lq" style="min-height:70px" placeholder="' + esc(DEFAULT_Q[id] || GENERIC_Q) + '">' + esc(l.Question || '') + '</textarea></label>' +
+        '<label class="f" data-lo>Lesson number<input class="i" id="lnum" value="' + esc(l.Number || '') + '" placeholder="Lesson Two"></label>' +
+        '<label class="f"><span id="ltl">Title</span><input class="i" id="lt" value="' + esc(l.Title || '') + '" required></label>' +
+        '<label class="f" data-lo>Memory verse reference<input class="i" id="mr" value="' + esc(l.MemoryRef || '') + '" placeholder="John 3:16"></label>' +
+        '<label class="f" data-lo>Memory verse text (KJV)<textarea class="i" id="mt" placeholder="Type the verse exactly as in the King James Version">' + esc(l.MemoryText || '') + '</textarea></label>' +
+        '<label class="f" data-lo>Question for the disciple <span class="muted" style="font-weight:500">(goes on the picture update to start a conversation)</span><textarea class="i" id="lq" style="min-height:70px" placeholder="' + esc(DEFAULT_Q[id] || GENERIC_Q) + '">' + esc(l.Question || '') + '</textarea></label>' +
         '<p class="small muted">Lessons with the same level are tracked together. Order sets their position in the checklist.</p>' +
-        '<button class="btn primary">Save lesson</button></form>');
+        '<button class="btn primary">Save</button></form>');
+      var hb = $('#ishead'), sync = function () { var h = hb && hb.checked; $$('[data-lo]').forEach(function (x) { x.hidden = !!h; }); $('#ltl').textContent = h ? 'Book title (shown for the level)' : 'Title'; };
+      if (hb) { hb.onchange = sync; sync(); }
       $('#f').onsubmit = function (e) {
         e.preventDefault();
-        api('saveLesson', { isNew: isNew, LessonID: $('#lid').value.trim(), Level: $('#lv').value, Order: $('#lo').value, LevelName: $('#ln').value, Number: $('#lnum').value, Title: $('#lt').value, MemoryRef: $('#mr').value, MemoryText: $('#mt').value, Question: $('#lq').value })
-          .then(function () { toast('Lesson saved.'); location.hash = '#/setup/lessons'; }).catch(function (x) { toast(x.message); });
+        api('saveLesson', { isNew: isNew, LessonID: $('#lid').value.trim(), Level: $('#lv').value, Order: $('#lo').value, LevelName: $('#ln').value, Number: $('#lnum').value, Title: $('#lt').value, MemoryRef: $('#mr').value, MemoryText: $('#mt').value, Question: $('#lq').value, IsLevel: hb ? hb.checked : undefined, headingId: convert && $('#conv').checked ? convert.LessonID : '' })
+          .then(function () { toast('Saved.'); location.hash = '#/setup/lessons'; }).catch(function (x) { toast(x.message); });
       };
     });
   }
@@ -4504,7 +4567,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       disciples: R >= 1 && mine().disciples && viewDisciples, person: R >= 1 && function () { viewPerson(parts[1], parts[2] === 'record'); }, record: R >= 1 && mine().disciples && viewRecordPick,
       dash: R >= 2 && viewDash, people: R >= 2 && function () { viewPeople(parts[1]); }, reports: R >= 2 && function () { viewReports(parts[1], parts[2]); },
       certadmin: R >= 2 && viewCertAdmin, present: R >= 2 && viewPresent, more: R >= 2 && viewMore, audit: R >= 2 && viewAudit,
-      setup: R >= 3 && function () { ({ congregations: viewCongs, lessons: viewLessonsAdmin, lesson: function () { viewLessonEdit(parts[2]); }, settings: viewSettings, sample: viewSample }[parts[1]] || viewMore)(); }
+      setup: R >= 3 && function () { ({ congregations: viewCongs, lessons: viewLessonsAdmin, lesson: function () { viewLessonEdit(parts[2], parts[3]); }, settings: viewSettings, sample: viewSample }[parts[1]] || viewMore)(); }
     };
     (routes[v] || function () { location.replace('#/' + homeRoute()); })();
   }
