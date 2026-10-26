@@ -76,7 +76,7 @@ Every screen shows the save status at the top: **All changes saved · updated 2 
 
 ## Report PDF
 
-**Reports** (or **Report PDF** on the dashboard): choose a congregation, status and discipler, then tap **Download PDF**. You get summary boxes (people, completed, in progress, ready to graduate, not met recently, not started, expired) and a table of everyone matching, with status, lessons, last and next meeting, and validity. CSV copy and download are still there for spreadsheets.
+**Reports** (or **Report PDF** on the dashboard): choose a congregation, status, discipler and a **From / To** period (or tap This month, Last month, Last 3 months, This year, All time), then tap **Download PDF**. With a period, the report lists the people whose lessons ran in it and adds sessions held, lessons finished and who completed in that period. You get summary boxes (people, completed, in progress, ready to graduate, not met recently, not started, expired) and a table of everyone matching, with status, lessons, last and next meeting, and validity. CSV copy and download are still there for spreadsheets.
 
 ## Trying it with sample data
 
@@ -137,7 +137,9 @@ Set it up once:
 - **Settings:** signatory 1 (senior pastor) and 2 (for example the program director), with titles, and **Signatory 1 photo**.
 - **Congregations:** type preachers with their titles in brackets, for example `Ptr. Jay Caparas (Chief Acts Preacher), Ptr. Robert Malit (Resident Pastor)`, then add each photo.
 
-On the presentation screen choose the date, venue and program name (remembered for next time), tick who to include, and tap **Create PDF**.
+On the presentation screen choose the ceremony date, venue and program name (remembered for next time), then the **From / To** period: only graduates who completed in that period are listed. Tick who to include and tap **Create PDF**.
+
+The discipler shown on each certificate is the one who recorded that graduate's sessions, even if a coordinator marked them fit to graduate.
 
 ## The yearly cycle
 
