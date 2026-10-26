@@ -762,6 +762,39 @@ input[type="date"].i { min-width: 0; -webkit-appearance: none; appearance: none;
 .dcard .row { margin-top: 4px }
 label.row { flex-wrap: nowrap; align-items: flex-start }
 label.row > input[type="checkbox"] { flex: none; margin: 3px 0 0; width: 18px; height: 18px; accent-color: var(--flame) }
+.lbreak { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px }
+.lb { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 99px; background: var(--blank); color: var(--muted) }
+.lb svg { width: 12px; height: 12px }
+.lb.done { background: var(--flame-soft); color: color-mix(in srgb, var(--flame) 85%, var(--ink)) }
+.lb.part { box-shadow: inset 0 0 0 1.5px var(--flame) }
+.lp-hint { margin: 0 0 2px }
+.lg-h .linkbtn { margin-left: auto; font-size: 12.5px }
+
+/* ---------- reflections (self-paced levels) ---------- */
+.lg-tag.sp { background: color-mix(in srgb, var(--gold) 22%, transparent); color: color-mix(in srgb, var(--gold) 45%, var(--ink)) }
+.lt.wide .lg-tag + .lg-tag { margin-left: 4px }
+.refl { display: grid; gap: 12px; border: 1.5px solid color-mix(in srgb, var(--gold) 55%, transparent); background: color-mix(in srgb, var(--gold) 7%, var(--surface)) }
+.rf-h { display: flex; gap: 12px; align-items: center }
+.rf-h > div { display: grid; gap: 2px; min-width: 0 }
+.rf-h .ci { background: color-mix(in srgb, var(--gold) 22%, transparent); color: color-mix(in srgb, var(--gold) 40%, var(--ink)) }
+.rf-t { margin: 0; padding: 12px 14px; border-left: 4px solid var(--gold); border-radius: 0 12px 12px 0; background: var(--surface); font-family: var(--serif); font-size: 16px; line-height: 1.55; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 340px; overflow: auto }
+.refl .row { flex-wrap: wrap }
+.rfd { margin-top: 6px }
+.rfd summary { cursor: pointer; font-weight: 700; color: var(--accent); font-size: 13px }
+.rfd .rf-t { margin-top: 6px; font-size: 15px }
+.pill.refl-p { background: color-mix(in srgb, var(--gold) 22%, transparent); color: color-mix(in srgb, var(--gold) 40%, var(--ink)) }
+.spsw { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; padding: 12px 14px; margin: 0 0 10px; cursor: pointer }
+.spsw input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--flame) }
+.spsw > span { display: grid; gap: 2px }
+.rform p { margin: 0 }
+.rf-back { display: grid; gap: 4px; padding: 12px 14px; border-radius: 14px; background: var(--flame-soft); border: 1px solid color-mix(in srgb, var(--flame) 35%, transparent) }
+.rf-back span { font-family: var(--serif); font-style: italic }
+.rf-q { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--ink); padding: 10px 14px; border-radius: 12px; background: var(--accent-soft) }
+.rl { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); cursor: pointer }
+.rl input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--flame) }
+.rl > span { display: grid; gap: 1px }
+.rl small { color: var(--muted); font-size: 12px }
+.rl.off { opacity: .6; cursor: default }
 
 </style>
 </head>
@@ -778,7 +811,7 @@ window.addEventListener('error', function (e) {
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* Self-update: GitHub Pages lets browsers keep a page for 10 minutes. On open, check for a newer copy and reload once if found. */
-window.APP_BUILD = '20261026233230';
+window.APP_BUILD = '20261027001243';
 (function () {
   if (!/^https?:/.test(location.protocol) || !window.fetch || window.APP_CONFIG_IS_ARTIFACT) return;
   try { if (sessionStorage.getItem('dt-upd') === window.APP_BUILD) return; } catch (e) {}
@@ -811,9 +844,10 @@ var CORE = (function () {
   var SCHEMA = {
     Users: ['UserID', 'Name', 'Mobile', 'PinHash', 'Role', 'CongregationID', 'Status', 'DisciplerID', 'ModCongregations', 'AppointedBy', 'AppointedAt', 'FailCount', 'LockUntil', 'CreatedAt', 'LastLogin', 'Disciples', 'TakesLessons', 'IsSample'],
     Congregations: ['CongregationID', 'Name', 'Location', 'Preachers', 'Status', 'IsSample'],
-    Lessons: ['LessonID', 'Level', 'LevelName', 'Order', 'Number', 'Title', 'MemoryRef', 'MemoryText', 'Published', 'UpdatedAt', 'Question'],
+    Lessons: ['LessonID', 'Level', 'LevelName', 'Order', 'Number', 'Title', 'MemoryRef', 'MemoryText', 'Published', 'UpdatedAt', 'Question', 'SelfPaced'],
     Enrollments: ['EnrollmentID', 'UserID', 'ProgramYear', 'Level', 'Status', 'StartDate', 'CompletedDate', 'ExpiryDate', 'ApprovedBy', 'IsSample'],
-    Sessions: ['SessionID', 'EnrollmentID', 'UserID', 'DisciplerID', 'LessonID', 'Date', 'Finished', 'Notes', 'NextMeeting', 'Confirmed', 'ConfirmedAt', 'CreatedAt', 'IsSample'],
+    Sessions: ['SessionID', 'EnrollmentID', 'UserID', 'DisciplerID', 'LessonID', 'Date', 'Finished', 'Notes', 'NextMeeting', 'Confirmed', 'ConfirmedAt', 'CreatedAt', 'IsSample', 'GroupID', 'Kind', 'Reflection'],
+    Reflections: ['ReflectionID', 'UserID', 'LessonIDs', 'Text', 'SubmittedAt', 'Status', 'ReviewedBy', 'ReviewedAt', 'SessionID', 'ReviewNote', 'IsSample'],
     Certificates: ['CertNo', 'UserID', 'EnrollmentID', 'ProgramYear', 'Level', 'LevelName', 'IssuedDate', 'IssuedBy', 'ValidUntil', 'IsSample'],
     Photos: ['PhotoID', 'Kind', 'OwnerID', 'FileID', 'Thumb', 'CreatedAt', 'CreatedBy', 'IsSample'],
     AuditLog: ['Timestamp', 'UserID', 'Action', 'Target', 'Details'],
@@ -858,6 +892,7 @@ var CORE = (function () {
   }
   // Manila calendar date (UTC+8) as YYYY-MM-DD
   function today() { return new Date(db.now().getTime() + 8 * 36e5).toISOString().slice(0, 10); }
+  function manilaDay(iso) { var t = Date.parse(str(iso)); return isNaN(t) ? str(iso).slice(0, 10) : new Date(t + 8 * 36e5).toISOString().slice(0, 10); }
   function dayMs(d) { return Date.parse(str(d).slice(0, 10) + 'T00:00:00Z'); }
   function isDate(d) { return /^\d{4}-\d{2}-\d{2}$/.test(str(d)) && !isNaN(dayMs(d)); }
   function normMobile(m) {
@@ -923,7 +958,9 @@ var CORE = (function () {
       .sort(function (a, b) { return (+a.Order) - (+b.Order); });
   }
   function levelName(level) { var l = lessonsFor(level, true)[0]; return l && l.LevelName ? l.LevelName : 'Level ' + level; }
-  function lessonMeta(l) { return { LessonID: l.LessonID, Level: l.Level, LevelName: l.LevelName, Order: l.Order, Number: l.Number, Title: l.Title, MemoryRef: l.MemoryRef, MemoryText: l.MemoryText, Question: l.Question || '', Published: isPub(l) }; }
+  function lessonMeta(l) { return { LessonID: l.LessonID, Level: l.Level, LevelName: l.LevelName, Order: l.Order, Number: l.Number, Title: l.Title, MemoryRef: l.MemoryRef, MemoryText: l.MemoryText, Question: l.Question || '', SelfPaced: isTrue(l.SelfPaced), Published: isPub(l) }; }
+  // A self-paced level: the disciple studies alone and sends a reflection instead of meeting
+  function levelSelfPaced(level) { return lessonsFor(level, true).some(function (l) { return isTrue(l.SelfPaced); }); }
   function discipleLogin() { return isTrue(settings().DiscipleLogin); }
 
   /* ---------- enrollments & sessions ---------- */
@@ -943,7 +980,7 @@ var CORE = (function () {
   }
   function sessionView(s) {
     var l = find('Lessons', 'LessonID', s.LessonID);
-    return { SessionID: s.SessionID, Date: s.Date, LessonID: s.LessonID, Lesson: l ? l.Number : s.LessonID, LessonTitle: l ? l.Title : '', Finished: s.Finished === 'TRUE', Notes: s.Notes, NextMeeting: s.NextMeeting, Confirmed: s.Confirmed === 'TRUE', ConfirmedAt: s.ConfirmedAt, Discipler: userName(s.DisciplerID), DisciplerID: s.DisciplerID, Photos: sessionPhotos(s.SessionID) };
+    return { SessionID: s.SessionID, Date: s.Date, LessonID: s.LessonID, Lesson: l ? l.Number : s.LessonID, LessonTitle: l ? l.Title : '', Finished: s.Finished === 'TRUE', Notes: s.Notes, NextMeeting: s.NextMeeting, Confirmed: s.Confirmed === 'TRUE', ConfirmedAt: s.ConfirmedAt, Discipler: userName(s.DisciplerID), DisciplerID: s.DisciplerID, Photos: sessionPhotos(s.SessionID), GroupID: s.GroupID || '', Kind: s.Kind || '', Reflection: s.Reflection || '' };
   }
   function progress(e) {
     var out = { lessons: [], total: 0, finished: 0, sessions: [], lastSession: '', nextMeeting: '', unconfirmed: 0 };
@@ -972,6 +1009,9 @@ var CORE = (function () {
     sessionsOf(e.EnrollmentID).forEach(function (s) { n[s.DisciplerID] = (n[s.DisciplerID] || 0) + 1; if (n[s.DisciplerID] > top) { top = n[s.DisciplerID]; best = s.DisciplerID; } });
     return best;
   }
+  // How many meetings: a meeting that covered several lessons counts once
+  function meetings(list) { var m = {}; list.forEach(function (x) { if (x.Kind !== 'Reflection') m[x.GroupID || x.SessionID] = 1; }); return Object.keys(m).length; }
+  function reflections(list) { var m = {}; list.forEach(function (x) { if (x.Kind === 'Reflection') m[x.GroupID || x.SessionID] = 1; }); return Object.keys(m).length; }
   function enrView(e) {
     if (!e) return null;
     return { EnrollmentID: e.EnrollmentID, ProgramYear: e.ProgramYear, Level: e.Level, LevelName: levelName(e.Level), Status: status(e), StartDate: e.StartDate, CompletedDate: e.CompletedDate, ExpiryDate: e.ExpiryDate, ApprovedBy: userName(e.ApprovedBy) };
@@ -980,7 +1020,7 @@ var CORE = (function () {
   // All levels that have lessons, in order: [{ Level, LevelName, Lessons }]
   function allLevels() {
     var m = {};
-    rows('Lessons').filter(isPub).forEach(function (l) { var k = str(l.Level); m[k] = m[k] || { Level: k, LevelName: l.LevelName || 'Level ' + k, Lessons: 0 }; m[k].Lessons++; });
+    rows('Lessons').filter(isPub).forEach(function (l) { var k = str(l.Level); m[k] = m[k] || { Level: k, LevelName: l.LevelName || 'Level ' + k, Lessons: 0, SelfPaced: false }; m[k].Lessons++; if (isTrue(l.SelfPaced)) m[k].SelfPaced = true; });
     return Object.keys(m).map(function (k) { m[k].Title = levelTitle(k); return m[k]; }).sort(function (a, b) { return (+a.Level) - (+b.Level); });
   }
   // A level that is a single book: its lesson title ("The Foundation"); otherwise blank
@@ -1032,9 +1072,27 @@ var CORE = (function () {
       ReadyToGraduate: st === 'In progress' && p.total > 0 && p.finished === p.total,
       Stale: !!stale, Expiring: !!expiring, ExpiryDate: e ? e.ExpiryDate : '',
       HasCert: e ? !!find('Certificates', 'EnrollmentID', e.EnrollmentID) : false,
-      CreatedAt: x.CreatedAt, PhotoID: personPhoto(x.UserID), Disciples: isTrue(x.Disciples), TakesLessons: isTrue(x.TakesLessons), Tracked: tracked(x), Joined: !str(x.PinHash), LevelsDone: Object.keys(doneLevels(x.UserID)).length, LevelsTotal: allLevels().length, LevelName: e ? levelName(e.Level) : '', IsSample: isTrue(x.IsSample)
+      CreatedAt: x.CreatedAt, PhotoID: personPhoto(x.UserID), Disciples: isTrue(x.Disciples), TakesLessons: isTrue(x.TakesLessons), Tracked: tracked(x), Joined: !str(x.PinHash), LevelsDone: Object.keys(doneLevels(x.UserID)).length, LevelsTotal: allLevels().length, LevelName: e ? levelName(e.Level) : '', ReflectionsWaiting: waiting(x.UserID).length, IsSample: isTrue(x.IsSample)
     };
   }
+  /* ---------- reflections (self-paced levels) ---------- */
+  function waiting(userId) { return (idx('Reflections', 'UserID')[userId] || []).filter(function (r) { return r.Status === 'New'; }); }
+  function reflectionPhotos(id) { return (idx('Photos', 'OwnerID')[id] || []).filter(function (p) { return p.Kind === 'reflection'; }).map(function (p) { return p.PhotoID; }); }
+  function reflectionView(r) {
+    var ids = str(r.LessonIDs).split(',').filter(String), ls = ids.map(function (id) { return find('Lessons', 'LessonID', id); }).filter(Boolean);
+    return { ReflectionID: r.ReflectionID, UserID: r.UserID, LessonIDs: ids, Lessons: ls.map(function (l) { return { LessonID: l.LessonID, Number: l.Number, Title: l.Title, Level: l.Level }; }), Level: ls.length ? ls[0].Level : '', Text: r.Text, SubmittedAt: r.SubmittedAt, Status: r.Status, ReviewNote: r.ReviewNote, ReviewedBy: userName(r.ReviewedBy), Photos: reflectionPhotos(r.ReflectionID) };
+  }
+  // A personal link for each disciple to send reflections without an account: #/reflect/<UserID>.<signature>
+  function reflectToken(userId) { return userId + '.' + db.sign('R.' + userId).slice(0, 22); }
+  function reflectUser(tok) {
+    tok = str(tok); var i = tok.lastIndexOf('.'), id = tok.slice(0, i);
+    if (i < 1 || reflectToken(id) !== tok) fail('This link isn’t valid. Ask your discipler to send it again.');
+    var t = find('Users', 'UserID', id);
+    if (!t || t.Status !== 'Active' || !tracked(t)) fail('This link is no longer active. Please contact your discipler.');
+    return t;
+  }
+  // The level a reflection is for: the one the disciple is on now, or the next one not completed
+  function reflectLevel(t) { return logLevel(current(t.UserID), t.UserID); }
   function target(u, id, mustScope) {
     var t = find('Users', 'UserID', id);
     if (!t) fail('Person not found.');
@@ -1188,6 +1246,8 @@ var CORE = (function () {
     o.logLessons = rows('Lessons').filter(isPub).sort(function (a, b) { return (+a.Level - +b.Level) || (+a.Order - +b.Order); }).map(lessonMeta);
     o.tracked = tracked(t);
     o.canLog = o.tracked && o.levels.some(function (x) { return x.State !== 'done'; });
+    o.reflections = waiting(t.UserID).map(reflectionView);
+    o.reflectToken = o.tracked ? reflectToken(t.UserID) : '';
     return o;
   };
   A.logSession = function (q, u) {
@@ -1197,8 +1257,13 @@ var CORE = (function () {
     var sid = /^S-[a-z0-9]{6,24}$/.test(str(q.sessionId)) ? str(q.sessionId) : '';
     if (sid) { var dup = find('Sessions', 'SessionID', sid); if (dup) { if (dup.UserID === t.UserID) return { ok: true, session: sessionView(dup) }; fail('Please try again.'); } }
     if (t.Status !== 'Active') fail('This account is not active.');
-    var l = find('Lessons', 'LessonID', q.lessonId);
-    if (!l || !isPub(l)) fail('Choose the lesson you covered.');
+    // one meeting can cover several lessons of the same level
+    var ids = [].concat(q.lessonIds && q.lessonIds.length ? q.lessonIds : q.lessonId).map(str).filter(String).filter(function (x, i, a) { return a.indexOf(x) === i; }).slice(0, 40);
+    var lessons = ids.map(function (id) { return find('Lessons', 'LessonID', id); });
+    if (!lessons.length || lessons.some(function (x) { return !x || !isPub(x); })) fail('Choose the lesson you covered.');
+    var l = lessons[0];
+    if (lessons.some(function (x) { return str(x.Level) !== str(l.Level); })) fail('Choose lessons from one level at a time.');
+    lessons.sort(function (a, b) { return (+a.Order) - (+b.Order); }); l = lessons[0];
     var d = str(q.date);
     if (!isDate(d)) fail('Enter the date you met.');
     if (d > today()) fail('The meeting date can’t be in the future.');
@@ -1222,9 +1287,14 @@ var CORE = (function () {
       ins('Enrollments', e);
       audit(u, 'Started lessons', t.UserID, levelName(lv) + ' ' + e.ProgramYear);
     }
-    var s = { SessionID: sid || 'S-' + db.uid().slice(0, 8), EnrollmentID: e.EnrollmentID, UserID: t.UserID, DisciplerID: u.UserID, LessonID: l.LessonID, Date: d, Finished: q.finished === false || q.finished === 'false' ? 'FALSE' : 'TRUE', Notes: str(q.notes).slice(0, 1000), NextMeeting: nm, Confirmed: 'FALSE', ConfirmedAt: '', CreatedAt: nowIso() };
-    ins('Sessions', s);
-    audit(u, 'Logged session', t.UserID, l.Number + (s.Finished === 'TRUE' ? ' finished' : ' continued') + ' · ' + d);
+    var refl = q.kind === 'Reflection' || levelSelfPaced(lv), rtext = refl ? str(q.reflection).trim().slice(0, 5000) : '';
+    if (refl && !rtext && !q.withPhotos) fail('Type or paste ' + first + '’s reflection, or add a photo of it.');
+    var base = sid || 'S-' + db.uid().slice(0, 8), fin = refl || !(q.finished === false || q.finished === 'false') ? 'TRUE' : 'FALSE', s = null;
+    lessons.forEach(function (ls, i) {
+      var row = { SessionID: i ? base + 'x' + (i + 1) : base, EnrollmentID: e.EnrollmentID, UserID: t.UserID, DisciplerID: u.UserID, LessonID: ls.LessonID, Date: d, Finished: fin, Notes: i ? '' : str(q.notes).slice(0, 1000), NextMeeting: nm, Confirmed: 'FALSE', ConfirmedAt: '', CreatedAt: nowIso(), GroupID: lessons.length > 1 ? base : '', Kind: refl ? 'Reflection' : '', Reflection: i ? '' : rtext };
+      ins('Sessions', row); if (!i) s = row;
+    });
+    audit(u, refl ? 'Recorded reflection' : 'Logged session', t.UserID, lessons.map(function (x) { return x.Number; }).join(', ') + (refl ? '' : fin === 'TRUE' ? ' finished' : ' continued') + ' · ' + d);
     var completed = false;
     if ((q.complete === true || q.complete === 'true') && s.Finished === 'TRUE') { var pp = progress(e); if (pp.total && pp.finished === pp.total) { completeLevel(e, u, t); completed = true; } }
     return { ok: true, session: sessionView(s), enrollmentId: e.EnrollmentID, completed: completed };
@@ -1237,9 +1307,75 @@ var CORE = (function () {
     if (!(s.DisciplerID === u.UserID || (RANK[u.Role] >= 2 && inScope(u, t)))) fail('Only the discipler who logged it, or a coordinator, can remove this session.');
     var e = find('Enrollments', 'EnrollmentID', s.EnrollmentID);
     if (e && e.Status !== 'In progress') fail('This level is already completed, so its sessions can’t be removed.');
-    upd('Sessions', 'SessionID', s.SessionID, { EnrollmentID: 'deleted:' + s.EnrollmentID, UserID: 'deleted:' + s.UserID });
+    var group = s.GroupID ? rows('Sessions').filter(function (x) { return x.GroupID === s.GroupID && str(x.UserID).indexOf('deleted:') !== 0; }) : [s];
+    group.forEach(function (x) { upd('Sessions', 'SessionID', x.SessionID, { EnrollmentID: 'deleted:' + x.EnrollmentID, UserID: 'deleted:' + x.UserID }); });
     audit(u, 'Removed session', t.UserID, s.Date + ' ' + s.LessonID);
     return { ok: true };
+  };
+  // The discipler reads a reflection the disciple sent: accept it (records the lessons as finished) or ask for more
+  A.reviewReflection = function (q, u) {
+    need(u, 'Discipler');
+    var r = find('Reflections', 'ReflectionID', q.reflectionId);
+    if (!r) fail('Reflection not found.');
+    var t = target(u, r.UserID);
+    if (!canGuide(u, t)) fail('Only ' + t.Name.split(' ')[0] + '’s discipler or a coordinator can review this.');
+    if (q.decision === 'return') {
+      if (r.Status === 'Returned') return { ok: true };
+      if (r.Status !== 'New') fail('This reflection was already accepted.');
+      upd('Reflections', 'ReflectionID', r.ReflectionID, { Status: 'Returned', ReviewNote: str(q.note).trim().slice(0, 500), ReviewedBy: u.UserID, ReviewedAt: nowIso() });
+      audit(u, 'Asked for more on a reflection', t.UserID, r.LessonIDs);
+      return { ok: true, returned: true };
+    }
+    if (r.Status === 'Accepted') return { ok: true, sessionId: r.SessionID };
+    if (r.Status !== 'New') fail('This reflection was sent back for more. Wait for the new one.');
+    var pics = reflectionPhotos(r.ReflectionID), day = manilaDay(r.SubmittedAt);
+    if (!isDate(day) || day > today()) day = today();
+    var res = A.logSession({ userId: t.UserID, lessonIds: str(r.LessonIDs).split(',').filter(String), date: day, kind: 'Reflection', reflection: r.Text, withPhotos: pics.length > 0, finished: true, notes: str(q.notes), complete: q.complete, sessionId: q.sessionId, enrollmentId: q.enrollmentId }, u);
+    var sid = res.session.SessionID;
+    if (pics.length) upd('Photos', 'OwnerID', r.ReflectionID, { Kind: 'session', OwnerID: sid });
+    upd('Reflections', 'ReflectionID', r.ReflectionID, { Status: 'Accepted', ReviewedBy: u.UserID, ReviewedAt: nowIso(), SessionID: sid });
+    return { ok: true, session: res.session, sessionId: sid, completed: res.completed, enrollmentId: res.enrollmentId };
+  };
+  // Public: what the disciple sees when opening their personal reflection link
+  A.reflectInfo = function (q) {
+    var t = reflectUser(q.t), s = settings(), lv = reflectLevel(t), out = { first: t.Name.split(' ')[0], discipler: userName(t.DisciplerID).split(' ')[0], churchName: s.ChurchName, programName: s.ProgramName, level: null, lessons: [], submissions: [] };
+    var sent = {}; waiting(t.UserID).forEach(function (r) { str(r.LessonIDs).split(',').forEach(function (id) { sent[id] = 1; }); });
+    if (lv != null) {
+      var e = current(t.UserID), pr = e && status(e) === 'In progress' && +e.Level === lv ? progress(e) : null;
+      out.level = { Level: String(lv), LevelName: levelName(lv), Title: levelTitle(lv), SelfPaced: levelSelfPaced(lv) };
+      if (out.level.SelfPaced) out.lessons = lessonsFor(lv).map(function (l) {
+        var m = pr ? pr.lessons.filter(function (x) { return x.LessonID === l.LessonID; })[0] : null;
+        return { LessonID: l.LessonID, Number: l.Number, Title: l.Title, Question: l.Question || '', State: m && m.State === 'Finished' ? 'Finished' : sent[l.LessonID] ? 'Sent' : 'Open' };
+      });
+    }
+    out.submissions = (idx('Reflections', 'UserID')[t.UserID] || []).slice(-6).reverse().map(function (r) { var v = reflectionView(r); return { Lessons: v.Lessons.map(function (l) { return l.Title; }), SubmittedAt: v.SubmittedAt, Status: v.Status, ReviewNote: v.ReviewNote }; });
+    return out;
+  };
+  // Public: the disciple sends a reflection (text, photos of a handwritten one, or both). Their discipler reviews it.
+  A.submitReflection = function (q) {
+    if (str(q.website)) return { ok: true };
+    var t = reflectUser(q.t);
+    if (db.rate && !db.rate('reflect', 60, 600)) fail('Many reflections are being sent right now. Please try again in a few minutes.');
+    if (waiting(t.UserID).length >= 5) fail('You have 5 reflections waiting for your discipler. Please wait until they’ve read them.');
+    var lv = reflectLevel(t);
+    if (lv == null || !levelSelfPaced(lv)) fail('Your next lesson is with your discipler, so there’s nothing to send right now.');
+    var allowed = lessonsFor(lv).map(function (l) { return l.LessonID; });
+    var ids = [].concat(q.lessonIds || []).map(str).filter(function (x, i, a) { return allowed.indexOf(x) >= 0 && a.indexOf(x) === i; });
+    if (!ids.length) fail('Choose the lesson your reflection is for.');
+    var text = str(q.text).trim().slice(0, 5000), photos = [].concat(q.photos || []).slice(0, 3).filter(function (p) { return p && p.full; });
+    if (text.length < 20 && !photos.length) fail('Please write a little more, or add a photo of your written reflection.');
+    photos.forEach(function (p) {
+      if (!/^[A-Za-z0-9+\/=]+$/.test(b64(p.full)) || b64(p.full).length < 100 || b64(p.full).length > 900000 || !/^[A-Za-z0-9+\/=]+$/.test(b64(p.thumb)) || b64(p.thumb).length > 45000) fail('A photo couldn’t be read. Please try another one.');
+    });
+    var r = { ReflectionID: 'R-' + db.uid().slice(0, 10), UserID: t.UserID, LessonIDs: ids.join(','), Text: text, SubmittedAt: nowIso(), Status: 'New', ReviewedBy: '', ReviewedAt: '', SessionID: '', ReviewNote: '' };
+    ins('Reflections', r);
+    photos.forEach(function (p) {
+      var id = 'P-' + db.uid().slice(0, 10), full = b64(p.full);
+      var fileId = db.saveFile ? db.saveFile('reflection-' + r.ReflectionID + '-' + id + '.jpg', full) : '';
+      ins('Photos', { PhotoID: id, Kind: 'reflection', OwnerID: r.ReflectionID, FileID: fileId, Thumb: b64(p.thumb), CreatedAt: nowIso(), CreatedBy: t.UserID, IsSample: '' });
+    });
+    audit(t, 'Sent a reflection', t.UserID, ids.join(', '));
+    return { ok: true, discipler: userName(t.DisciplerID).split(' ')[0] };
   };
   A.graduate = function (q, u) {
     need(u, 'Discipler');
@@ -1260,7 +1396,7 @@ var CORE = (function () {
     audit(u, 'Approved to graduate', t.UserID, levelName(e.Level) + ' ' + e.ProgramYear);
   }
   // Several waiting changes from a phone in one request, followed by a fresh copy: one trip to the server instead of many.
-  var BATCHABLE = { addPerson: 1, logSession: 1, deleteSession: 1, confirmSession: 1, graduate: 1, approveUser: 1, assign: 1, setRole: 1, setStatus: 1, updatePerson: 1, setOptions: 1, setPublished: 1, saveLesson: 1, saveSettings: 1 };
+  var BATCHABLE = { addPerson: 1, logSession: 1, reviewReflection: 1, setSelfPaced: 1, deleteSession: 1, confirmSession: 1, graduate: 1, approveUser: 1, assign: 1, setRole: 1, setStatus: 1, updatePerson: 1, setOptions: 1, setPublished: 1, saveLesson: 1, saveSettings: 1 };
   A.batch = function (q, u) {
     var out = [];
     [].concat(q.ops || []).slice(0, 50).forEach(function (op) {
@@ -1286,7 +1422,7 @@ var CORE = (function () {
     var all = scopedUsers(u);
     var people = all.filter(function (x) { return x.Status === 'Active' && RANK[x.Role] <= 1 && tracked(x); }).map(personRow);
     var certWait = rows('Enrollments').filter(function (e) { var o = find('Users', 'UserID', e.UserID); return o && inScope(u, o) && status(e) === 'Completed' && !find('Certificates', 'EnrollmentID', e.EnrollmentID); }).length;
-    var counts = { certs: certWait, people: people.length, pending: all.filter(function (x) { return x.Status === 'Pending'; }).length, 'Not started': 0, 'In progress': 0, Completed: 0, Expired: 0, stale: 0, ready: 0, expiring: 0, unassigned: 0 };
+    var counts = { reflections: people.reduce(function (n, p) { return n + p.ReflectionsWaiting; }, 0), certs: certWait, people: people.length, pending: all.filter(function (x) { return x.Status === 'Pending'; }).length, 'Not started': 0, 'In progress': 0, Completed: 0, Expired: 0, stale: 0, ready: 0, expiring: 0, unassigned: 0 };
     people.forEach(function (p) {
       counts[p.LessonStatus] = (counts[p.LessonStatus] || 0) + 1;
       if (p.Stale) counts.stale++; if (p.ReadyToGraduate) counts.ready++; if (p.Expiring) counts.expiring++;
@@ -1295,7 +1431,7 @@ var CORE = (function () {
     var monthAgo = new Date(dayMs(today()) - 30 * DAY).toISOString().slice(0, 10);
     var disciplers = all.filter(function (x) { return disciplesOthers(x) && x.Status === 'Active'; }).map(function (d) {
       var mine = people.filter(function (p) { return p.DisciplerID === d.UserID; });
-      var recent = rows('Sessions').filter(function (s) { return s.DisciplerID === d.UserID && s.Date >= monthAgo && str(s.UserID).indexOf('deleted:') !== 0; }).length;
+      var recent = meetings(rows('Sessions').filter(function (s) { return s.DisciplerID === d.UserID && s.Date >= monthAgo && str(s.UserID).indexOf('deleted:') !== 0; }));
       return { UserID: d.UserID, Name: d.Name, PhotoID: personPhoto(d.UserID), Congregation: congName(d.CongregationID), Disciples: mine.length, Completed: mine.filter(function (p) { return p.LessonStatus === 'Completed'; }).length, InProgress: mine.filter(function (p) { return p.LessonStatus === 'In progress'; }).length, Stale: mine.filter(function (p) { return p.Stale; }).length, Sessions30: recent };
     });
     var byCong = {};
@@ -1303,7 +1439,7 @@ var CORE = (function () {
     var weekAgo = new Date(dayMs(today()) - 6 * DAY).toISOString().slice(0, 10), mineIds = {};
     people.forEach(function (p) { mineIds[p.UserID] = 1; });
     var wk = rows('Sessions').filter(function (s) { return mineIds[s.UserID] && s.Date >= weekAgo; });
-    var week = { sessions: wk.length, finished: wk.filter(function (s) { return s.Finished === 'TRUE'; }).length, signups: all.filter(function (x) { return str(x.CreatedAt).slice(0, 10) >= weekAgo; }).length };
+    var week = { sessions: meetings(wk), reflections: reflections(wk), finished: wk.filter(function (s) { return s.Finished === 'TRUE'; }).length, signups: all.filter(function (x) { return str(x.CreatedAt).slice(0, 10) >= weekAgo; }).length };
     return { counts: counts, week: week, disciplers: disciplers, congregations: Object.keys(byCong).map(function (k) { return byCong[k]; }), staleDays: +settings().StaleDays || 30 };
   };
   A.people = function (q, u) {
@@ -1416,8 +1552,8 @@ var CORE = (function () {
       r = r.filter(function (x) {
         var e = x.EnrollmentID ? find('Enrollments', 'EnrollmentID', x.EnrollmentID) : null;
         var ss = e ? sessionsOf(e.EnrollmentID).filter(function (s2) { return s2.Date >= lo && s2.Date <= hi; }) : [];
-        var cd = e && e.CompletedDate ? str(e.CompletedDate).slice(0, 10) : '';
-        x.PeriodSessions = ss.length; x.PeriodFinished = ss.filter(function (s2) { return s2.Finished === 'TRUE'; }).length;
+        var cd = e && e.CompletedDate ? manilaDay(e.CompletedDate) : '';
+        x.PeriodSessions = meetings(ss); x.PeriodFinished = ss.filter(function (s2) { return s2.Finished === 'TRUE'; }).length;
         x.CompletedInPeriod = !!cd && cd >= lo && cd <= hi; x.CompletedOn = cd;
         if (!e) return str(x.CreatedAt).slice(0, 10) <= hi;
         return str(e.StartDate).slice(0, 10) <= hi && (!cd || cd >= lo);
@@ -1428,6 +1564,7 @@ var CORE = (function () {
     else if (f === 'Stale') r = r.filter(function (x) { return x.Stale; });
     else if (f === 'Ready') r = r.filter(function (x) { return x.ReadyToGraduate; });
     else if (f === 'Expiring') r = r.filter(function (x) { return x.Expiring; });
+    else if (f === 'Reflections') r = r.filter(function (x) { return x.ReflectionsWaiting > 0; });
     else if (f) r = r.filter(function (x) { return x.LessonStatus === f; });
     r.sort(function (a, b) { return (a.Congregation + a.Name).localeCompare(b.Congregation + b.Name); });
     return { rows: r, generated: nowIso(), from: F, to: T };
@@ -1485,6 +1622,7 @@ var CORE = (function () {
     if (u.Role === 'Admin') return true;
     if (p.Kind === 'person') { var o = find('Users', 'UserID', p.OwnerID); return p.OwnerID === u.UserID || canGuide(u, o) || isDisciplerOf(u, o); }
     if (p.Kind === 'preacher') return RANK[u.Role] >= 1;
+    if (p.Kind === 'reflection') { var rf = find('Reflections', 'ReflectionID', p.OwnerID), ro = rf && find('Users', 'UserID', rf.UserID); return !!ro && (canGuide(u, ro) || isDisciplerOf(u, ro)); }
     if (p.Kind === 'session') {
       var s = find('Sessions', 'SessionID', p.OwnerID); if (!s) return false;
       var own = find('Users', 'UserID', s.UserID);
@@ -1569,6 +1707,8 @@ var CORE = (function () {
       var c2 = {}; Object.keys(s).forEach(function (k) { c2[k] = s[k]; }); c2.Notes = ''; return c2; // notes about yourself stay private
     });
     var certs = rows('Certificates').filter(function (c) { return inc[c.UserID]; });
+    var refl = rows('Reflections').filter(function (r) { return inc[r.UserID] && r.UserID !== u.UserID; }), rt = {};
+    Object.keys(inc).forEach(function (k) { var x = inc[k]; if (canGuide(u, x) && tracked(x)) rt[k] = reflectToken(k); });
     var log = RANK[u.Role] >= 2 ? A.auditLog({}, u).log : [];
     var refs = {};
     Object.keys(inc).forEach(function (k) { var x = inc[k]; [x.DisciplerID, x.AppointedBy].forEach(function (r) { if (r) refs[r] = 1; }); });
@@ -1580,7 +1720,7 @@ var CORE = (function () {
     Object.keys(refs).forEach(function (id) { if (!inc[id]) { var x = find('Users', 'UserID', id); if (x) users.push({ UserID: x.UserID, Name: x.Name, Role: x.Role, Status: 'Stub' }); } });
     var photos = rows('Photos').filter(function (p) { return canSeePhoto(u, p); });
     return {
-      at: nowIso(), me: u.UserID, log: log,
+      at: nowIso(), me: u.UserID, log: log, rt: rt,
       tables: {
         Users: packTable(users, userCols),
         Congregations: packTable(rows('Congregations'), SCHEMA.Congregations),
@@ -1588,6 +1728,7 @@ var CORE = (function () {
         Enrollments: packTable(enr, SCHEMA.Enrollments),
         Sessions: packTable(ses, SCHEMA.Sessions),
         Certificates: packTable(certs, SCHEMA.Certificates),
+        Reflections: packTable(refl, SCHEMA.Reflections),
         Settings: packTable(rows('Settings'), SCHEMA.Settings),
         Photos: packTable(photos, ['PhotoID', 'Kind', 'OwnerID', 'CreatedAt', 'CreatedBy'])
       }
@@ -1700,6 +1841,14 @@ var CORE = (function () {
     audit(u, 'Saved lesson', id, rec.Number + ' ' + rec.Title);
     return { ok: true };
   };
+  A.setSelfPaced = function (q, u) {
+    need(u, 'Admin');
+    var ls = lessonsFor(q.level, true); if (!ls.length) fail('Level not found.');
+    var on = tf(q.on);
+    ls.forEach(function (l) { upd('Lessons', 'LessonID', l.LessonID, { SelfPaced: on, UpdatedAt: nowIso() }); });
+    audit(u, on === 'TRUE' ? 'Made level self-paced' : 'Made level guided', '', levelName(q.level));
+    return { ok: true };
+  };
   A.setPublished = function (q, u) {
     need(u, 'Admin');
     var l = find('Lessons', 'LessonID', q.lessonId); if (!l) fail('Lesson not found.');
@@ -1723,7 +1872,7 @@ var CORE = (function () {
     return { log: r.map(function (a) { return { Timestamp: a.Timestamp, Who: userName(a.UserID), Action: a.Action, Target: userName(a.Target) || a.Target, Details: a.Details }; }) };
   };
 
-  var PUBLIC = { ping: 1, publicInfo: 1, register: 1, join: 1, login: 1, lookup: 1 };
+  var PUBLIC = { ping: 1, publicInfo: 1, register: 1, join: 1, login: 1, lookup: 1, reflectInfo: 1, submitReflection: 1 };
 
   function handle(adapter, req) {
     db = adapter; IDX = {};
@@ -1945,11 +2094,19 @@ var DEMO = (function () {
     a.insert('Certificates', { CertNo: 'MBBE-DG-' + (+yr - 1) + '-0001', UserID: 'U-dr1', EnrollmentID: 'E-dr1', ProgramYear: String(+yr - 1), Level: '1', LevelName: 'The Foundation · Level One', IssuedDate: iso(now - 318 * day), IssuedBy: 'U-mod1', ValidUntil: iso(now + 45 * day) });
     [['Signatory1', 'Sample Senior Pastor'], ['Signatory2', 'Grace Mendoza']].forEach(function (s) { a.insert('Settings', { Key: s[0], Value: s[1] }); });
   }
-  var KEY = 'mbbe-disc-demo-v3', tables = null, adapter;
+  // Only for the browser demo: a self-paced Level Two, with a reflection from Joy waiting for Paolo to read.
+  function extras(a) {
+    var day = 864e5, now = Date.now(), iso = function (ms) { return new Date(ms).toISOString(); };
+    [['L2-01', 1, 'Lesson One', 'Talking with God', 'What is one thing you want to start praying about every day?'], ['L2-02', 2, 'Lesson Two', 'Feeding on the Word', 'Which verse from this lesson will you carry with you this week?']].forEach(function (l) {
+      a.insert('Lessons', { LessonID: l[0], Level: '2', LevelName: 'Growing Daily · Level Two', Order: String(l[1]), Number: l[2], Title: l[3], MemoryRef: '', MemoryText: '', Published: 'TRUE', UpdatedAt: iso(now), Question: l[4], SelfPaced: 'TRUE' });
+    });
+    a.insert('Reflections', { ReflectionID: 'R-demo1', UserID: 'U-d3', LessonIDs: 'L2-01', Text: 'This lesson reminded me that prayer is simply talking with God, not saying the right words. I usually only pray when something goes wrong. This week I want to start each morning with five minutes of prayer before I open my phone, and thank Him for one thing every day.', SubmittedAt: iso(now - 1 * day), Status: 'New', ReviewedBy: '', ReviewedAt: '', SessionID: '', ReviewNote: '' });
+  }
+  var KEY = 'mbbe-disc-demo-v4', tables = null, adapter;
   function load() {
     try { tables = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { tables = null; }
     var save = function () { try { localStorage.setItem(KEY, JSON.stringify(tables)); } catch (e) {} };
-    if (!tables) { tables = {}; adapter = Adapter(tables, null); seed(adapter); save(); }
+    if (!tables) { tables = {}; adapter = Adapter(tables, null); seed(adapter); extras(adapter); save(); }
     adapter = Adapter(tables, save);
   }
   return {
@@ -2046,7 +2203,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
      so they open instantly. Changes are applied to the copy at once and sent to the server in the background. */
   var LOCAL = null, SNAP = null, OUTBOX = [], syncing = false, lastPull = 0, pulling = null;
   var LOCAL_READS = { me: 1, home: 1, myDisciples: 1, person: 1, people: 1, dashboard: 1, report: 1, certQueue: 1, lessonList: 1, certificate: 1, preacherPhotos: 1 };
-  var QUEUED = { addPerson: 1, logSession: 1, deleteSession: 1, confirmSession: 1, graduate: 1, approveUser: 1, assign: 1, setRole: 1, setStatus: 1, updatePerson: 1, setOptions: 1, setPublished: 1, saveLesson: 1, saveSettings: 1 };
+  var QUEUED = { addPerson: 1, logSession: 1, reviewReflection: 1, setSelfPaced: 1, deleteSession: 1, confirmSession: 1, graduate: 1, approveUser: 1, assign: 1, setRole: 1, setStatus: 1, updatePerson: 1, setOptions: 1, setPublished: 1, saveLesson: 1, saveSettings: 1 };
   function uid() { return S.token ? String(S.token).split('.')[0] : ''; }
   function snapKey() { return 'dt-snap:' + uid(); }
   function boxKey() { return 'dt-outbox:' + uid(); }
@@ -2104,6 +2261,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
     if (LOCAL && QUEUED[action]) {
       if (action === 'addPerson') params.userId = params.userId || newId('U');
+      if (action === 'reviewReflection' && params.decision !== 'return') { params.sessionId = params.sessionId || newId('S'); params.enrollmentId = params.enrollmentId || newId('E'); }
       if (action === 'logSession') { params.sessionId = params.sessionId || newId('S'); params.enrollmentId = params.enrollmentId || newId('E'); }
       var w = runLocal(action, params);
       if (!w.ok) return Promise.reject(new Error(w.error));
@@ -2319,6 +2477,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     download: '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/>',
     qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/>',
     link: '<path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>',
+    chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8 10h8M8 13.5h5"/>',
     copy: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>'
   };
   function icon(n) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[n] + '</svg>'; }
@@ -2551,6 +2710,24 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       return (i ? '<i class="ln' + (lessons[i - 1].State === 'Finished' ? ' on' : '') + '"></i>' : '') + '<span class="dot ' + st + '" title="' + esc(l.Number + ' · ' + l.Title) + '">' + esc(l.Short || shortNum(l, i)) + '</span>';
     }).join('') + '</div>';
   }
+  // A meeting that covered several lessons is stored as one row per lesson with a shared GroupID; show it as one.
+  function groupSessions(list) {
+    var out = [], at = {};
+    list.forEach(function (x) {
+      var k = x.GroupID || x.SessionID;
+      if (at[k] == null) { at[k] = out.length; out.push({ rows: [] }); }
+      out[at[k]].rows.push(x);
+    });
+    return out.map(function (g) {
+      var rows = g.rows.sort(function (a, b) { return a.SessionID.length - b.SessionID.length || a.SessionID.localeCompare(b.SessionID); });
+      var base = Object.assign({}, rows[0], { Parts: rows });
+      if (rows.length > 1) {
+        base.Lesson = rows.map(function (x) { return x.Lesson; }).join(', ');
+        base.LessonTitle = rows.map(function (x) { return x.LessonTitle; }).join(' · ');
+      }
+      return base;
+    });
+  }
   // Where someone is in the program. With several levels (books), progress is counted in levels.
   function progressModel(d) {
     var e = d.enrollment, pr = d.progress, levels = d.levels || [], open = !!(e && e.Status === 'In progress'), lvState = {};
@@ -2581,7 +2758,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     return '<ol class="tl">' + levels.map(function (x) {
       var st = x.State === 'done' ? 'done' : x.State === 'current' ? 'cur' : '';
       var sub = st === 'done' ? 'Completed ' + fmtDay(x.CompletedDate) : st === 'cur' ? (pr.total > 1 ? pr.finished + ' of ' + pr.total + ' lessons finished' : 'In progress') : 'Not started';
-      return '<li class="' + st + '"><span class="tl-dot">' + (st === 'done' ? CHECK : '') + '</span><span class="tl-b"><span class="cl-num">Level ' + esc(x.Level) + '</span><span class="cl-title">' + esc(x.Title || x.LevelName) + '</span><span class="cl-sub">' + sub + '</span>' +
+      return '<li class="' + st + '"><span class="tl-dot">' + (st === 'done' ? CHECK : '') + '</span><span class="tl-b"><span class="cl-num">Level ' + esc(x.Level) + (x.SelfPaced ? ' · self-paced' : '') + '</span><span class="cl-title">' + esc(x.Title || x.LevelName) + '</span><span class="cl-sub">' + sub + '</span>' +
+        (st === 'cur' && pr.lessons.length > 1 ? '<span class="lbreak">' + pr.lessons.map(function (l) { return '<span class="lb' + (l.State === 'Finished' ? ' done' : l.State === 'Started' ? ' part' : '') + '">' + (l.State === 'Finished' ? CHECK : '') + esc(l.Title) + '</span>'; }).join('') + '</span>' : '') +
         (st === 'cur' && pr.nextMeeting ? '<span class="nextchip">' + icon('cal') + 'Next meeting ' + esc(fmtDayShort(pr.nextMeeting)) + '</span>' : '') + '</span></li>';
     }).join('') + '</ol>';
   }
@@ -2630,7 +2808,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         }).join('') + '</div>';
       }
       if (p.sessions.length) {
-        html += '<h3>Meetings</h3><div class="list">' + p.sessions.map(function (s) {
+        html += '<h3>Meetings</h3><div class="list">' + groupSessions(p.sessions).map(function (s) {
           return '<div class="item meet"><div class="t">' + esc(fmtDay(s.Date)) + '</div><span class="small muted">' + esc(s.Lesson) + '</span>' +
             '<div class="s">' + esc(s.LessonTitle) + (s.Finished ? '' : ' (continued next time)') + ' · with ' + esc(s.Discipler) +
             ((s.Photos || []).length ? '<div class="shots">' + s.Photos.map(function (id) { return '<span class="shot">' + avatar(id, 'shot-img', 'Session photo').replace('<img ', '<img data-open="' + esc(id) + '" ') + '</span>'; }).join('') + '</div>' : '') + '</div></div>';
@@ -2677,6 +2855,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var f = '';
     if (p.Status !== 'Active') return pill(p.Status);
     if (p.Tracked === false) return '';
+    if (p.ReflectionsWaiting) f += pill('Pending', p.ReflectionsWaiting === 1 ? 'Reflection to read' : p.ReflectionsWaiting + ' reflections to read');
     if (p.ReadyToGraduate) f += pill('Pending', 'Ready to graduate');
     else if (p.Stale) f += pill('Returned', p.LastSession ? 'No meeting ' + daysAgo(p.LastSession) + 'd' : 'No meeting yet');
     else if (p.Expiring) f += pill('Pending', 'Expires ' + fmtDate(p.ExpiryDate));
@@ -2695,11 +2874,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (p.NextMeeting) sub.push('next ' + fmtDayShort(p.NextMeeting));
     if (p.Discipler && extra !== 'nodisc' && p.Tracked !== false) sub.push('Discipler: ' + p.Discipler);
     var bar = progBar(p);
-    return '<a class="item person-item' + (p.ReadyToGraduate ? ' is-ready' : p.Stale ? ' is-stale' : '') + '" href="' + (href || '#/person/' + esc(p.UserID)) + '">' + avatar(p.PhotoID, '', '') + '<div class="pi"><div class="t">' + esc(p.Name) + (p.Role !== 'Disciple' ? ' <span class="pill plain">' + esc(p.Role) + '</span>' : '') + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</div>' +
+    return '<a class="item person-item' + (p.ReadyToGraduate || p.ReflectionsWaiting ? ' is-ready' : p.Stale ? ' is-stale' : '') + '" href="' + (href || '#/person/' + esc(p.UserID)) + '">' + avatar(p.PhotoID, '', '') + '<div class="pi"><div class="t">' + esc(p.Name) + (p.Role !== 'Disciple' ? ' <span class="pill plain">' + esc(p.Role) + '</span>' : '') + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</div>' +
       '<div class="row">' + flags(p) + '</div>' + bar +
       (sub.length ? '<div class="s">' + esc(sub.filter(Boolean).join(' · ')) + '</div>' : '') + '</div></a>';
   }
-  function priority(p) { return p.ReadyToGraduate ? 0 : p.Stale ? 1 : p.LessonStatus === 'In progress' ? 2 : p.LessonStatus === 'Not started' || p.LessonStatus === 'Expired' ? 3 : 4; }
+  function priority(p) { return p.ReflectionsWaiting ? -1 : p.ReadyToGraduate ? 0 : p.Stale ? 1 : p.LessonStatus === 'In progress' ? 2 : p.LessonStatus === 'Not started' || p.LessonStatus === 'Expired' ? 3 : 4; }
   function bySort(a, b) { return priority(a) - priority(b) || a.Name.localeCompare(b.Name); }
   function viewDisciples() {
     var own = role() === 'Discipler';
@@ -2727,12 +2906,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     all.forEach(function (l) { var k = String(l.Level); if (!by[k]) { by[k] = []; groups.push(k); } by[k].push(l); });
     return groups.map(function (k) {
       var ls = by[k], done = PM.lvState[k] === 'done', cur = PM.lvState[k] === 'current', lvName = ls[0].LevelName || 'Level ' + k, name = ls.length === 1 ? ls[0].Title || lvName : lvName;
-      var tag = done ? '<span class="lg-tag ok">Completed</span>' : cur ? '<span class="lg-tag">In progress</span>' : '';
+      var tag = (done ? '<span class="lg-tag ok">Completed</span>' : cur ? '<span class="lg-tag">In progress</span>' : '') + (ls[0].SelfPaced && !done ? '<span class="lg-tag sp">Self-paced</span>' : '');
       if (ls.length === 1) {
         var l = ls[0];
         return '<button type="button" class="lt wide' + (done ? ' done' : '') + '" data-l="' + esc(l.LessonID) + '"' + (done ? ' disabled' : '') + '><span class="lt-b">' + (PM.multi ? esc(k) : '1') + '</span><span class="lt-t"><b>' + esc(name) + '</b><small>' + esc(PM.multi ? 'Level ' + k : l.Number) + '</small></span>' + tag + '</button>';
       }
-      return '<div class="lgroup"><div class="lg-h"><b>' + (PM.multi ? 'Level ' + esc(k) + ' · ' : '') + esc(name) + '</b>' + tag + '</div><div class="ltiles">' + ls.map(function (l, i) {
+      return '<div class="lgroup"><div class="lg-h"><b>' + (PM.multi ? 'Level ' + esc(k) + ' · ' : '') + esc(name) + '</b>' + tag + (done ? '' : '<button type="button" class="linkbtn" data-all="' + esc(k) + '">All remaining</button>') + '</div><div class="ltiles">' + ls.map(function (l, i) {
         return '<button type="button" class="lt' + (l.State === 'Finished' ? ' done' : '') + '" data-l="' + esc(l.LessonID) + '"' + (done ? ' disabled' : '') + ' aria-label="' + esc(l.Number + ' · ' + l.Title) + '">' + esc(shortNum(l, i)) + '<small>' + (l.State === 'Finished' ? 'done' : l.State === 'Started' ? 'started' : '') + '</small></button>';
       }).join('') + '</div></div>';
     }).join('');
@@ -2744,7 +2923,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     liveAll(reqs, function (res) {
       var d = res[0], p = d.person, e = d.enrollment, pr = d.progress, ppl = res[1], first = firstName(p.Name), tr = d.tracked !== false;
       var fresh = !e || e.Status !== 'In progress';
-      var PM = progressModel(d), path = PM.path, next = PM.next, all = PM.all;
+      var PM = progressModel(d), path = PM.path, next = PM.next, all = PM.all, spNext = !!(d.canLog && next && next.SelfPaced);
       $('.top h1').textContent = p.Role;
       if (!tr) {
         var mineN = ppl ? ppl.people.filter(function (x) { return x.DisciplerID === uid && x.Status === 'Active'; }).length : 0;
@@ -2755,27 +2934,38 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if (pr.lastSession && !fresh) info.push('last met ' + agoText(pr.lastSession));
       if (pr.nextMeeting && !fresh) info.push('next ' + fmtDayShort(pr.nextMeeting));
       if (tr) band('<div class="pb">' + avatar(p.PhotoID, 'lg ringed', p.Name) + '<div class="pb-t"><h2>' + esc(p.Name) + (p.IsSample ? ' <span class="pill plain sample">Sample</span>' : '') + '</h2><p>' + esc(info.join(' · ')) + '</p></div>' +
-        (pr.sessions.length || e ? '<button type="button" class="btn band-btn" id="sendupd">' + icon('send') + '<span>Send update</span></button>' : '') + '</div>' +
+        (pr.sessions.length || e || spNext ? '<button type="button" class="btn band-btn" id="sendupd">' + icon('send') + '<span>' + (spNext && !pr.sessions.some(function (x) { return x.Kind === 'Reflection'; }) && !(d.reflections || []).length ? 'Ask for reflection' : 'Send update') + '</span></button>' : '') + '</div>' +
         (path.length ? pathDots(path, d.canLog ? PM.curId : '') : ''));
       var html = '<div class="cols"><div class="col">';
+      (d.reflections || []).forEach(function (rf) {
+        var lvl = rf.Level, others = all.filter(function (x) { return String(x.Level) === String(lvl) && x.State !== 'Finished' && rf.LessonIDs.indexOf(x.LessonID) < 0; });
+        var finishes = PM.lvState[String(lvl)] !== 'done' && !others.length, lvRow = PM.levels.filter(function (x) { return String(x.Level) === String(lvl); })[0];
+        html += '<div class="card refl" data-rid="' + esc(rf.ReflectionID) + '"><div class="rf-h"><span class="ci">' + icon('chat') + '</span><div><b>' + esc(first) + ' sent a reflection</b><span class="small muted">' + esc(fmtDate(rf.SubmittedAt)) + ' · ' + (PM.multi ? 'Level ' + esc(lvl) + ' · ' : '') + esc(rf.Lessons.map(function (l) { return l.Title; }).join(', ')) + '</span></div></div>' +
+          (rf.Text ? '<blockquote class="rf-t">' + esc(rf.Text) + '</blockquote>' : '') +
+          (rf.Photos.length ? '<div class="shots">' + rf.Photos.map(function (id) { return '<span class="shot">' + avatar(id, 'shot-img', 'Photo of the reflection').replace('<img ', '<img data-open="' + esc(id) + '" ') + '</span>'; }).join('') + '</div>' : '') +
+          (finishes ? '<label class="cmp"><input type="checkbox" data-rcmp checked><span><b>Complete ' + (PM.multi ? 'Level ' + esc(lvl) + ' · ' : '') + esc((lvRow && (lvRow.Title || lvRow.LevelName)) || 'this level') + ' now</b><span class="small muted">This is the last lesson of the level. Marks ' + esc(first) + ' fit to graduate.</span></span></label>' : '') +
+          '<div class="row"><button type="button" class="btn flame" data-racc>' + icon('check') + 'Accept · lesson finished</button><button type="button" class="btn quiet" data-rret>Ask for more</button></div>' +
+          '<div class="stack rf-more" hidden><label class="f">What should ' + esc(first) + ' add?<textarea class="i" data-rnote style="min-height:70px" placeholder="e.g. Tell me one verse that stood out to you."></textarea></label><div><button type="button" class="btn sm" data-rsend>' + icon('send') + 'Send back</button></div></div></div>';
+      });
       if (p.ReadyToGraduate) {
         html += '<div class="card celebrate"><span class="ci">' + icon('cap') + '</span><div class="stack"><b>All lessons finished.</b><p class="small">Confirm that ' + esc(first) + ' is fit to graduate. This completes ' + esc(e.LevelName) + ' for ' + esc(e.ProgramYear) + ' and lets the coordinator issue the certificate.</p><div><button class="btn flame" id="grad">Mark fit to graduate</button></div></div></div>';
       }
       if (d.canLog) {
         var newYear = fresh;
         var dchip = function (k, label) { return '<button type="button" class="dchip" data-day="' + k + '"' + (k === '0' ? ' aria-pressed="true"' : ' aria-pressed="false"') + '>' + label + '</button>'; };
-        html += '<form class="card rec" id="logf" novalidate><div class="rec-h"><h2>Record a session</h2>' +
+        html += '<form class="card rec" id="logf" novalidate><div class="rec-h"><h2 id="rech">Record a session</h2>' +
             (newYear ? '<p class="small muted">' + (e && next ? 'Next up: ' + (PM.multi ? 'Level ' + esc(next.Level) + ' · ' : '') + esc((all.filter(function (x) { return String(x.Level) === String(next.Level); }).length === 1 ? next.Title : next.LevelName) || 'the next level') + '.' : 'This starts ' + esc(first) + '’s lessons for this year.') + '</p>' : '') + '</div>' +
           '<section class="step"><span class="sn">1</span><div class="sb"><span class="sl">Today’s lesson</span>' +
             '<div class="lnow" id="lnow"></div><button type="button" class="linkbtn" id="chg">' + (PM.multi ? 'Change level or lesson' : 'Change lesson') + '</button>' +
-            '<div class="lpick" id="ltiles" hidden>' + pickerHTML(all, PM) + '</div></div></section>' +
-          '<section class="step"><span class="sn">2</span><div class="sb"><span class="sl">How did it go?</span>' +
-            '<div class="big2"><button type="button" class="bigopt fin" data-fin="1" aria-pressed="true">' + icon('check') + 'Finished the lesson</button><button type="button" class="bigopt cont" data-fin="0" aria-pressed="false">' + icon('arrow') + 'Continue next time</button></div>' +
+            '<div class="lpick" id="ltiles" hidden>' + (all.some(function (x, i, a) { return a.filter(function (y) { return y.Level === x.Level; }).length > 1; }) ? '<p class="small muted lp-hint">Covered more than one lesson? Tap each one in the same level, or “All remaining”.</p>' : '') + pickerHTML(all, PM) + '</div></div></section>' +
+          '<section class="step"><span class="sn">2</span><div class="sb"><span class="sl" id="s2l">How did it go?</span>' +
+            '<div class="stack" id="reflw" hidden><p class="small muted">This level is self-paced: ' + esc(first) + ' studies on their own and sends you a reflection. Type or paste what they sent, or add a photo of it below. To let them send it themselves, use “Ask for reflection”.</p><textarea class="i" id="lrf" style="min-height:120px" placeholder="' + esc(first) + '’s reflection on the lesson"></textarea></div>' +
+            '<div class="big2" id="finw"><button type="button" class="bigopt fin" data-fin="1" aria-pressed="true">' + icon('check') + 'Finished the lesson</button><button type="button" class="bigopt cont" data-fin="0" aria-pressed="false">' + icon('arrow') + 'Continue next time</button></div>' +
             '<label class="cmp" id="cmpw" hidden><input type="checkbox" id="cmp" checked><span><b id="cmpn"></b><span class="small muted">Marks ' + esc(first) + ' fit to graduate, so the coordinator can issue the certificate.</span></span></label>' +
             '<div class="dchips">' + dchip('0', 'Today · ' + esc(fmtDayShort(todayStr()).replace(/^\w+, /, ''))) + dchip('1', 'Yesterday') + dchip('pick', 'Pick date') + '</div>' +
             '<input class="i" type="date" id="ld" value="' + todayStr() + '" max="' + todayStr() + '" aria-label="Date you met" hidden></div></section>' +
           '<section class="step"><span class="sn">3</span><div class="sb"><span class="sl">Add details <span class="muted">(optional)</span></span>' +
-            '<div class="xtiles"><button type="button" class="xt" id="laddpic">' + icon('camera') + '<span>Photos</span><small id="picn">up to 3</small></button>' +
+            '<div class="xtiles"><button type="button" class="xt" id="laddpic">' + icon('camera') + '<span id="picl">Photos</span><small id="picn">up to 3</small></button>' +
             '<button type="button" class="xt" data-x="note" aria-expanded="false">' + icon('note') + '<span>Private note</span><small id="noten">only you and coordinators</small></button>' +
             '<button type="button" class="xt" data-x="next" aria-expanded="false">' + icon('cal') + '<span>Next meeting</span><small id="nextn">not set</small></button></div>' +
             '<div class="shots" id="lpics"></div>' +
@@ -2794,16 +2984,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         (e && tr ? '<p class="small">' + esc(e.LevelName) + ' · ' + esc(e.ProgramYear) + ' · ' + pill(e.Status) + (e.ExpiryDate ? ' · valid until ' + fmtDate(e.ExpiryDate) : '') + '</p>' : '') +
         '<div class="row"><button type="button" class="btn sm" id="pph">' + icon('camera') + (p.PhotoID ? 'Change photo' : 'Add a photo') + '</button>' + (p.PhotoID ? '<button type="button" class="btn quiet sm" id="pphx">Remove photo</button>' : '') + '</div></div>';
       if (pr.sessions.length && tr) {
-        html += '<h3>Sessions</h3><div class="list">' + pr.sessions.map(function (s, si) {
+        html += '<h3>Sessions</h3><div class="list">' + groupSessions(pr.sessions).map(function (s, si) {
           var canDel = e && e.Status === 'In progress' && (s.DisciplerID === S.me.user.UserID || rank() >= 2);
           var canPic = s.DisciplerID === S.me.user.UserID || rank() >= 2;
           var pics = (s.Photos || []).map(function (id) { return '<span class="shot">' + avatar(id, 'shot-img', 'Session photo').replace('<img ', '<img data-open="' + esc(id) + '" ') + (canPic ? '<button type="button" class="x" data-rmpic="' + esc(id) + '" aria-label="Remove photo">×</button>' : '') + '</span>'; }).join('');
           var canAdd = canPic && (s.Photos || []).length < 3, box = canAdd && (pics || si === 0);
           var picRow = (pics || box) ? '<div class="shots">' + pics + (box ? '<button type="button" class="addshot" data-addpic="' + esc(s.SessionID) + '" aria-label="Add a photo">+</button>' : '') + '</div>' : '';
           return '<div class="item sess" data-sid="' + esc(s.SessionID) + '"><div class="t">' + esc(fmtDay(s.Date)) + ' · ' + esc(s.Lesson) + '</div>' +
-            '<span class="pill ' + (s.Finished ? 'ok' : 'info') + '">' + (s.Finished ? 'Finished' : 'Continued') + '</span>' +
+            '<span class="pill ' + (s.Kind === 'Reflection' ? 'plain refl-p' : s.Finished ? 'ok' : 'info') + '">' + (s.Kind === 'Reflection' ? 'Reflection' : s.Finished ? 'Finished' : 'Continued') + '</span>' +
             '<div class="s">' + esc(s.LessonTitle) + ' · by ' + esc(s.Discipler) + (s.NextMeeting ? ' · next ' + esc(fmtDayShort(s.NextMeeting)) : '') +
-            (s.Notes ? '<br><span style="color:var(--ink)">' + esc(s.Notes) + '</span>' : '') + picRow +
+            (s.Notes ? '<br><span style="color:var(--ink)">' + esc(s.Notes) + '</span>' : '') + (s.Reflection ? '<details class="rfd"><summary>Read the reflection</summary><blockquote class="rf-t">' + esc(s.Reflection) + '</blockquote></details>' : '') + picRow +
             '<div class="row">' + '<button type="button" class="btn quiet sm" data-upd="' + esc(s.SessionID) + '" style="padding-left:0">' + icon('send') + 'Send update</button>' + (canAdd && !box ? '<button type="button" class="btn quiet sm" data-addpic="' + esc(s.SessionID) + '">' + icon('camera') + 'Add photo</button>' : '') + (canDel ? '<button type="button" class="btn quiet sm" data-del>Remove</button>' : '') + '</div></div></div>';
         }).join('') + '</div>';
       }
@@ -2841,23 +3031,36 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var m = fill(html);
 
       /* record form */
-      var lf = $('#logf', m), chosen = [], sel = next && next.LessonID, finished = true;
+      var lf = $('#logf', m), chosen = [], sel = next && next.LessonID, picked = sel ? [sel] : [], finished = true, finPick = true, sp = false;
       function lessonById(id) { return all.filter(function (l) { return l.LessonID === id; })[0]; }
       function lastOfLevel() { // would this session finish its whole level?
         var l = lessonById(sel); if (!l || PM.lvState[String(l.Level)] === 'done') return false;
-        return !all.some(function (x) { return String(x.Level) === String(l.Level) && x.LessonID !== sel && x.State !== 'Finished'; });
+        return !all.some(function (x) { return String(x.Level) === String(l.Level) && picked.indexOf(x.LessonID) < 0 && x.State !== 'Finished'; });
       }
       function drawSave() {
         var b = $('#lsave'); if (!b) return;
         var l = lessonById(sel), canDone = finished && lastOfLevel(), cw = $('#cmpw');
         cw.hidden = !canDone; var oneBook = all.filter(function (x) { return String(x.Level) === String(l.Level); }).length === 1;
         $('#cmpn').textContent = 'Complete ' + (PM.multi ? 'Level ' + l.Level + ' · ' : '') + ((oneBook ? l.Title : l.LevelName) || 'this level') + ' now';
-        b.innerHTML = !finished ? 'Save session' : canDone && $('#cmp').checked ? 'Save &amp; complete ' + (PM.multi ? 'Level ' + esc(l.Level) : 'the level') + ' ' + icon('check') : 'Save &amp; move ' + esc(first) + ' forward ' + icon('arrow');
+        var nL = picked.length > 1 ? ' · ' + picked.length + ' lessons' : '';
+        if (sp) { b.innerHTML = 'Save reflection' + nL + (canDone && $('#cmp').checked ? ' &amp; complete ' + (PM.multi ? 'Level ' + esc(l.Level) : 'the level') + ' ' + icon('check') : ''); return; }
+        b.innerHTML = !finished ? 'Save session' + nL : canDone && $('#cmp').checked ? 'Save' + nL + ' &amp; complete ' + (PM.multi ? 'Level ' + esc(l.Level) : 'the level') + ' ' + icon('check') : 'Save' + nL.replace(' · ', ' ') + ' &amp; move ' + esc(first) + ' forward ' + icon('arrow');
       }
       function drawLesson() {
         var l = lessonById(sel), sameLv = all.filter(function (x) { return String(x.Level) === String(l.Level); });
+        sp = !!l.SelfPaced; finished = sp || finPick;
+        $('#rech').textContent = sp ? 'Record a reflection' : 'Record a session';
+        $('#s2l').textContent = sp ? first + '’s reflection' : 'How did it go?';
+        $('#finw').hidden = sp; $('#reflw').hidden = !sp; $('#picl').textContent = sp ? 'Photo of it' : 'Photos';
+        $('[data-x="next"]', lf).hidden = sp; if (sp) $('[data-xp="next"]', lf).hidden = true;
+        if (picked.length > 1) {
+          var ps = sameLv.filter(function (x) { return picked.indexOf(x.LessonID) >= 0; });
+          $('#lnow').innerHTML = '<span class="ln-badge">' + ps.length + '</span><span><span class="ln-num">' + (PM.multi ? 'Level ' + esc(l.Level) + ' · ' : '') + ps.length + ' lessons</span><span class="ln-title">' + ps.map(function (x) { return esc(x.Title); }).join('<br>') + '</span></span>';
+          $$('.lt', lf).forEach(function (t) { t.setAttribute('aria-pressed', String(picked.indexOf(t.dataset.l) >= 0)); });
+          drawSave(); return;
+        }
         $('#lnow').innerHTML = '<span class="ln-badge">' + esc(PM.multi && sameLv.length === 1 ? 'L' + l.Level : shortNum(l, sameLv.indexOf(l))) + '</span><span><span class="ln-num">' + (PM.multi ? 'Level ' + esc(l.Level) + (sameLv.length > 1 ? ' · ' + esc(l.Number) : '') : esc(l.Number)) + (l.State === 'Finished' ? ' · finished before' : l.State === 'Started' ? ' · started' : '') + '</span><span class="ln-title">' + esc(l.Title || l.LevelName) + '</span></span>';
-        $$('.lt', lf).forEach(function (t) { t.setAttribute('aria-pressed', String(t.dataset.l === sel)); });
+        $$('.lt', lf).forEach(function (t) { t.setAttribute('aria-pressed', String(picked.indexOf(t.dataset.l) >= 0)); });
         drawSave();
       }
       function drawChosen() {
@@ -2871,8 +3074,23 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         drawLesson();
         $('#chg').onclick = function () { var t = $('#ltiles'); t.hidden = !t.hidden; this.textContent = t.hidden ? (PM.multi ? 'Change level or lesson' : 'Change lesson') : 'Done'; };
         $('#cmp').onchange = drawSave;
-        $$('.lt', lf).forEach(function (t) { t.onclick = function () { if (t.disabled) return; sel = t.dataset.l; drawLesson(); if (PM.multi) { $('#ltiles').hidden = true; $('#chg').textContent = 'Change level or lesson'; } }; });
-        $$('[data-fin]', lf).forEach(function (b2) { b2.onclick = function () { finished = b2.dataset.fin === '1'; $$('[data-fin]', lf).forEach(function (x) { x.setAttribute('aria-pressed', String(x === b2)); }); drawSave(); }; });
+        // Tap lessons of one level to pick several; a lesson from another level starts a new pick.
+        $$('.lt', lf).forEach(function (t) { t.onclick = function () {
+          if (t.disabled) return;
+          var id = t.dataset.l, l = lessonById(id), cur = lessonById(sel), wide = t.classList.contains('wide');
+          if (wide || !cur || String(cur.Level) !== String(l.Level)) picked = [id];
+          else if (picked.indexOf(id) >= 0) { if (picked.length > 1) picked.splice(picked.indexOf(id), 1); }
+          else picked.push(id);
+          picked.sort(function (a, b) { return all.indexOf(lessonById(a)) - all.indexOf(lessonById(b)); });
+          sel = picked[0]; drawLesson();
+          if (wide && PM.multi) { $('#ltiles').hidden = true; $('#chg').textContent = 'Change level or lesson'; }
+        }; });
+        $$('[data-all]', lf).forEach(function (b2) { b2.onclick = function () {
+          picked = all.filter(function (x) { return String(x.Level) === b2.dataset.all && x.State !== 'Finished'; }).map(function (x) { return x.LessonID; });
+          if (!picked.length) picked = all.filter(function (x) { return String(x.Level) === b2.dataset.all; }).map(function (x) { return x.LessonID; });
+          sel = picked[0]; drawLesson();
+        }; });
+        $$('[data-fin]', lf).forEach(function (b2) { b2.onclick = function () { finPick = finished = b2.dataset.fin === '1'; $$('[data-fin]', lf).forEach(function (x) { x.setAttribute('aria-pressed', String(x === b2)); }); drawSave(); }; });
         $$('[data-day]', lf).forEach(function (c) { c.onclick = function () {
           $$('[data-day]', lf).forEach(function (x) { x.setAttribute('aria-pressed', String(x === c)); });
           var ld = $('#ld');
@@ -2890,10 +3108,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         $('#laddpic').onclick = function () { pickImage(false, function (pic) { chosen.push(pic); drawChosen(); }); };
         lf.onsubmit = function (ev) {
           ev.preventDefault(); var err = $('#lerr'), b = $('#lsave'); err.hidden = true; busy(b, true);
-          var complete = finished && lastOfLevel() && $('#cmp').checked;
-          api('logSession', { userId: uid, date: $('#ld').value, lessonId: sel, finished: finished, notes: $('#ln').value, nextMeeting: $('#lnm').value, complete: complete })
+          var complete = finished && lastOfLevel() && $('#cmp').checked, rtext = sp ? $('#lrf').value.trim() : '';
+          if (sp && !rtext && !chosen.length) { err.textContent = 'Type or paste ' + first + '’s reflection, or add a photo of it.'; err.hidden = false; busy(b, false); return; }
+          api('logSession', { userId: uid, date: $('#ld').value, lessonId: picked[0], lessonIds: picked.slice(), finished: finished, notes: $('#ln').value, nextMeeting: sp ? '' : $('#lnm').value, complete: complete, kind: sp ? 'Reflection' : '', reflection: rtext, withPhotos: chosen.length > 0 })
             .then(function (r) {
-              toast(r && r.completed ? 'Session saved. ' + first + ' completed ' + (PM.multi ? 'Level ' + lessonById(sel).Level + ' · ' + lessonById(sel).Title : lessonById(sel).LevelName || 'the level') + '.' : 'Session saved.');
+              toast(r && r.completed ? (sp ? 'Reflection saved. ' : 'Session saved. ') + first + ' completed ' + (PM.multi ? 'Level ' + lessonById(sel).Level + ' · ' + lessonById(sel).Title : lessonById(sel).LevelName || 'the level') + '.' : 'Session saved.');
               var pics = chosen.slice(), sid = r && r.session && r.session.SessionID;
               viewPerson(uid);
               setTimeout(function () { openUpdate(uid, 'session', { sessionId: sid, pic: pics[0] }); }, 250);
@@ -2908,7 +3127,25 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var dst = $('#dstat'); if (dst) dst.onclick = function () { openDisciplerStatus(uid); };
       var hasMine = ppl && ppl.people.some(function (x) { return x.DisciplerID === uid && x.Status === 'Active'; });
       if (tr && hasMine && !dst) { var pbx = $('.pb'); if (pbx) { pbx.insertAdjacentHTML('beforeend', '<button type="button" class="btn band-btn" id="dstat">' + icon('image') + '<span>Status poster</span></button>'); $('#dstat').onclick = function () { openDisciplerStatus(uid); }; } }
-      var su = $('#sendupd'); if (su) su.onclick = function () { openUpdate(uid, pr.sessions.length ? 'session' : 'celebrate'); };
+      var su = $('#sendupd'); if (su) su.onclick = function () { openUpdate(uid, /Ask/.test(su.textContent) ? 'reflect' : pr.sessions.length ? 'session' : 'celebrate'); };
+      $$('.refl', m).forEach(function (card) {
+        var rid = card.dataset.rid, acc = $('[data-racc]', card);
+        acc.onclick = function () {
+          busy(acc, true); var cb = $('[data-rcmp]', card);
+          api('reviewReflection', { reflectionId: rid, complete: !!(cb && cb.checked) }).then(function (r) {
+            toast(r && r.completed ? 'Reflection accepted. ' + first + ' completed the level.' : 'Reflection accepted. The lesson is marked finished.');
+            viewPerson(uid); setTimeout(function () { openUpdate(uid, r && r.completed ? 'celebrate' : 'session', { sessionId: r && r.sessionId }); }, 250);
+          }).catch(function (x) { toast(x.message); busy(acc, false); });
+        };
+        $('[data-rret]', card).onclick = function () { var mo = $('.rf-more', card); mo.hidden = !mo.hidden; if (!mo.hidden) $('[data-rnote]', card).focus(); };
+        $('[data-rsend]', card).onclick = function () {
+          var note = $('[data-rnote]', card).value.trim(); if (!note) { $('[data-rnote]', card).focus(); return; }
+          api('reviewReflection', { reflectionId: rid, decision: 'return', note: note }).then(function () {
+            toast('Sent back. Let ' + first + ' know so they can add to it.');
+            viewPerson(uid); setTimeout(function () { openUpdate(uid, 'reflect', { note: note }); }, 250);
+          }).catch(function (x) { toast(x.message); });
+        };
+      });
       $$('[data-upd]', m).forEach(function (b2) { b2.onclick = function () { openUpdate(uid, 'session', { sessionId: b2.dataset.upd }); }; });
       var pph = $('#pph', m); if (pph) pph.onclick = function () { pickImage(true, function (pic) { uploadPhoto('person', uid, pic).then(function () { viewPerson(uid); }).catch(function (x) { toast(x.message); }); }); };
       var pphx = $('#pphx', m); if (pphx) confirmTap(pphx, 'Tap again to remove', function () { deletePhoto(p.PhotoID).then(function () { viewPerson(uid); }).catch(function (x) { toast(x.message); }); });
@@ -3017,10 +3254,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if (paint) { ctx.fillStyle = '#fff'; rrect(ctx, PX, PY, W - PX * 2, o._panelH || 600, 40); ctx.fill(); }
       if (o.kind === 'session') {
         if (o.sessionImg) { if (paint) coverImg(ctx, o.sessionImg, X, y, IW, 470, 28); y += 500; }
-        T(spaced(o.sessionFinished ? 'Today we studied' : 'Today we started'), X, y + 24, '800 22px ' + SANS, MUTED); y += 46;
-        T(o.unit === 'levels' ? 'Level ' + o.lesson.Level : o.lesson.Number, X, y + 30, '800 30px ' + SANS, FL); y += 44;
-        para(o.lesson.Title, '700 52px ' + SERIF, INK, 64); y += 18;
-        if (paint) { var lab = o.sessionFinished ? '✓  Finished' : 'To be continued next time'; ctx.font = '800 26px ' + SANS; var tw = ctx.measureText(lab).width; ctx.fillStyle = o.sessionFinished ? '#e6f3ec' : '#e8ebf4'; rrect(ctx, X, y, tw + 48, 52, 26); ctx.fill(); T(lab, X + 24, y + 35, '800 26px ' + SANS, o.sessionFinished ? '#2c7a4b' : '#2e4a9a'); }
+        T(spaced(o.reflection ? 'Your reflection on' : o.sessionFinished ? 'Today we studied' : 'Today we started'), X, y + 24, '800 22px ' + SANS, MUTED); y += 46;
+        if (o.lessons) {
+          T((o.unit === 'levels' ? 'Level ' + o.lesson.Level + ' · ' : '') + o.lessons.length + ' lessons', X, y + 30, '800 30px ' + SANS, FL); y += 50;
+          o.lessons.slice(0, 8).forEach(function (l) { para(l.Title, '700 42px ' + SERIF, INK, 52); y += 6; });
+          y += 12;
+        } else {
+          T(o.unit === 'levels' ? 'Level ' + o.lesson.Level : o.lesson.Number, X, y + 30, '800 30px ' + SANS, FL); y += 44;
+          para(o.lesson.Title, '700 52px ' + SERIF, INK, 64); y += 18;
+        }
+        if (paint) { var lab = o.reflection ? '✓  Reflection received · lesson finished' : o.sessionFinished ? '✓  Finished' : 'To be continued next time'; ctx.font = '800 26px ' + SANS; var tw = ctx.measureText(lab).width; ctx.fillStyle = o.sessionFinished ? '#e6f3ec' : '#e8ebf4'; rrect(ctx, X, y, tw + 48, 52, 26); ctx.fill(); T(lab, X + 24, y + 35, '800 26px ' + SANS, o.sessionFinished ? '#2c7a4b' : '#2e4a9a'); }
         y += 86;
         if (o.verse) {
           var vy = y; y += 20;
@@ -3030,6 +3273,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
           if (paint) { ctx.fillStyle = FL; rrect(ctx, X, vy + 8, 8, y - vy - 16, 4); ctx.fill(); }
           y += 30;
         }
+      } else if (o.kind === 'reflect') {
+        T(spaced(o.more ? 'About your reflection' : 'Read on your own'), X, y + 24, '800 22px ' + SANS, MUTED); y += 46;
+        T(o.unit === 'levels' ? 'Level ' + o.curLevel + ' · self-paced' : 'Self-paced lesson', X, y + 30, '800 30px ' + SANS, FL); y += 44;
+        para(o.levelTitle || (o.lesson && o.lesson.Title) || '', '700 52px ' + SERIF, INK, 64); y += 22;
+        para(o.more ? o.more : 'Study the lesson in your booklet. When you’re done, send me your reflection: what you learned and how you’ll live it out.', o.more ? 'italic 500 38px ' + SERIF : '500 34px ' + SANS, o.more ? INK : MUTED, o.more ? 52 : 48); y += 40;
       } else if (o.kind === 'reminder') {
         if (paint) { ctx.fillStyle = NAVY; rrect(ctx, X, y, 220, 240, 30); ctx.fill(); }
         var d = new Date(o.nextMeeting + 'T12:00:00');
@@ -3059,7 +3307,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         if (paint) { ctx.fillStyle = '#fdeee2'; rrect(ctx, X, y, IW, qh, 30); ctx.fill(); }
         T(spaced('Something to think about'), X + 40, y + 56, '800 21px ' + SANS, '#a3410f');
         ql.forEach(function (l, i) { T(l, X + 40, y + 70 + 54 * (i + 1) - 12, 'italic 500 40px ' + SERIF, INK); });
-        T('Reply and tell me what you think.', X + 40, y + qh - 40, '600 26px ' + SANS, '#a3410f');
+        T(o.kind === 'reflect' ? 'Answer it in your reflection.' : 'Reply and tell me what you think.', X + 40, y + qh - 40, '600 26px ' + SANS, '#a3410f');
         y += qh + 40;
       }
       if (o.nextMeeting && o.kind === 'session') {
@@ -3070,6 +3318,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         T(spaced('Next meeting'), X + 140, y + 46, '800 21px ' + SANS, MUTED);
         T(longDay(o.nextMeeting), X + 140, y + 94, '700 40px ' + SERIF, INK);
         y += 160;
+      }
+      if (o.kind === 'reflect' && o.qr) {
+        var qs = 300, qy = y;
+        if (paint) { ctx.fillStyle = '#f3f4f8'; rrect(ctx, X, qy, IW, qs + 60, 30); ctx.fill(); ctx.drawImage(o.qr, X + 30, qy + 30, qs, qs); }
+        var tx = X + qs + 70, tw = IW - qs - 100; y = qy + 70;
+        T(spaced('Send your reflection'), tx, y, '800 22px ' + SANS, FL); y += 24;
+        para('Scan this code with your phone camera. No account needed.', '700 36px ' + SERIF, INK, 46, tw, tx); y += 16;
+        para('The link is also in my message. It’s just for you, ' + o.first + '.', '600 26px ' + SANS, MUTED, 36, tw, tx);
+        y = qy + qs + 100;
       }
       var panelH = y - panelTop + 20;
       T('Sent by ' + o.discipler + ' · ' + o.churchName, W / 2, panelTop + panelH + 66, '600 24px ' + SANS, MUTED, 'center');
@@ -3098,20 +3355,28 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     extra = extra || {};
     var r = runLocal('person', { userId: uid }); if (!r.ok) { toast(r.error); return; }
     var d = r.data, p = d.person, e = d.enrollment, pr = d.progress, first = firstName(p.Name), st = S.me.settings;
-    var ses = pr.sessions.filter(function (x) { return x.SessionID === extra.sessionId; })[0] || pr.sessions[0];
+    var GS = groupSessions(pr.sessions), ses = GS.filter(function (x) { return x.SessionID === extra.sessionId || (x.GroupID && x.GroupID === extra.sessionId); })[0] || GS[0];
     var fresh = !e || e.Status !== 'In progress';
     var PM = progressModel(d), path = PM.path, nextL = PM.next;
     var nm = pr.nextMeeting || (ses && ses.NextMeeting >= todayStr() ? ses.NextMeeting : '');
-    var kinds = [];
-    if (ses) kinds.push(['session', 'Session update']);
+    var kinds = [], spNext = !!(d.canLog && nextL && nextL.SelfPaced), tok = (SNAP && SNAP.rt && SNAP.rt[uid]) || d.reflectToken, rurl = tok ? reflectURL(tok) : '';
+    var spLevel = spNext ? PM.levels.filter(function (x) { return String(x.Level) === String(nextL.Level); })[0] : null;
+    var spLessons = spNext ? PM.all.filter(function (x) { return String(x.Level) === String(nextL.Level); }) : [];
+    var spTitle = spNext ? (spLessons.length === 1 ? nextL.Title : (spLevel && (spLevel.Title || spLevel.LevelName)) || nextL.LevelName) : '';
+    if (spNext && rurl) kinds.push(['reflect', 'Ask for reflection']);
+    if (ses) kinds.push(['session', ses.Kind === 'Reflection' ? 'Thank you' : 'Session update']);
     if (nm) kinds.push(['reminder', 'Meeting reminder']);
     if (pr.finished || (e && e.Status === 'Completed')) kinds.push(['celebrate', e && e.Status === 'Completed' ? 'Congratulations' : 'Progress']);
     if (!kinds.length) { toast('Record a session first, then you can send ' + first + ' an update.'); return; }
     if (!kinds.some(function (k) { return k[0] === kind; })) kind = kinds[0][0];
-    var sesLesson = ses ? (PM.all.filter(function (l) { return l.LessonID === ses.LessonID; })[0] || pr.lessons.filter(function (l) { return l.LessonID === ses.LessonID; })[0] || { LessonID: ses.LessonID, Number: ses.Lesson, Title: ses.LessonTitle }) : null;
-    var q = { session: questionFor(sesLesson), celebrate: GENERIC_Q.replace('from our lesson', 'so far in our lessons') };
+    var metaOf = function (x) { return PM.all.filter(function (l) { return l.LessonID === x.LessonID; })[0] || pr.lessons.filter(function (l) { return l.LessonID === x.LessonID; })[0] || { LessonID: x.LessonID, Number: x.Lesson, Title: x.LessonTitle }; };
+    var parts = ses ? (ses.Parts || [ses]).map(metaOf) : [], sesLesson = parts[0] || null, lastPart = parts[parts.length - 1] || null;
+    var verseLesson = parts.slice().reverse().filter(function (l) { return l.MemoryText; })[0];
+    var q = { reflect: spNext ? questionFor(nextL).replace('from our lesson', 'in this lesson') : '', session: ses && ses.Kind === 'Reflection' ? '' : questionFor(lastPart), celebrate: GENERIC_Q.replace('from our lesson', 'so far in our lessons') };
     var cert = e && e.Status === 'Completed' ? d.certificates.filter(function (c) { return c.EnrollmentID === e.EnrollmentID; })[0] : null;
     function message() {
+      if (kind === 'reflect') return (extra.note ? 'Hi ' + first + '! Thank you for your reflection. Could you add a little more? ' + extra.note + ' ' : 'Hi ' + first + '! Your next lesson is ' + (PM.multi ? 'Level ' + nextL.Level + ': ' : '') + spTitle + '. Read it on your own, then send me your reflection: what you learned and how you’ll live it out. ') + (q.reflect ? 'Something to think about: ' + q.reflect + ' ' : '') + 'Send it here (no account needed): ' + rurl;
+      if (kind === 'session' && ses.Kind === 'Reflection') return 'Hi ' + first + '! Thank you for your reflection on ' + ses.LessonTitle + '. I read it and marked the lesson finished. ' + (spNext && rurl ? 'When you’re ready, send your next one here: ' + rurl : '');
       if (kind === 'session') return 'Hi ' + first + '! Thank you for meeting with me' + (ses.Date === todayStr() ? ' today' : '') + '. We ' + (ses.Finished ? 'studied ' : 'started ') + ses.Lesson + ': ' + ses.LessonTitle + '. ' + (q.session ? 'Something to think about: ' + q.session + ' ' : '') + (nm ? 'See you on ' + longDay(nm) + '!' : '');
       if (kind === 'reminder') return 'Hi ' + first + '! A reminder that we’ll meet on ' + longDay(nm) + (nextL ? ' for ' + nextL.Number + ': ' + nextL.Title : '') + '. Please bring your booklet and Bible. See you!';
       return e && e.Status === 'Completed' ? 'Congratulations, ' + first + '! You’ve completed ' + e.LevelName + '. I’m so glad I could walk through the lessons with you.' : 'Hi ' + first + '! You’ve finished ' + pr.finished + ' of ' + pr.total + ' lessons. Keep going! ' + (q.celebrate ? q.celebrate : '');
@@ -3139,26 +3404,27 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       document.fonts && document.fonts.load ? Promise.all(FONTS.map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve(),
       fullPhotos([p.PhotoID].concat(ses && ses.Photos ? ses.Photos.slice(0, 1) : []).filter(String)).catch(function () {})
     ]).then(function () {
-      return Promise.all([loadImg(src(p.PhotoID)), loadImg(CHURCH_URI), extra.pic ? loadImg('data:image/jpeg;base64,' + extra.pic.full) : loadImg(src(ses && ses.Photos && ses.Photos[0]))]);
-    }).then(function (a) { imgs = { photo: a[0], church: a[1], ses: a[2] }; });
+      return Promise.all([loadImg(src(p.PhotoID)), loadImg(CHURCH_URI), extra.pic ? loadImg('data:image/jpeg;base64,' + extra.pic.full) : loadImg(src(ses && ses.Photos && ses.Photos[0])), spNext && rurl && window.qrcode ? qrImage(rurl).catch(function () { return null; }) : null]);
+    }).then(function (a) { imgs = { photo: a[0], church: a[1], ses: a[2], qr: a[3] }; });
     function draw() {
       var my = ++seq;
       ready.then(function () {
         if (my !== seq) return;
         var verse = null;
-        if (kind === 'session' && ses.Finished && sesLesson && sesLesson.MemoryText) verse = { text: sesLesson.MemoryText, ref: sesLesson.MemoryRef };
-        cv = drawUpdate({ kind: kind, eyebrow: kind === 'session' ? 'Session update · ' + fmtDayShort(ses.Date) : kind === 'reminder' ? 'See you soon' : (e && e.Status === 'Completed' ? 'Congratulations' : 'Your progress'),
+        if (kind === 'session' && ses.Finished && verseLesson) verse = { text: verseLesson.MemoryText, ref: verseLesson.MemoryRef };
+        cv = drawUpdate({ kind: kind, qr: kind === 'reflect' ? imgs.qr : null, url: rurl, levelTitle: spTitle, more: extra.note || '', reflection: kind === 'session' && ses.Kind === 'Reflection',
+          eyebrow: kind === 'reflect' ? (extra.note ? 'A little more, please' : 'Your next lesson') : kind === 'session' ? (ses.Kind === 'Reflection' ? 'Reflection received · ' : 'Session update · ') + fmtDayShort(ses.Date) : kind === 'reminder' ? 'See you soon' : (e && e.Status === 'Completed' ? 'Congratulations' : 'Your progress'),
           churchName: st.ChurchName, program: st.ProgramName, name: p.Name, first: first, discipler: (ses && ses.Discipler) || p.Discipler || S.me.user.Name,
           finished: PM.multi ? PM.done : (e && e.Status === 'Completed' ? pr.total : (fresh ? 0 : pr.finished)), total: PM.total, unit: PM.unit, path: path, curId: kind === 'celebrate' ? '' : PM.curId,
           photo: imgs.photo, church: imgs.church, sessionImg: kind === 'session' ? imgs.ses : null,
-          lesson: kind === 'session' ? sesLesson : nextL, sessionFinished: ses && ses.Finished, verse: verse,
+          lesson: kind === 'session' ? sesLesson : nextL, curLevel: nextL ? nextL.Level : '', lessons: kind === 'session' && parts.length > 1 ? parts : null, sessionFinished: ses && ses.Finished, verse: verse,
           question: $('#updq', sh).value.trim(), nextMeeting: nm, completed: !!(e && e.Status === 'Completed'), level: e ? e.LevelName : '', cert: cert });
         var box = $('#updimg', sh); box.innerHTML = ''; var im = new Image(); im.alt = 'Update picture for ' + p.Name; im.src = cv.toDataURL('image/jpeg', 0.85); box.appendChild(im);
       });
     }
     function setKind(k) {
       kind = k; $$('[data-k]', sh).forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.k === k)); });
-      $('#qwrap', sh).hidden = k === 'reminder';
+      $('#qwrap', sh).hidden = k === 'reminder' || (k === 'session' && ses && ses.Kind === 'Reflection');
       $('#updq', sh).value = q[k] || '';
       mEdited = false; $('#updm', sh).value = message(); draw();
     }
@@ -3166,7 +3432,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var t = null;
     $('#updq', sh).oninput = function () { q[kind] = this.value.trim(); if (!mEdited) $('#updm', sh).value = message(); clearTimeout(t); t = setTimeout(draw, 350); };
     $('#updm', sh).oninput = function () { mEdited = true; };
-    var fname = function () { return first + ' ' + (kind === 'session' ? 'update ' + ses.Date : kind === 'reminder' ? 'reminder ' + nm : 'progress') + '.jpg'; };
+    var fname = function () { return first + ' ' + (kind === 'reflect' ? 'reflection request' : kind === 'session' ? 'update ' + ses.Date : kind === 'reminder' ? 'reminder ' + nm : 'progress') + '.jpg'; };
     $('#updshare', sh).onclick = function () {
       if (!cv) return; var txt = $('#updm', sh).value;
       shareImage(cv, fname(), txt).then(function (how) {
@@ -3305,6 +3571,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         return '<a class="ntile tone-' + t[4] + cls + '" href="' + t[3] + '">' + icon(t[2]) + '<span><b>' + (t[0] || 0) + '</b><span>' + esc(t[1]) + '</span></span></a>';
       }).join('') + '</div>';
       var extra = [];
+      if (c.reflections) extra.push(['#/reports/Reflections', n(c.reflections, 'reflection is', 'reflections are') + ' waiting to be read', 'Disciples on self-paced levels sent these to their discipler.']);
       if (c.unassigned) extra.push(['#/people/unassigned', n(c.unassigned, 'member has', 'members have') + ' no discipler yet', 'Assign someone so their lessons can start.']);
       if (c.expiring) extra.push(['#/reports/Expiring', n(c.expiring, 'completion expires', 'completions expire') + ' within 60 days', 'Plan their lessons for the coming year.']);
       if (extra.length) html += '<nav class="attn" aria-label="Also needs attention">' + extra.map(function (x) { return '<a href="' + x[0] + '"><span class="dot c-warn"></span><span class="txt"><b>' + esc(x[1]) + '</b><span>' + esc(x[2]) + '</span></span><span class="go" aria-hidden="true">›</span></a>'; }).join('') + '</nav>';
@@ -3330,7 +3597,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
           (list.length > 3 ? '<a class="more-l" href="' + href + '">+ ' + (list.length - 3) + ' more</a>' : '') + (list.length ? '' : '<span class="small muted none">No one here</span>') + '</div></div>';
       }).join('') + '</div></section>';
 
-      html += '<section class="week"><span class="wk-l">This week</span><span class="wk"><b>' + wk.sessions + '</b>' + (wk.sessions === 1 ? 'session' : 'sessions') + '</span><span class="wk"><b>' + wk.finished + '</b>' + (wk.finished === 1 ? 'lesson finished' : 'lessons finished') + '</span><span class="wk"><b>' + wk.signups + '</b>' + (wk.signups === 1 ? 'new member' : 'new members') + '</span>' +
+      html += '<section class="week"><span class="wk-l">This week</span><span class="wk"><b>' + wk.sessions + '</b>' + (wk.sessions === 1 ? 'session' : 'sessions') + '</span><span class="wk"><b>' + wk.finished + '</b>' + (wk.finished === 1 ? 'lesson finished' : 'lessons finished') + '</span>' + (wk.reflections ? '<span class="wk"><b>' + wk.reflections + '</b>' + (wk.reflections === 1 ? 'reflection' : 'reflections') + '</span>' : '') + '<span class="wk"><b>' + wk.signups + '</b>' + (wk.signups === 1 ? 'new member' : 'new members') + '</span>' +
         '<a class="btn wk-btn" href="#/reports">' + icon('pdf') + 'Report PDF</a></section>';
 
       html += '<div class="dash-2"><section class="sec"><h3>Disciplers</h3>' + (d.disciplers.length ? '<div class="list">' + d.disciplers.slice().sort(function (a, b) { return b.Stale - a.Stale || a.Name.localeCompare(b.Name); }).map(function (x) {
@@ -3450,7 +3717,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     mark();
   }
   function periodText(f, t) { return f && t ? fmtDay(f) + ' – ' + fmtDay(t) : f ? 'From ' + fmtDay(f) : t ? 'Until ' + fmtDay(t) : 'All time'; }
-  var FILTERS = [['', 'Any status'], ['Not started', 'Not started'], ['In progress', 'In progress'], ['Ready', 'Ready to graduate'], ['Stale', 'No recent meeting'], ['Completed', 'Completed'], ['Expiring', 'Expiring within 60 days'], ['Expired', 'Expired']];
+  var FILTERS = [['', 'Any status'], ['Not started', 'Not started'], ['In progress', 'In progress'], ['Ready', 'Ready to graduate'], ['Stale', 'No recent meeting'], ['Completed', 'Completed'], ['Expiring', 'Expiring within 60 days'], ['Expired', 'Expired'], ['Reflections', 'Reflection to read']];
   function cell(r, k) { var v = r[k]; if (k === 'ExpiryDate') return fmtDate(v); if (k === 'LastSession' || k === 'NextMeeting' || k === 'CompletedOn') return fmtDay(v); if (k === 'HasCert') return v ? 'Yes' : ''; return v == null ? '' : v; }
   function toCSV(rows, CC) { CC = CC || COLS; return [CC.map(function (c) { return c[1]; })].concat(rows.map(function (r) { return CC.map(function (c) { return cell(r, c[0]); }); })).map(function (line) { return line.map(function (v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n'); }
   function viewReports(status, discId) {
@@ -3915,7 +4182,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
   /* ---------- admin setup ---------- */
-  // "Ptr. Robert Malit (Resident Pastor), Pr. Juan Luna (Chief Acts Preacher)" → names, and names with titles
+  // "Ptr. Robert Malit (Resident Pastor), Ptr. Jay Caparas (Chief Acts Preacher)" → names, and names with titles
   function preacherList(c) { return String(c.Preachers || '').split(',').map(function (x) { var m = /^\s*([^()]+?)\s*(?:\(([^)]*)\))?\s*$/.exec(x) || []; return { name: (m[1] || '').trim(), title: (m[2] || '').trim() }; }).filter(function (p) { return p.name; }); }
   function preachersOf(c) { return preacherList(c).map(function (p) { return p.name; }); }
   function viewCongs() {
@@ -3930,7 +4197,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         }).join('') + '</div>' +
         '<form class="card" id="f"><h2 id="ft">Add a congregation</h2><input type="hidden" id="cid">' +
         '<label class="f">Name<input class="i" id="cn" required></label><label class="f">Location<input class="i" id="cl"></label>' +
-        '<label class="f">Preacher(s) in charge<input class="i" id="cp" placeholder="Pr. Juan Luna (Chief Acts Preacher)"></label><p class="small muted" style="margin-top:-6px">Separate names with commas. Put each title in brackets; it shows on the cover slide.</p>' +
+        '<label class="f">Preacher(s) in charge<input class="i" id="cp" placeholder="Ptr. Jay Caparas (Chief Acts Preacher)"></label><p class="small muted" style="margin-top:-6px">Separate names with commas. Put each title in brackets; it shows on the cover slide.</p>' +
         '<label class="f">Status<select class="i" id="cs"><option>Active</option><option>Inactive</option></select></label>' +
         '<div id="pphotos" class="stack" hidden></div>' +
         '<div class="row"><button class="btn primary">Save congregation</button><button type="button" class="btn quiet" id="clr">Clear</button></div></form>');
@@ -3959,13 +4226,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var m = fill('<p class="muted small">This is the checklist disciplers record against. The lesson content stays in the printed booklet. A memory verse shows on a disciple’s page once they finish that lesson.</p>' +
         '<div class="row"><a class="btn primary sm" href="#/setup/lesson/new">Add a lesson</a></div>' +
         Object.keys(by).map(function (k) {
-          return '<h3>' + esc(k) + '</h3><div class="list">' + by[k].map(function (l) {
+          var lvN = by[k][0].Level, spOn = by[k].some(function (l) { return l.SelfPaced; });
+          return '<h3>' + esc(k) + '</h3><label class="spsw card"><input type="checkbox" data-sp="' + esc(lvN) + '"' + (spOn ? ' checked' : '') + '><span><b>Self-paced</b><span class="small muted">Disciples study this level on their own and send their discipler a reflection instead of meeting. The discipler reads it and marks the lesson finished.</span></span></label><div class="list">' + by[k].map(function (l) {
             return '<div class="item lesson-item" style="cursor:default' + (l.Published ? '' : ';opacity:.65') + '"><div><div class="num">' + esc(l.Number) + '</div><div class="t">' + esc(l.Title) + '</div></div>' +
               (l.Published ? '' : '<span class="pill plain">Hidden</span>') +
               '<div class="s">' + (l.MemoryRef ? 'Memory verse: ' + esc(l.MemoryRef) : '<span style="color:var(--warn)">No memory verse yet</span>') + '<br>Question: ' + esc(questionFor(l)) + (l.Question ? '' : ' <span class="muted">(default)</span>') +
               '<div class="row" style="margin-top:6px"><a class="btn sm" href="#/setup/lesson/' + esc(l.LessonID) + '">Edit</a><button type="button" class="btn sm" data-pub="' + esc(l.LessonID) + '" data-on="' + (l.Published ? '' : '1') + '">' + (l.Published ? 'Hide' : 'Include') + '</button></div></div></div>';
           }).join('') + '</div>';
         }).join(''));
+      $$('[data-sp]', m).forEach(function (cb) { cb.onchange = function () { api('setSelfPaced', { level: cb.dataset.sp, on: cb.checked }).then(function () { toast(cb.checked ? 'Level ' + cb.dataset.sp + ' is now self-paced.' : 'Level ' + cb.dataset.sp + ' is now taught at meetings.'); }).catch(function (x) { toast(x.message); cb.checked = !cb.checked; }); }; });
       $$('[data-pub]', m).forEach(function (b) { b.onclick = function () { api('setPublished', { lessonId: b.dataset.pub, published: !!b.dataset.on }).then(function () { toast(b.dataset.on ? 'Lesson included in the checklist.' : 'Lesson hidden from the checklist.'); viewLessonsAdmin(); }).catch(function (x) { toast(x.message); }); }; });
     });
   }
@@ -4087,9 +4356,64 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     loadInfo().then(draw).catch(function (e) { authShell('<div class="card"><p class="err">' + esc(e.message) + '</p><button class="btn" onclick="location.reload()">Try again</button></div>'); });
   }
 
+  /* ---------- a disciple sends a reflection (self-paced levels; no account) ---------- */
+  function viewReflect(tok) {
+    var pics = [];
+    var shell = function (body) { authShell(body); };
+    var fail2 = function (e) { shell('<div class="card stack center-card"><span class="ci big">' + icon('chat') + '</span><h2>Can’t open this page</h2><p>' + esc(e.message) + '</p></div>'); };
+    var stLabel = { New: ['Pending', 'Waiting to be read'], Accepted: ['Completed', 'Accepted'], Returned: ['Returned', 'Asked for more'] };
+    function draw(info) {
+      var dn = info.discipler || 'your discipler', lv = info.level, open = info.lessons.filter(function (l) { return l.State === 'Open'; });
+      var last = info.submissions[0], back = last && last.Status === 'Returned' ? last : null;
+      var hist = info.submissions.length ? '<h3>What you’ve sent</h3><div class="list">' + info.submissions.map(function (x) { var t = stLabel[x.Status] || ['', x.Status]; return '<div class="item"><div class="t">' + esc(x.Lessons.join(', ')) + '</div>' + pill(t[0], t[1]) + '<div class="s">' + esc(fmtDate(x.SubmittedAt)) + (x.Status === 'Returned' && x.ReviewNote ? ' · ' + esc(dn) + ': “' + esc(x.ReviewNote) + '”' : '') + '</div></div>'; }).join('') + '</div>' : '';
+      var head = '<h2>Hi ' + esc(info.first) + '!</h2>';
+      if (!lv) return shell('<div class="card stack">' + head + '<p>You’ve completed every level. Congratulations! There’s nothing to send.</p></div>' + hist);
+      var lvName = (lv.Title || lv.LevelName);
+      if (!lv.SelfPaced) return shell('<div class="card stack">' + head + '<p>Your next lesson, <b>' + esc(lvName) + '</b>, is one you’ll go through with ' + esc(dn) + '. There’s no reflection to send right now.</p></div>' + hist);
+      if (!open.length) return shell('<div class="card stack">' + head + '<p>Thank you! You’ve sent reflections for every lesson of <b>' + esc(lvName) + '</b>. ' + esc(dn) + ' will read them' + (info.lessons.some(function (l) { return l.State === 'Sent'; }) ? ' soon.' : '.') + '</p></div>' + hist);
+      shell('<form class="card stack rform" id="rf" novalidate>' + head +
+        '<p>Level ' + esc(lv.Level) + ' · <b>' + esc(lvName) + '</b> is self-paced. Study the lesson in your booklet, then write ' + esc(dn) + ' your reflection: what you learned and how you’ll live it out.</p>' +
+        (back ? '<div class="rf-back"><b>' + esc(dn) + ' asked for a little more</b><span>“' + esc(back.ReviewNote || 'Please add a little more.') + '”</span></div>' : '') +
+        (info.lessons.length > 1 ? '<fieldset class="stack fs"><legend>Which lesson is this for?</legend>' + info.lessons.map(function (l) {
+          var dis = l.State !== 'Open';
+          return '<label class="rl' + (dis ? ' off' : '') + '"><input type="checkbox" value="' + esc(l.LessonID) + '"' + (dis ? ' disabled' : l === open[0] ? ' checked' : '') + '><span><b>' + esc(l.Title) + '</b><small>' + esc(l.Number) + (l.State === 'Finished' ? ' · done' : l.State === 'Sent' ? ' · sent, waiting to be read' : '') + '</small></span></label>';
+        }).join('') + '</fieldset>' : '<input type="hidden" id="rone" value="' + esc(open[0].LessonID) + '">') +
+        '<p class="rf-q" id="rq"></p>' +
+        '<label class="f">Your reflection<textarea class="i" id="rt" style="min-height:180px" placeholder="What did you learn? What will you do about it this week?"></textarea></label>' +
+        '<div><button type="button" class="btn sm" id="rpic">' + icon('camera') + 'Add a photo of a written reflection</button></div><div class="shots" id="rpics"></div>' +
+        '<label class="hp" aria-hidden="true">Website<input id="rw" tabindex="-1" autocomplete="off"></label>' +
+        '<p class="small muted">Only ' + esc(dn) + ' and the church’s discipleship coordinators can read this.</p>' +
+        '<p class="err" id="rerr" hidden></p><button class="btn flame block" id="rgo">' + icon('send') + '<span>Send my reflection</span></button></form>' + hist);
+      var chosenIds = function () { var one = $('#rone'); return one ? [one.value] : $$('#rf input[type=checkbox]:checked').map(function (x) { return x.value; }); };
+      var drawQ = function () { var ids = chosenIds(), l = info.lessons.filter(function (x) { return ids.indexOf(x.LessonID) >= 0; })[0]; var qt = l && (l.Question || DEFAULT_Q[l.LessonID]); $('#rq').textContent = qt ? 'Think about: ' + qt : ''; $('#rq').hidden = !qt; };
+      $$('#rf input[type=checkbox]').forEach(function (x) { x.onchange = drawQ; }); drawQ();
+      var drawPics = function () {
+        $('#rpics').innerHTML = pics.map(function (c, i) { return '<span class="shot"><img class="av shot-img" src="data:image/jpeg;base64,' + c.thumb + '" alt=""><button type="button" class="x" data-pi="' + i + '" aria-label="Remove">×</button></span>'; }).join('');
+        $$('[data-pi]').forEach(function (x) { x.onclick = function () { pics.splice(+x.dataset.pi, 1); drawPics(); }; });
+        $('#rpic').disabled = pics.length >= 3;
+      };
+      $('#rpic').onclick = function () { pickImage(false, function (pic) { pics.push(pic); drawPics(); }); };
+      $('#rf').onsubmit = function (ev) {
+        ev.preventDefault(); var err = $('#rerr'), b = $('#rgo'), ids = chosenIds(), text = $('#rt').value.trim(); err.hidden = true;
+        if (!ids.length) { err.textContent = 'Choose the lesson your reflection is for.'; err.hidden = false; return; }
+        if (text.length < 20 && !pics.length) { err.textContent = 'Please write a little more, or add a photo of your written reflection.'; err.hidden = false; return; }
+        busy(b, true); b.lastChild.textContent = pics.length ? 'Sending… (photos can take a moment)' : 'Sending…';
+        remote('submitReflection', { t: tok, lessonIds: ids, text: text, photos: pics, website: $('#rw').value }).then(function (r) {
+          pics = [];
+          shell('<div class="card stack center-card"><span class="ci big">' + icon('check') + '</span><h2>Thank you, ' + esc(info.first) + '!</h2><p>Your reflection was sent. ' + esc((r && r.discipler) || dn) + ' will read it and let you know.</p>' +
+            '<div class="row" style="justify-content:center"><button type="button" class="btn" id="again">Done</button></div></div>');
+          $('#again').onclick = function () { viewReflect(tok); };
+        }).catch(function (x) { err.textContent = x.message; err.hidden = false; busy(b, false); b.lastChild.textContent = 'Send my reflection'; });
+      };
+    }
+    shell(loadingHTML());
+    Promise.all([loadInfo().catch(function () { return null; }), remote('reflectInfo', { t: tok })]).then(function (a) { draw(a[1]); }).catch(fail2);
+  }
+
   /* ---------- QR codes to share ---------- */
   function appBase() { return location.href.split('#')[0].split('?')[0]; }
   function joinURL() { return appBase() + '#/join'; }
+  function reflectURL(tok) { return appBase() + '#/reflect/' + tok; }
   // Draws a QR code in the app's navy with the logo in the middle (error correction H, so the logo doesn't stop it scanning).
   function qrImage(text, caption, sub) {
     var q = window.qrcode(0, 'H'); q.addData(text); q.make();
@@ -4162,6 +4486,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function route() {
     var parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent), v = parts[0];
     if (v === 'join') return viewJoin(parts[1]); // the open sign-up form works signed in or not
+    if (v === 'reflect') return viewReflect(parts.slice(1).join('/')); // a disciple's personal link to send a reflection
     if (!S.token) { if (v === 'register') { location.replace('#/join/discipler'); return; } return viewLogin(); }
     if (!S.me) {
       if (DEMO_MODE) { var dm = runLocal('me'); if (dm.ok) { S.me = dm.data; return route(); } return signOut(); }
