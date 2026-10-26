@@ -17,7 +17,7 @@ A phone-friendly tracking app for the discipleship ministry. Lessons are taught 
 3. **Deploy a new version:** **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy**. The link stays the same.
 4. **App:** in your GitHub repository, **Add file → Upload files**, drag in `index.html` and the five home-screen files, then **Commit changes**.
 
-The Sheet upgrades itself: new columns (such as **Question** and **SelfPaced** in the Lessons tab, **Kind** and **Reflection** in Sessions) and new tabs (such as **Reflections**) appear the first time they're needed.
+The Sheet upgrades itself: new columns (such as **Question**, **SelfPaced** and **IsLevel** in the Lessons tab, **Kind** and **Reflection** in Sessions) and new tabs (such as **Reflections**) appear the first time they're needed.
 
 **What changed in this version:** the new look (tiles, the journey, floating menu with a big **+** button, wide layouts for tablet and computer), a refresh button and save status in the header, the new Record a session, picture updates for disciples, report PDF, coordinators adding disciples, and disciple sign-in switched **off** (Settings can turn it back on). Meeting confirmations were removed.
 
@@ -76,6 +76,15 @@ If each book is its own level (Level 1 The Foundation, Level 2 The Direction, �
 **Several lessons in one meeting:** open **Change level or lesson** and tap each lesson you covered in that level (or **All remaining**). They're saved together as one session, counted as one meeting, sent as one picture update, and removed together if needed. The Levels list shows each lesson of the level in progress.
 
 When the session finishes the last lesson of a level, a box appears: **Complete Level 2 · The Direction now** (ticked). Saving then also marks the disciple fit to graduate for that level, so the coordinator can issue its certificate. If you untick it and later record the next level, the finished level is completed automatically. A level that was started but not finished has to be continued (or its session removed) before moving to another.
+
+## Levels with lessons under them
+
+In **More → Lessons**, each level is a card: the **heading** holds the book's name (for example *Level 1 · The Foundation*), and the lessons under it are what disciplers tick off when recording a session.
+
+- **Breaking a one-row level into lessons:** tap **Add a lesson** on the level. The first time, a ticked box makes the existing row the level's heading, so it no longer appears as a lesson.
+- **A level that already has the book row mixed in with its lessons** shows a note. Tap **Make it the level heading** on the book row (tap twice to confirm). Do this once per level.
+- Sessions already recorded on the book row still count: a finished one counts for every lesson in that level, so nobody loses progress.
+- **Edit level** changes the book title and level name; untick **This is the level heading** to turn it back into a lesson.
 
 ## Self-paced levels and reflections
 
