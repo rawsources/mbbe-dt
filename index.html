@@ -810,6 +810,21 @@ label.row > input[type="checkbox"] { flex: none; margin: 3px 0 0; width: 18px; h
 .lv-warn { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--flame-soft); border: 1px solid color-mix(in srgb, var(--flame) 35%, transparent) }
 @media (min-width: 700px) { .lv-h { grid-template-columns: auto minmax(0, 1fr) auto } .lv-a { grid-column: auto } }
 
+/* ---------- sheets on phones: fit the visible screen, scroll inside, page behind stays put ---------- */
+.sheet { max-height: calc(100vh - 72px); max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px)) }
+.sheet.upd { max-height: calc(100vh - 64px); max-height: calc(100dvh - 64px - env(safe-area-inset-top, 0px)) }
+.sheet header { flex: none }
+.sheet-body { min-height: 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y }
+html:has(.sheet.on), body:has(.sheet.on) { overflow: hidden; overscroll-behavior: none }
+@media (max-width: 639px) {
+  .upd-img { display: grid; justify-items: center }
+  .upd-img img { width: auto; max-width: 100%; max-height: 46vh; max-height: 46dvh }
+  .upd-body { padding-bottom: 0 }
+  .upd-grid, .upd-side { display: contents } /* the button bar can then stick to the bottom of the whole sheet */
+  .upd-acts { position: sticky; bottom: 0; z-index: 2; background: var(--surface); padding: 10px 0 2px; margin-top: 2px; box-shadow: 0 -10px 14px -10px rgba(0, 0, 0, .18) }
+  .upd-acts .btn { min-height: 44px }
+}
+
 </style>
 </head>
 <body>
@@ -825,7 +840,7 @@ window.addEventListener('error', function (e) {
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* Self-update: GitHub Pages lets browsers keep a page for 10 minutes. On open, check for a newer copy and reload once if found. */
-window.APP_BUILD = '20261027002756';
+window.APP_BUILD = '20261027013714';
 (function () {
   if (!/^https?:/.test(location.protocol) || !window.fetch || window.APP_CONFIG_IS_ARTIFACT) return;
   try { if (sessionStorage.getItem('dt-upd') === window.APP_BUILD) return; } catch (e) {}
